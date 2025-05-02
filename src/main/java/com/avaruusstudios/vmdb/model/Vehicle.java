@@ -7,56 +7,33 @@ import java.time.LocalDate;
  * Each vehicle may be assigned to invoices and participants.
  */
 public class Vehicle {
-    /**
-     * Unique identifier for the vehicle
-     */
+    /** Unique identifier for the vehicle */
     private int vehicleID;
-    /**
-     * Vehicle number, e.g., license plate or unit number
-     */
+    /** Vehicle number, e.g., license plate or unit number */
     private String vehicleNumber;
-    /**
-     * Vehicle make (e.g., Ford, Toyota)
-     */
+    /** Vehicle make (e.g., Ford, Toyota) */
     private String make;
-    /**
-     * Vehicle model (e.g., Transit, Sienna)
-     */
+    /** Vehicle model (e.g., Transit, Sienna) */
     private String model;
-    /**
-     * Year of manufacture
-     */
+    /** Year of manufacture */
     private int year;
-    /**
-     * Seating capacity of the vehicle
-     */
+    /** Seating capacity of the vehicle */
     private int capacity;
-    /**
-     * Lease start date in ISO format (yyyy-MM-dd)
-     */
+    /** Lease start date in ISO format (yyyy-MM-dd HH:MM) */
     private LocalDate leaseStartDate;
-    /**
-     * Lease end date, nullable
-     */
+    /** Lease end date, nullable */
     private LocalDate leaseEndDate;
-    /**
-     * Indicates if vehicle is active (1=true, 0=false)
-     */
+    /** Indicates if vehicle is active (1=true, 0=false) */
     private boolean active;
-    /**
-     * Subsidy amount associated with the vehicle
-     */
+    /** Subsidy amount associated with the vehicle */
     private double subsidyAmount;
-    /**
-     * Notes or comments about the vehicle
-     */
+    /** Notes or comments about the vehicle */
     private String notes;
 
     /**
      * Default constructor
      */
-    public Vehicle() {
-    }
+    public Vehicle() {}
     /**
      * Full constructor to initialize all fields.
      *
