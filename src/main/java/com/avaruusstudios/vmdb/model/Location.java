@@ -13,6 +13,8 @@ public class Location {
     private String address;
     /** City where the location is situated */
     private String city;
+    /** State where the location is situated */
+    private String state;
     /** Postal zip code for this location */
     private String zipCode;
     /** Optional notes about the location, such as landmarks, accessibility, or scheduling info */
@@ -111,6 +113,22 @@ public class Location {
      */
     public void setCity(String city) {
         this.city = city;
+    }
+    /**
+     * Gets the city where this location is situated.
+     *
+     * @return state Name of the State as a string.
+     */
+    public String getState() {
+        return state;
+    }
+    /**
+     * Sets the city for this location.
+     *
+     * @param state City name.
+     */
+    public void setState(String state) {
+        this.state = state;
     }
     /**
      * Gets the zip code associated with this location.
