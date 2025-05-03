@@ -3,8 +3,9 @@ package com.avaruusstudios.vmdb.model;
 import java.time.LocalDate;
 
 /**
- * Represents a vehicle in the vanpool system.
- * Each vehicle may be assigned to invoices and participants.
+ * Represents a vehicle used in the Vanpool Management System.
+ * A vehicle contains metadata such as make, model, capacity, lease period, and subsidy details.
+ * This object reflects the schema used to track active/inactive vanpool vehicles.
  */
 public class Vehicle {
     /** Unique identifier for the vehicle */
@@ -70,177 +71,190 @@ public class Vehicle {
     // ---------------------
 
     /**
-     * Gets the VehicleID from the datasource
+     * Gets the unique ID assigned to this vehicle.
      *
-     * @return the vehicle ID
+     * @return vehicleID A numeric primary key used to identify this record.
      */
-    public int getVehicleID() {
+    public int getVehicleId() {
         return vehicleID;
     }
     /**
-     * Sets the VehicleID in the datasource
+     * Sets the unique vehicle ID.
+     * This method is typically used when initializing a vehicle object from a persisted source.
      *
-     * @param vehicleID sets the vehicle ID
+     * @param vehicleId Numeric primary key from the database.
      */
-    public void setVehicleID(int vehicleID) {
-        this.vehicleID = vehicleID;
+    public void setVehicleId(int vehicleId) {
+        this.vehicleID = vehicleId;
     }
     /**
-     * Gets the Vehicle Number from the datasource
+     * Retrieves the vehicle number used for internal tracking.
+     * This is often a human-readable alphanumeric ID assigned during fleet onboarding.
      *
-     * @return the vehicle number
+     * @return vehicleNumber Fleet tracking number such as "VAN-1024".
      */
     public String getVehicleNumber() {
         return vehicleNumber;
     }
     /**
-     * Sets the Vehicle Number in the datasource
+     * Sets the vehicle number that uniquely identifies it within the organization.
      *
-     * @param vehicleNumber sets the vehicle number
+     * @param vehicleNumber Alphanumeric tracking code for internal reference.
      */
     public void setVehicleNumber(String vehicleNumber) {
         this.vehicleNumber = vehicleNumber;
     }
     /**
-     * Gets the Vehicle Make from the datasource
+     * Gets the manufacturer name of this vehicle.
+     * Common examples include Ford, Toyota, Honda.
      *
-     * @return the vehicle make
+     * @return make Vehicle's manufacturer brand name.
      */
     public String getMake() {
         return make;
     }
     /**
-     * Sets the Vehicle Make in the datasource
+     * Sets the make or brand of the vehicle.
+     * Used to distinguish between manufacturers in reports or filters.
      *
-     * @param make sets the vehicle make
+     * @param make Brand name such as "Ford" or "Chevrolet".
      */
     public void setMake(String make) {
         this.make = make;
     }
     /**
-     * Gets the Vehicle Model from the datasource
+     * Gets the specific model of the vehicle (e.g., Transit, Odyssey).
      *
-     * @return the vehicle model
+     * @return model Model name assigned by the manufacturer.
      */
     public String getModel() {
         return model;
     }
     /**
-     * Sets the Vehicle Model in the datasource
+     * Sets the specific model for this vehicle.
+     * Helps distinguish between different configurations or types in the same make.
      *
-     * @param model sets the vehicle model
+     * @param model Manufacturer model name.
      */
     public void setModel(String model) {
         this.model = model;
     }
     /**
-     * Gets the Vehicle Year from the datasource
+     * Retrieves the manufacturing year of the vehicle.
      *
-     * @return the manufacture year
+     * @return year 4-digit year of production (e.g., 2021).
      */
     public int getYear() {
         return year;
     }
     /**
-     * Sets the Vehicle Year in the datasource
+     * Sets the vehicle's year of manufacture.
      *
-     * @param year sets the manufacture year
+     * @param year Year vehicle was built, used for age, compliance, or valuation.
      */
     public void setYear(int year) {
         this.year = year;
     }
     /**
-     * Gets the Vehicle Seating Capacity from the datasource
+     * Returns the maximum passenger capacity of this vehicle.
      *
-     * @return the seating capacity
+     * @return capacity Number of riders this vehicle can accommodate.
      */
     public int getCapacity() {
         return capacity;
     }
     /**
-     * Sets the Vehicle Seating Capacity in the datasource
+     * Defines the number of passengers the vehicle can hold.
+     * May be used for route planning and eligibility validation.
      *
-     * @param capacity sets the seating capacity
+     * @param capacity Number of passenger seats available.
      */
     public void setCapacity(int capacity) {
         this.capacity = capacity;
     }
     /**
-     * Gets the Vehicle Lease Start Date from the datasource
+     * Retrieves the date the vehicle lease started.
      *
-     * @return the lease start date
+     * @return leaseStartDate Start of lease in ISO format (YYYY-MM-DD).
      */
     public LocalDate getLeaseStartDate() {
         return leaseStartDate;
     }
     /**
-     * Sets the Vehicle Lease Start Date in the datasource
+     * Sets the lease start date for this vehicle.
+     * Indicates when the leasing agreement or service period began.
      *
-     * @param leaseStartDate sets the lease start date
+     * @param leaseStartDate ISO 8601-formatted start date.
      */
     public void setLeaseStartDate(LocalDate leaseStartDate) {
         this.leaseStartDate = leaseStartDate;
     }
     /**
-     * Gets the Vehicle Lease End Date from the datasource
+     * Retrieves the date the lease ends, if one is set.
      *
-     * @return the lease end date
+     * @return leaseEndDate The scheduled lease termination date or null if indefinite.
      */
     public LocalDate getLeaseEndDate() {
         return leaseEndDate;
     }
     /**
-     * Sets the Vehicle Lease End Date in the datasource
+     * Sets the lease end date for this vehicle.
+     * Can be null if the lease is open-ended or not yet terminated.
      *
-     * @param leaseEndDate sets the lease end date
+     * @param leaseEndDate ISO-formatted end date or null.
      */
     public void setLeaseEndDate(LocalDate leaseEndDate) {
         this.leaseEndDate = leaseEndDate;
     }
     /**
-     * Gets the Vehicle State from the datasource.  This is a boolean value; 0 = Inactive, 1 = Active
+     * Indicates whether the vehicle is currently available and in use.
      *
-     * @return whether the vehicle is active
+     * @return true if the vehicle is active; false if retired or unavailable.
      */
     public boolean isActive() {
         return active;
     }
     /**
-     * Sets the Vehicle State in the datasource.  This is a boolean value; 0 = Inactive, 1 = Active
+     * Toggles the vehicle's operational status.
+     * This flag helps in filtering active inventory or deactivating vehicles.
      *
-     * @param active sets whether the vehicle is active
+     * @param active Set to true for active vehicles; false to deactivate.
      */
     public void setActive(boolean active) {
         this.active = active;
     }
     /**
-     * Gets the Subsidy Amount for the Vehicle from the datasource
+     * Gets the subsidy amount tied to this vehicle.
+     * This may be used in cost calculations, reports, or eligibility audits.
      *
-     * @return the subsidy amount
+     * @return subsidyAmount Dollar amount of external or internal funding.
      */
     public double getSubsidyAmount() {
         return subsidyAmount;
     }
     /**
-     * Sets the Subsidy Amount for the Vehicle in the datasource
+     * Sets the monetary subsidy provided for this vehicle.
+     * May be used to offset leasing costs or participant dues.
      *
-     * @param subsidyAmount sets the subsidy amount
+     * @param subsidyAmount Amount in USD (e.g., 300.00).
      */
     public void setSubsidyAmount(double subsidyAmount) {
         this.subsidyAmount = subsidyAmount;
     }
     /**
-     * Gets the Notes for the Vehicle from the datasource
+     * Retrieves any supplemental notes or comments for the vehicle.
+     * Could include maintenance details, custom configurations, or usage instructions.
      *
-     * @return any additional notes
+     * @return notes Optional string of notes; may be null or empty.
      */
     public String getNotes() {
         return notes;
     }
     /**
-     * Sets the Notes for the Vehicle in the datasource
+     * Assigns additional notes or commentary to this vehicle record.
+     * This can be used for informal remarks, scheduling quirks, or internal memos.
      *
-     * @param notes sets any additional notes
+     * @param notes Additional comments or remarks about this vehicle.
      */
     public void setNotes(String notes) {
         this.notes = notes;
