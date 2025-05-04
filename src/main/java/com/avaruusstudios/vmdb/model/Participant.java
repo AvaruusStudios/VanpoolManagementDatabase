@@ -21,9 +21,9 @@ public class Participant {
     /** Phone number associated with the participant (may include mobile or office) */
     private String phone;
     /** ID of the vehicle the participant is assigned to (foreign key) */
-    private int pickUpLocation_FK;
+    private int pickUpLocationID;
     /** ID of the location the participant is associated with (foreign key) */
-    private int dropOffLocation_FK;
+    private int dropOffLocationID;
     /** Distance in miles from PickUpLocation_FK to DropOffLocation_FK */
     private double distance;
     /** Date when the participant was added to the system */
@@ -49,15 +49,15 @@ public class Participant {
      * @param lastName              Participant's last name
      * @param email                 Contact email
      * @param phone                 Contact phone number
-     * @param PickUpLocation_FK     Associated location ID
-     * @param DropOffLocation_FK    Associated location ID
-     * @param distance              Distance in miles from PickUpLocation_FK to DropOffLocation_FK
+     * @param pickUpLocationID     Associated location ID
+     * @param dropOffLocationID    Associated location ID
+     * @param distance              Distance in miles from pickUpLocationID to dropOffLocationID
      * @param joinDate              Date of enrollment in the vanpool program
      * @param active                True if actively commuting
      * @param notes                 Freeform notes or annotations
      */
     public Participant(int participantID, String firstName, String middleName, String lastName, String email,
-                       String phone, int PickUpLocation_FK, int DropOffLocation_FK, double distance, LocalDate joinDate,
+                       String phone, int pickUpLocationID, int dropOffLocationID, double distance, LocalDate joinDate,
                        boolean active, String notes) {
         this.participantID = participantID;
         this.firstName = firstName;
@@ -65,8 +65,8 @@ public class Participant {
         this.lastName = lastName;
         this.email = email;
         this.phone = phone;
-        this.pickUpLocation_FK = PickUpLocation_FK;
-        this.dropOffLocation_FK = DropOffLocation_FK;
+        this.pickUpLocationID = pickUpLocationID;
+        this.dropOffLocationID = dropOffLocationID;
         this.distance = distance;
         this.joinDate = joinDate;
         this.active = active;
@@ -176,34 +176,34 @@ public class Participant {
     /**
      * Gets the ID of the vehicle assigned to this participant.
      *
-     * @return pickUpLocation_FK Foreign key referencing a Vehicle object.
+     * @return pickUpLocationID Foreign key referencing a Vehicle object.
      */
-    public int getPickUpLocation_FK() {
-        return pickUpLocation_FK;
+    public int getPickUpLocationID() {
+        return pickUpLocationID;
     }
     /**
      * Sets the ID of the vehicle associated with this participant.
      *
      * @param PickUpLocation_FK Vehicle reference ID for routing and matching.
      */
-    public void setPickUpLocation_FK(int PickUpLocation_FK) {
-        this.pickUpLocation_FK = PickUpLocation_FK;
+    public void setPickUpLocationID(int PickUpLocation_FK) {
+        this.pickUpLocationID = PickUpLocation_FK;
     }
     /**
      * Retrieves the location ID where this participant is based.
      *
-     * @return dropOffLocation_FK Foreign key to a Location entity.
+     * @return dropOffLocationID Foreign key to a Location entity.
      */
-    public int getDropOffLocation_FK() {
-        return dropOffLocation_FK;
+    public int getDropOffLocationID() {
+        return dropOffLocationID;
     }
     /**
      * Sets the participant's associated location ID.
      *
-     * @param dropOffLocation_FK ID of pickup/drop-off location.
+     * @param dropOffLocationID ID of pickup/drop-off location.
      */
-    public void setDropOffLocation_FK(int dropOffLocation_FK) {
-        this.dropOffLocation_FK = dropOffLocation_FK;
+    public void setDropOffLocationID(int dropOffLocationID) {
+        this.dropOffLocationID = dropOffLocationID;
     }
     /**
      * Gets the distance in miles from PickUpLocation_FK to DropOffLocation_FK.

@@ -31,14 +31,14 @@ CREATE TABLE Participants (
     MiddleName TEXT,
     Email TEXT NOT NULL,
     Phone TEXT,
-    PickUpLocation_FK INTEGER,
-    DropOffLocation_FK INTEGER,
+    pickUpLocationID_FK INTEGER,
+    dropOffLocationID_FK INTEGER,
     DistanceMiles REAL NOT NULL,
     JoinDate TEXT NOT NULL,
     Active INTEGER NOT NULL DEFAULT 1,
     Notes TEXT,
-    FOREIGN KEY (PickUpLocation_FK) REFERENCES Locations(LocationID),
-    FOREIGN KEY (DropOffLocation_FK) REFERENCES Locations(LocationID)
+    FOREIGN KEY (pickUpLocationID_FK) REFERENCES Locations(LocationID),
+    FOREIGN KEY (dropOffLocationID_FK) REFERENCES Locations(LocationID)
 );
 
 -- 🧾 Invoices
