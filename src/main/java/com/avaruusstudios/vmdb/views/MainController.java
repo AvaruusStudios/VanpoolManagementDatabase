@@ -1,4 +1,4 @@
-package com.avaruusstudios.vmdb;
+package com.avaruusstudios.vmdb.views;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
