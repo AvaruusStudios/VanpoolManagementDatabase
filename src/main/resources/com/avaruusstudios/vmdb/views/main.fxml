@@ -35,41 +35,38 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox prefHeight="768.0" prefWidth="1024.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.avaruusstudios.vmdb.views.MainController">
+<VBox prefHeight="768.0" prefWidth="1024.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.avaruusstudios.vmdb.views.MainController">
   <MenuBar VBox.vgrow="NEVER">
     <Menu mnemonicParsing="false" text="File">
-      <MenuItem mnemonicParsing="false" text="New"/>
-      <SeparatorMenuItem mnemonicParsing="false"/>
-      <MenuItem mnemonicParsing="false" text="Preferences…"/>
-      <SeparatorMenuItem mnemonicParsing="false"/>
-      <MenuItem mnemonicParsing="false" text="Quit"/>
+      <MenuItem mnemonicParsing="false" text="New" />
+      <SeparatorMenuItem mnemonicParsing="false" />
+      <MenuItem mnemonicParsing="false" text="Preferences…" />
+      <SeparatorMenuItem mnemonicParsing="false" />
+      <MenuItem mnemonicParsing="false" text="Quit" />
     </Menu>
     <Menu mnemonicParsing="false" text="Edit">
-      <MenuItem mnemonicParsing="false" text="Undo"/>
-      <MenuItem mnemonicParsing="false" text="Redo"/>
-      <SeparatorMenuItem mnemonicParsing="false"/>
-      <MenuItem mnemonicParsing="false" text="Cut"/>
-      <MenuItem mnemonicParsing="false" text="Copy"/>
-      <MenuItem mnemonicParsing="false" text="Paste"/>
-      <MenuItem mnemonicParsing="false" text="Delete"/>
-      <SeparatorMenuItem mnemonicParsing="false"/>
-      <MenuItem mnemonicParsing="false" text="Select All"/>
-      <MenuItem mnemonicParsing="false" text="Unselect All"/>
+      <MenuItem mnemonicParsing="false" text="Undo" />
+      <MenuItem mnemonicParsing="false" text="Redo" />
+      <SeparatorMenuItem mnemonicParsing="false" />
+      <MenuItem mnemonicParsing="false" text="Cut" />
+      <MenuItem mnemonicParsing="false" text="Copy" />
+      <MenuItem mnemonicParsing="false" text="Paste" />
+      <MenuItem mnemonicParsing="false" text="Delete" />
+      <SeparatorMenuItem mnemonicParsing="false" />
+      <MenuItem mnemonicParsing="false" text="Select All" />
+      <MenuItem mnemonicParsing="false" text="Unselect All" />
     </Menu>
     <Menu mnemonicParsing="false" text="Help">
-      <MenuItem mnemonicParsing="false" text="About MyHelloApp"/>
+      <MenuItem mnemonicParsing="false" text="About MyHelloApp" />
     </Menu>
   </MenuBar>
   <SplitPane dividerPositions="0.5" VBox.vgrow="ALWAYS">
     <AnchorPane maxHeight="-1.0" maxWidth="300.0" minHeight="300.0">
-      <TreeView fx:id="navigationTreeView" prefHeight="741.0" prefWidth="300.0" AnchorPane.bottomAnchor="0.0"
-                AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+      <TreeView fx:id="navigationTreeView" prefHeight="741.0" prefWidth="300.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
     </AnchorPane>
     <AnchorPane>
-      <AnchorPane maxHeight="-Infinity" minHeight="-Infinity" prefHeight="100.0" prefWidth="716.0"
-                  AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0"/>
-      <TableView fx:id="mainTableView" layoutY="100.0" prefHeight="637.0" prefWidth="716.0"/>
+      <AnchorPane maxHeight="-Infinity" minHeight="-Infinity" prefHeight="100.0" prefWidth="716.0" AnchorPane.bottomAnchor="641.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+      <TableView fx:id="mainTableView" layoutY="100.0" prefHeight="641.0" prefWidth="716.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="100.0" />
     </AnchorPane>
   </SplitPane>
 </VBox>

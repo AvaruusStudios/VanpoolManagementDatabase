@@ -1,6 +1,7 @@
 module com.avaruusstudios.vmdb {
     requires javafx.controls;
     requires javafx.fxml;
+    requires java.sql;
 
 
     opens com.avaruusstudios.vmdb to javafx.fxml;
