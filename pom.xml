@@ -11,8 +11,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <junit.version>5.10.2</junit.version>
-        <openjfx.version>17.0.6</openjfx.version>
+        <junit.version>5.13.0-M3</junit.version>
+        <openjfx.version>25-ea+14</openjfx.version>
         <xerial.version>3.45.1.0</xerial.version>
     </properties>
 
