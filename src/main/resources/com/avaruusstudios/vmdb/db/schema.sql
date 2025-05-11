@@ -101,3 +101,16 @@ CREATE TABLE EventLog (
     Description TEXT,
     UserName TEXT NOT NULL
 );
+
+-- 👤 Users
+CREATE TABLE Users (
+    UserID INTEGER PRIMARY KEY AUTOINCREMENT,
+    WindowsUsername VARCHAR(255) UNIQUE NOT NULL,
+    FirstName VARCHAR(255),
+    MiddleName VARCHAR(255),
+    LastName VARCHAR(255),
+    Email VARCHAR(255),
+    UserRole VARCHAR(50) NOT NULL, -- e.g., "ADMIN", "TREASURER", "USER"
+    IsActive INTEGER NOT NULL DEFAULT 1, -- Assuming 1 for TRUE, 0 for FALSE
+    DateCreated TEXT DEFAULT CURRENT_TIMESTAMP -- SQLite uses TEXT for DATETIME and CURRENT_TIMESTAMP
+);
