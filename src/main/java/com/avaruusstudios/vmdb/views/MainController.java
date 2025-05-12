@@ -4,8 +4,17 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.util.Callback;
-import java.sql.*;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,48 +22,88 @@ import java.util.Map;
 
 public class MainController {
     @FXML
-    private TreeView<String> navigationTreeView;
+    private ListView<String> navigationListView;
     @FXML
     private TableView<Map<String, Object>> mainTableView;
+    @FXML
+    private Label txtCurrentDate;
+
+    private ObservableList<String> navigationItems;
 
     public void initialize() {
-        /** Creates a root item in the TreeView Navigation */
-        TreeItem<String> root = new TreeItem<>("Navigation");
-        root.setExpanded(true);
+        navigationItems = FXCollections.observableArrayList("Participants", "Add Participant", "Edit Participant", "Remove Participant");
+        navigationListView.setItems(navigationItems);
 
-        /** Prevent collapsing the root node */
-        root.expandedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue) { // If the user tries to collapse (newValue is false)
-                root.setExpanded(true); // Immediately expand it back
+        // Set the current date in the txtCurrentDate TextField
+        LocalDate currentDate = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy"); // You can adjust the format
+        txtCurrentDate.setText(currentDate.format(formatter));
+
+        // Prevent any selection from the ListView
+        navigationListView.setSelectionModel(null); // Disable selection model
+
+        navigationListView.setCellFactory(param -> new ListCell<String>() {
+            private final Label textLabel = new Label();
+            private final Color defaultColor = Color.BLUE;
+            private final Color clickedColor = Color.PURPLE;
+
+            {
+                textLabel.setFont(Font.font("System", 14));
+                textLabel.setTextFill(Color.BLUE);
+                textLabel.setUnderline(true);
+                setGraphic(textLabel);
+                setText(null); // Ensure default text is null
+                textLabel.setCursor(javafx.scene.Cursor.HAND);
+
+                // Set the click handler ONLY on the textLabel
+                textLabel.setOnMouseClicked(event -> {
+                    if (event.getClickCount() == 1) {
+                        String item = getItem();
+                        // Change color on click
+                        textLabel.setTextFill(clickedColor);
+                        switch (item) {
+                            case "Participants":
+                                loadTableData("SELECT * FROM Participants");
+                                break;
+                            case "Add Participant":
+                                System.out.println("Text Clicked: Add Participant");
+                                break;
+                            case "Edit Participant":
+                                System.out.println("Text Clicked: Edit Participant");
+                                break;
+                            case "Remove Participant":
+                                System.out.println("Text Clicked: Remove Participant");
+                                break;
+                        }
+                        event.consume(); // Prevent propagation
+
+                        // Revert to the default color after a short delay
+                        javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.millis(200)); // Adjust delay as needed
+                        pause.setOnFinished(e -> textLabel.setTextFill(defaultColor));
+                        pause.play();
+                    }
+                });
+
+                // Prevent the ListCell from being selected on click
+                setOnMouseClicked(event -> {
+                    event.consume();
+                });
             }
-        });
 
-        /** Creates group in the TreeView Navigation */
-        TreeItem<String> participantsGroup = new TreeItem<>("Participants");
-        participantsGroup.setExpanded(true);
-
-        /** Creates sub-items for addition to a group in the TreeView Navigation */
-        TreeItem<String> addParticipantItem = new TreeItem<>("Add Participant");
-        TreeItem<String> editParticipantItem = new TreeItem<>("Edit Participant");
-        TreeItem<String> removeParticipantItem = new TreeItem<>("Remove Participant");
-
-        /** Adds the items to the group */
-        participantsGroup.getChildren().addAll(addParticipantItem, editParticipantItem, removeParticipantItem);
-
-        /** Adds the group to the root */
-        root.getChildren().add(participantsGroup);
-
-        navigationTreeView.setRoot(root);
-        navigationTreeView.setShowRoot(true);
-
-//        final TreeItem<String> finalRoot = root;
-
-        navigationTreeView.setCellFactory(new Callback<TreeView<String>, TreeCell<String>>() {
             @Override
-            public TreeCell<String> call(TreeView<String> param) {
-                NavigationTreeCell cell = new NavigationTreeCell(root, MainController.this);
-                cell.setRootItem(root);
-                return cell;
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (empty || item == null) {
+                    textLabel.setText(null);
+                    setGraphic(null);
+                    setOnMouseClicked(null); // Clear any ListCell click handler
+                } else {
+                    textLabel.setText(item);
+                    setGraphic(textLabel);
+                    // The ListCell's onMouseClicked now consumes the event,
+                    // preventing default selection.
+                }
             }
         });
     }
@@ -96,52 +145,6 @@ public class MainController {
 
         } catch (SQLException e) {
             e.printStackTrace(); // Handle the exception properly
-        }
-    }
-
-    /** Custom TreeCell Factory */
-    private static class NavigationTreeCell extends TreeCell<String> {
-        private TreeItem<String> rootItem;
-        private final MainController controller;
-
-        public NavigationTreeCell(TreeItem<String> rootItem, MainController controller) {
-            this.rootItem = rootItem;
-            this.controller = controller;
-            setOnMouseClicked(event -> {
-                if (!isEmpty() && event.getClickCount() == 1) {
-                    String item = getItem();
-                    if (item != null) {
-                        switch (item) {
-                            case "Participants":
-                                System.out.println("TreeCell Clicked: Participants");
-                                this.controller.loadTableData("SELECT * FROM Participants");
-                                break;
-                            case "Add Participant":
-                                System.out.println("TreeCell Clicked: Add Participant");
-                                break;
-                            case "Edit Participant":
-                                System.out.println("TreeCell Clicked: Edit Participant");
-                                break;
-                            case "Remove Participant":
-                                System.out.println("TreeCell Clicked: Remove Participant");
-                                break;
-                        }
-                    }
-                }
-            });
-        }
-
-        public void setRootItem(TreeItem<String> rootItem) {
-            this.rootItem = rootItem;
-        }
-
-        @Override
-        protected void updateItem(String item, boolean empty) {
-            super.updateItem(item, empty);
-            setText(empty ? null : item);
-            if (getTreeItem() == rootItem) {
-                setDisclosureNode(null);
-            }
         }
     }
 }

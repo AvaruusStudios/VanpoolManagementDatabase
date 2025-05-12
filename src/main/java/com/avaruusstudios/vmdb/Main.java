@@ -14,6 +14,7 @@ public class Main extends Application {
 //        FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getResource("/com/avaruusstudios/vmdb/views/main.fxml"));
         FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getResource("views/main.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 1024, 768);
+//        scene.getStylesheets().add(getClass().getResource("styles/styles.css").toExternalForm());
         stage.setTitle("Vanpool Management Database");
         stage.setScene(scene);
         stage.show();
