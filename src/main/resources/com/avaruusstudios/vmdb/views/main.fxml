@@ -83,10 +83,30 @@
       </Group>
     </AnchorPane>
     <AnchorPane>
-      <SplitPane dividerPositions="0.5">
-        <AnchorPane maxWidth="300.0" minHeight="300.0">
-          <ListView fx:id="navigationListView" prefHeight="741.0" prefWidth="300.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-        </AnchorPane>
+      <SplitPane dividerPositions="0.3">
+        <Accordion maxWidth="300.0" minWidth="300.00">
+          <panes>
+            <TitledPane fx:id="participantTitledPane" animated="false" text="Participants">
+              <VBox>
+                <Hyperlink fx:id="createParticipant" text="Create Participant" />
+                <Hyperlink fx:id="updateParticipant" text="Update Participant" />
+                <Hyperlink fx:id="deleteParticipant" text="Delete Participant" />
+              </VBox>
+            </TitledPane>
+            <TitledPane fx:id="transactionTitledPane" animated="false" text="Transactions">
+              <VBox>
+                <Hyperlink fx:id="createTransaction" text="Create Transaction" />
+                <Hyperlink fx:id="updateTransaction" text="Update Participant" />
+                <Hyperlink fx:id="deleteTransaction" text="Delete Participant" />
+              </VBox>
+            </TitledPane>
+            <TitledPane fx:id="locationTitledPane" animated="false" text="Locations">
+              <VBox>
+
+              </VBox>
+            </TitledPane>
+          </panes>
+        </Accordion>
         <AnchorPane>
           <TableView fx:id="mainTableView" layoutY="100.0" prefHeight="641.0" prefWidth="716.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
         </AnchorPane>

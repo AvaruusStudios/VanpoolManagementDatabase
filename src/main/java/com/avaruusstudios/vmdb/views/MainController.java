@@ -4,9 +4,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -22,88 +19,61 @@ import java.util.Map;
 
 public class MainController {
     @FXML
-    private ListView<String> navigationListView;
-    @FXML
     private TableView<Map<String, Object>> mainTableView;
     @FXML
     private Label txtCurrentDate;
-
-    private ObservableList<String> navigationItems;
+    @FXML
+    private TitledPane participantTitledPane;
+    @FXML
+    private TitledPane transactionTitledPane;
+    @FXML
+    private Hyperlink createParticipant;
+    @FXML
+    private Hyperlink updateParticipant;
+    @FXML
+    private Hyperlink deleteParticipant;
+    @FXML
+    private Hyperlink createTransaction;
+    @FXML
+    private Hyperlink updateTransaction;
+    @FXML
+    private Hyperlink deleteTransaction;
 
     public void initialize() {
-        navigationItems = FXCollections.observableArrayList("Participants", "Add Participant", "Edit Participant", "Remove Participant");
-        navigationListView.setItems(navigationItems);
-
         // Set the current date in the txtCurrentDate TextField
         LocalDate currentDate = LocalDate.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy"); // You can adjust the format
         txtCurrentDate.setText(currentDate.format(formatter));
 
-        // Prevent any selection from the ListView
-        navigationListView.setSelectionModel(null); // Disable selection model
+        // Set onAction handlers for Participant Hyperlinks
+        createParticipant.setOnAction(event -> System.out.println("Create Participant clicked - Implement Add Logic"));
+        updateParticipant.setOnAction(event -> System.out.println("Update Participant clicked - Implement Edit Logic"));
+        deleteParticipant.setOnAction(event -> System.out.println("Delete Participant clicked - Implement Delete Logic"));
 
-        navigationListView.setCellFactory(param -> new ListCell<String>() {
-            private final Label textLabel = new Label();
-            private final Color defaultColor = Color.BLUE;
-            private final Color clickedColor = Color.PURPLE;
+        // Set onAction handlers for Transaction Hyperlinks
+        createTransaction.setOnAction(event -> System.out.println("Create Transaction clicked - Implement Add Logic"));
+        updateTransaction.setOnAction(event -> System.out.println("Update Transaction clicked - Implement Edit Logic"));
+        deleteTransaction.setOnAction(event -> System.out.println("Delete Transaction clicked - Implement Delete Logic"));
 
-            {
-                textLabel.setFont(Font.font("System", 14));
-                textLabel.setTextFill(Color.BLUE);
-                textLabel.setUnderline(true);
-                setGraphic(textLabel);
-                setText(null); // Ensure default text is null
-                textLabel.setCursor(javafx.scene.Cursor.HAND);
-
-                // Set the click handler ONLY on the textLabel
-                textLabel.setOnMouseClicked(event -> {
-                    if (event.getClickCount() == 1) {
-                        String item = getItem();
-                        // Change color on click
-                        textLabel.setTextFill(clickedColor);
-                        switch (item) {
-                            case "Participants":
-                                loadTableData("SELECT * FROM Participants");
-                                break;
-                            case "Add Participant":
-                                System.out.println("Text Clicked: Add Participant");
-                                break;
-                            case "Edit Participant":
-                                System.out.println("Text Clicked: Edit Participant");
-                                break;
-                            case "Remove Participant":
-                                System.out.println("Text Clicked: Remove Participant");
-                                break;
-                        }
-                        event.consume(); // Prevent propagation
-
-                        // Revert to the default color after a short delay
-                        javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.millis(200)); // Adjust delay as needed
-                        pause.setOnFinished(e -> textLabel.setTextFill(defaultColor));
-                        pause.play();
-                    }
-                });
-
-                // Prevent the ListCell from being selected on click
-                setOnMouseClicked(event -> {
-                    event.consume();
-                });
+        // Listen for expansion changes on Participant TitledPane
+        participantTitledPane.expandedProperty().addListener((observable, oldValue, newValue) -> {
+//            System.out.println("Participant TitledPane expanded: " + newValue);
+            if (newValue) {
+                loadTableData("SELECT * FROM Participants");
+            } else {
+//                System.out.println("Participant TitledPane collapsed - Clearing table");
+                clearTableData();
             }
+        });
 
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-
-                if (empty || item == null) {
-                    textLabel.setText(null);
-                    setGraphic(null);
-                    setOnMouseClicked(null); // Clear any ListCell click handler
-                } else {
-                    textLabel.setText(item);
-                    setGraphic(textLabel);
-                    // The ListCell's onMouseClicked now consumes the event,
-                    // preventing default selection.
-                }
+        // Listen for expansion changes on Transaction TitledPane
+        transactionTitledPane.expandedProperty().addListener((observable, oldValue, newValue) -> {
+//            System.out.println("Transaction TitledPane expanded: " + newValue);
+            if (newValue) {
+                loadTableData("SELECT * FROM Transactions"); // Adjust query as needed
+            } else {
+//                System.out.println("Transaction TitledPane collapsed - Clearing table");
+                clearTableData();
             }
         });
     }
@@ -146,5 +116,13 @@ public class MainController {
         } catch (SQLException e) {
             e.printStackTrace(); // Handle the exception properly
         }
+    }
+
+    /** Clears the data from the TableView */
+    private void clearTableData() {
+        mainTableView.getItems().clear();
+        mainTableView.getColumns().clear();
+        // Optionally, you could set a placeholder text if the table is empty
+         mainTableView.setPlaceholder(new Label("No data to display"));
     }
 }
