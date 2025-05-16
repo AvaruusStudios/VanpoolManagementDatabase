@@ -19,6 +19,7 @@ CREATE TABLE Locations (
     LocationName TEXT NOT NULL,
     Address TEXT,
     City TEXT,
+    State TEXT,
     ZipCode TEXT,
     Notes TEXT
 );
