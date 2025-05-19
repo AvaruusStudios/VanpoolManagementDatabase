@@ -102,7 +102,9 @@
             </TitledPane>
             <TitledPane fx:id="locationTitledPane" animated="false" text="Locations">
               <VBox>
-
+                <Hyperlink fx:id="createLocation" text="Create Location" />
+                <Hyperlink fx:id="updateLocation" text="Update Location" />
+                <Hyperlink fx:id="deleteLocation" text="Delete Location" />
               </VBox>
             </TitledPane>
           </panes>

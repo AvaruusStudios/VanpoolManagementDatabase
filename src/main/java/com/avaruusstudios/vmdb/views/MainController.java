@@ -1,9 +1,12 @@
 package com.avaruusstudios.vmdb.views;
 
+import javafx.animation.PauseTransition;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.paint.Color;
+import javafx.util.Duration;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,6 +46,12 @@ public class MainController {
     private Hyperlink updateTransaction;
     @FXML
     private Hyperlink deleteTransaction;
+    @FXML
+    private Hyperlink createLocation;
+    @FXML
+    private Hyperlink updateLocation;
+    @FXML
+    private Hyperlink deleteLocation;
 
     public void initialize() {
         // Set the current date in the txtCurrentDate TextField
@@ -51,16 +60,57 @@ public class MainController {
         txtCurrentDate.setText(currentDate.format(formatter));
 
         // Set onAction handlers for Participant Hyperlinks
-        createParticipant.setOnAction(event -> System.out.println("Create Participant clicked - Implement Add Logic"));
-        updateParticipant.setOnAction(event -> System.out.println("Update Participant clicked - Implement Edit Logic"));
-        deleteParticipant.setOnAction(event -> System.out.println("Delete Participant clicked - Implement Delete Logic"));
+        createParticipant.setOnAction(event -> {
+            System.out.println("Create Participant clicked - Implement Add Logic");
+            createParticipant.setTextFill(Color.BLACK);
+            revertHyperlinkColor(createParticipant);
+        });
+        updateParticipant.setOnAction(event -> {
+            System.out.println("Update Participant clicked - Implement Edit Logic");
+            updateParticipant.setTextFill(Color.BLACK);
+            revertHyperlinkColor(updateParticipant);
+        });
+        deleteParticipant.setOnAction(event -> {
+            System.out.println("Delete Participant clicked - Implement Delete Logic");
+            deleteParticipant.setTextFill(Color.BLACK);
+            revertHyperlinkColor(deleteParticipant);
+        });
 
         // Set onAction handlers for Transaction Hyperlinks
-        createTransaction.setOnAction(event -> System.out.println("Create Transaction clicked - Implement Add Logic"));
-        updateTransaction.setOnAction(event -> System.out.println("Update Transaction clicked - Implement Edit Logic"));
-        deleteTransaction.setOnAction(event -> System.out.println("Delete Transaction clicked - Implement Delete Logic"));
+        createTransaction.setOnAction(event -> {
+            System.out.println("Create Transaction clicked - Implement Add Logic");
+            createTransaction.setTextFill(Color.BLACK);
+            revertHyperlinkColor(createTransaction);
+        });
+        updateTransaction.setOnAction(event -> {
+            System.out.println("Update Transaction clicked - Implement Edit Logic");
+            updateTransaction.setTextFill(Color.BLACK);
+            revertHyperlinkColor(updateTransaction);
+        });
+        deleteTransaction.setOnAction(event -> {
+            System.out.println("Delete Transaction clicked - Implement Delete Logic");
+            deleteTransaction.setTextFill(Color.BLACK);
+            revertHyperlinkColor(deleteTransaction);
+        });
 
-// Listen for expansion changes on Participant TitledPane
+        // Set onAction handlers for Location Hyperlinks
+        createLocation.setOnAction(event -> {
+            System.out.println("Create Location clicked - Implement Add Logic");
+            createLocation.setTextFill(Color.BLACK);
+            revertHyperlinkColor(createLocation);
+        });
+        updateLocation.setOnAction(event -> {
+            System.out.println("Update Location clicked - Implement Edit Logic");
+            updateLocation.setTextFill(Color.BLACK);
+            revertHyperlinkColor(updateLocation);
+        });
+        deleteLocation.setOnAction(event -> {
+            System.out.println("Delete Location clicked - Implement Delete Logic");
+            deleteLocation.setTextFill(Color.BLACK);
+            revertHyperlinkColor(deleteLocation);
+        });
+
+        // Listen for expansion changes on Participant TitledPane
         participantTitledPane.expandedProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue) {
                 InputStream inputStream = getClass().getResourceAsStream("/com/avaruusstudios/vmdb/db/qryParticipants.sql");
@@ -177,5 +227,12 @@ public class MainController {
         mainTableView.getColumns().clear();
         // Optionally, you could set a placeholder text if the table is empty
          mainTableView.setPlaceholder(new Label("No data to display"));
+    }
+
+    /** Sets the color of the Hyperlinks back to DEFAULT */
+    private void revertHyperlinkColor(Hyperlink hyperlink) {
+        PauseTransition pause = new PauseTransition(Duration.seconds(5));
+        pause.setOnFinished(event -> hyperlink.setTextFill(Color.BLUE)); // Default blue color
+        pause.play();
     }
 }
