@@ -38,7 +38,7 @@ CREATE TABLE Participants (
     Phone TEXT,
     DistanceMiles REAL NOT NULL,
     JoinDate TEXT NOT NULL,
-    Active INTEGER NOT NULL DEFAULT 1,
+    IsActive INTEGER NOT NULL DEFAULT 1,
     Program TEXT,
     BenefitAmount REAL DEFAULT 0,
     Notes TEXT,
