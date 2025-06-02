@@ -8,7 +8,7 @@ CREATE TABLE Vehicles (
     Capacity INTEGER NOT NULL,
     LeaseStartDate TEXT NOT NULL, -- ISO format recommended
     LeaseEndDate TEXT,
-    Active INTEGER NOT NULL DEFAULT 1, -- 1=True, 0=False
+    IsActive INTEGER NOT NULL DEFAULT 1, -- 1=True, 0=False
     SubsidyAmount REAL DEFAULT 0,
     Notes TEXT
 );
