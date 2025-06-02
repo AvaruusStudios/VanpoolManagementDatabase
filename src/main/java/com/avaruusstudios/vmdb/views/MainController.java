@@ -1,6 +1,7 @@
 package com.avaruusstudios.vmdb.views;
 
 import javafx.animation.PauseTransition;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -8,10 +9,7 @@ import javafx.scene.control.*;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -26,6 +24,8 @@ import java.util.*;
 public class MainController {
     @FXML
     private TableView<Map<String, Object>> mainTableView;
+    @FXML
+    private Accordion mainAccordion;
     @FXML
     private Label txtCurrentDate;
     @FXML
@@ -53,10 +53,14 @@ public class MainController {
     @FXML
     private Hyperlink deleteLocation;
 
+    // The 'isFullyInitialized' flag is still useful for other potential deferred logic,
+    // but the 'oldValue == null' check directly addresses initial listener firings.
+    private boolean isFullyInitialized = false; // You can remove this line if it's not used elsewhere
+
     public void initialize() {
         // Set the current date in the txtCurrentDate TextField
         LocalDate currentDate = LocalDate.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy"); // You can adjust the format
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy");
         txtCurrentDate.setText(currentDate.format(formatter));
 
         // Set onAction handlers for Participant Hyperlinks
@@ -110,51 +114,50 @@ public class MainController {
             revertHyperlinkColor(deleteLocation);
         });
 
-        // Listen for expansion changes on Participant TitledPane
-        participantTitledPane.expandedProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue) {
-                InputStream inputStream = getClass().getResourceAsStream("/com/avaruusstudios/vmdb/db/qryParticipants.sql");
-                loadTableData(inputStream, "qryParticipants.sql");
+        // **Centralized Listener for Accordion's expanded pane**
+        mainAccordion.expandedPaneProperty().addListener((observable, oldPane, newPane) -> {
+            // Only proceed after initial setup is complete
+            if (!isFullyInitialized) {
+                System.out.println("Accordion state change during initial setup - NOT taking action.");
+                return; // Exit early during initial load
+            }
+
+            if (newPane == null) {
+                // This means all panes are now collapsed
+                System.out.println("All TitledPanes collapsed - Clearing table.");
+                clearTableData();
             } else {
-                // Only clear if NEITHER of the other panes is expanded
-                if (!transactionTitledPane.isExpanded() && !locationTitledPane.isExpanded()) {
-                    System.out.println("Participant TitledPane collapsed - Clearing table");
-                    clearTableData();
-                } else {
-                    System.out.println("Participant TitledPane collapsed, but another pane is expanded - NOT clearing table");
+                // A pane is now expanded, load its data
+                // Use newPane.getId() if you've set fx:id for your TitledPanes,
+                // otherwise compare the TitledPane objects directly.
+                System.out.println("Pane '" + newPane.getText() + "' expanded - Loading data.");
+
+                if (newPane == participantTitledPane) {
+                    InputStream inputStream = getClass().getResourceAsStream("/com/avaruusstudios/vmdb/db/qryParticipants.sql");
+                    loadTableData(inputStream, "qryParticipants.sql");
+                } else if (newPane == transactionTitledPane) {
+                    InputStream inputStream = getClass().getResourceAsStream("/com/avaruusstudios/vmdb/db/qryTransactions.sql");
+                    loadTableData(inputStream, "qryTransactions.sql");
+                } else if (newPane == locationTitledPane) {
+                    // It's good practice to keep this null check if locationTitledPane isn't guaranteed in FXML
+                    InputStream inputStream = getClass().getResourceAsStream("/com/avaruusstudios/vmdb/db/qryLocations.sql");
+                    loadTableData(inputStream, "qryLocations.sql");
                 }
             }
         });
 
-        // Listen for expansion changes on Transaction TitledPane
-        transactionTitledPane.expandedProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue) {
-                InputStream inputStream = getClass().getResourceAsStream("/com/avaruusstudios/vmdb/db/qryTransactions.sql");
-                loadTableData(inputStream, "qryTransactions.sql");
-            } else {
-                // Only clear if NEITHER of the other panes is expanded
-                if (!participantTitledPane.isExpanded() && !locationTitledPane.isExpanded()) {
-                    System.out.println("Transaction TitledPane collapsed - Clearing table");
-                    clearTableData();
-                } else {
-                    System.out.println("Transaction TitledPane collapsed, but another pane is expanded - NOT clearing table");
-                }
-            }
-        });
+        // Set the flag to true AFTER the current UI cycle finishes.
+        // This ensures all FXML loading, property settings, and initial listener firings have occurred.
+        Platform.runLater(() -> {
+            isFullyInitialized = true;
+            System.out.println("Application fully initialized and ready for user interaction.");
 
-        // Listen for expansion changes on Locations TitledPane
-        locationTitledPane.expandedProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue) {
-                InputStream inputStream = getClass().getResourceAsStream("/com/avaruusstudios/vmdb/db/qryLocations.sql");
-                loadTableData(inputStream, "qryLocations.sql");
-            } else {
-                // Only clear if NEITHER of the other panes is expanded
-                if (!participantTitledPane.isExpanded() && !transactionTitledPane.isExpanded()) {
-                    System.out.println("Locations TitledPane collapsed - Clearing table");
-                    clearTableData();
-                } else {
-                    System.out.println("Locations TitledPane collapsed, but another pane is expanded - NOT clearing table");
-                }
+            // Optional: If you want the table to be explicitly clear on startup (even if Accordion is null),
+            // you can call clearTableData() here *once* after initialization.
+            // This is useful if no pane is expanded by default in your FXML.
+            if (mainAccordion.getExpandedPane() == null) {
+                clearTableData();
+                System.out.println("Table cleared initially as no pane is expanded.");
             }
         });
     }
@@ -178,7 +181,12 @@ public class MainController {
                 sb.append(scanner.nextLine()).append("\n");
             }
             sqlQuery = sb.toString();
+        } catch (Exception e) { // Catching generic Exception for robustness in file reading
+            System.err.println("Error reading SQL file '" + filename + "': " + e.getMessage());
+            e.printStackTrace();
+            return;
         }
+
 
         Connection connection = null;
         Statement statement = null;
@@ -212,6 +220,7 @@ public class MainController {
             mainTableView.setItems(data);
 
         } catch (SQLException e) {
+            System.err.println("SQL Error while loading data from " + filename + ": " + e.getMessage());
             e.printStackTrace();
         } finally {
             // Ensure resources are closed in the finally block
@@ -225,14 +234,14 @@ public class MainController {
     private void clearTableData() {
         mainTableView.getItems().clear();
         mainTableView.getColumns().clear();
-        // Optionally, you could set a placeholder text if the table is empty
-         mainTableView.setPlaceholder(new Label("No data to display"));
+        mainTableView.setPlaceholder(new Label("No data to display"));
     }
 
     /** Sets the color of the Hyperlinks back to DEFAULT */
     private void revertHyperlinkColor(Hyperlink hyperlink) {
         PauseTransition pause = new PauseTransition(Duration.seconds(5));
-        pause.setOnFinished(event -> hyperlink.setTextFill(Color.BLUE)); // Default blue color
+        // Use a common web color for hyperlink blue, you might need to adjust based on actual default
+        pause.setOnFinished(event -> hyperlink.setTextFill(Color.web("#0000EE")));
         pause.play();
     }
 }

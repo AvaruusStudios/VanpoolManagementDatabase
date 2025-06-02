@@ -84,7 +84,7 @@
     </AnchorPane>
     <AnchorPane>
       <SplitPane dividerPositions="0.3">
-        <Accordion maxWidth="300.0" minWidth="300.00">
+        <Accordion fx:id="mainAccordion" maxWidth="300.0" minWidth="300.00">
           <panes>
             <TitledPane fx:id="participantTitledPane" animated="false" text="Participants">
               <VBox>
