@@ -35,6 +35,8 @@ public class MainController {
     @FXML
     private TitledPane locationTitledPane;
     @FXML
+    private TitledPane vehicleTitledPane;
+    @FXML
     private Hyperlink createParticipant;
     @FXML
     private Hyperlink updateParticipant;
@@ -52,6 +54,12 @@ public class MainController {
     private Hyperlink updateLocation;
     @FXML
     private Hyperlink deleteLocation;
+    @FXML
+    private Hyperlink createVehicle;
+    @FXML
+    private Hyperlink updateVehicle;
+    @FXML
+    private Hyperlink deleteVehicle;
 
     // The 'isFullyInitialized' flag is still useful for other potential deferred logic,
     // but the 'oldValue == null' check directly addresses initial listener firings.
@@ -114,6 +122,23 @@ public class MainController {
             revertHyperlinkColor(deleteLocation);
         });
 
+        // Set onAction handlers for Vehicle Hyperlinks
+        createVehicle.setOnAction(event -> {
+            System.out.println("Create Vehicle clicked - Implement Add Logic");
+            createVehicle.setTextFill(Color.BLACK);
+            revertHyperlinkColor(createVehicle);
+        });
+        updateVehicle.setOnAction(event -> {
+            System.out.println("Update Vehicle clicked - Implement Edit Logic");
+            updateVehicle.setTextFill(Color.BLACK);
+            revertHyperlinkColor(updateVehicle);
+        });
+        deleteVehicle.setOnAction(event -> {
+            System.out.println("Delete Vehicle clicked - Implement Delete Logic");
+            deleteVehicle.setTextFill(Color.BLACK);
+            revertHyperlinkColor(deleteVehicle);
+        });
+
         // **Centralized Listener for Accordion's expanded pane**
         mainAccordion.expandedPaneProperty().addListener((observable, oldPane, newPane) -> {
             // Only proceed after initial setup is complete
@@ -139,9 +164,11 @@ public class MainController {
                     InputStream inputStream = getClass().getResourceAsStream("/com/avaruusstudios/vmdb/db/qryTransactions.sql");
                     loadTableData(inputStream, "qryTransactions.sql");
                 } else if (newPane == locationTitledPane) {
-                    // It's good practice to keep this null check if locationTitledPane isn't guaranteed in FXML
                     InputStream inputStream = getClass().getResourceAsStream("/com/avaruusstudios/vmdb/db/qryLocations.sql");
                     loadTableData(inputStream, "qryLocations.sql");
+                } else if (newPane == vehicleTitledPane) {
+                    InputStream inputStream = getClass().getResourceAsStream("/com/avaruusstudios/vmdb/db/selectVehiclesAll.sql");
+                    loadTableData(inputStream, "selectVehiclesAll.sql");
                 }
             }
         });
