@@ -161,8 +161,8 @@ public class MainController {
                     InputStream inputStream = getClass().getResourceAsStream("/com/avaruusstudios/vmdb/db/selectParticipantsAll.sql");
                     loadTableData(inputStream, "selectParticipantsAll.sql");
                 } else if (newPane == transactionTitledPane) {
-                    InputStream inputStream = getClass().getResourceAsStream("/com/avaruusstudios/vmdb/db/qryTransactions.sql");
-                    loadTableData(inputStream, "qryTransactions.sql");
+                    InputStream inputStream = getClass().getResourceAsStream("/com/avaruusstudios/vmdb/db/selectTransactionsAll.sql");
+                    loadTableData(inputStream, "selectTransactionsAll.sql");
                 } else if (newPane == locationTitledPane) {
                     InputStream inputStream = getClass().getResourceAsStream("/com/avaruusstudios/vmdb/db/qryLocations.sql");
                     loadTableData(inputStream, "qryLocations.sql");

@@ -75,8 +75,8 @@ CREATE TABLE InvoiceItems (
 CREATE TABLE Categories (
     CategoryID INTEGER PRIMARY KEY AUTOINCREMENT,
     ParticipantID_FK INTEGER,
-    CategoryName TEXT NOT NULL,
     CategoryType TEXT NOT NULL CHECK (CategoryType IN ('Income', 'Expense', 'Credit')),
+    CategoryName TEXT NOT NULL,
     Description TEXT,
     FOREIGN KEY (ParticipantID_FK) REFERENCES Participants(ParticipantID)
 );
