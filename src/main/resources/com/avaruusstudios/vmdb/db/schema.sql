@@ -87,13 +87,15 @@ CREATE TABLE Transactions (
     VehicleID_FK INTEGER NOT NULL,
     CategoryID_FK INTEGER NOT NULL,
     InvoiceID_FK INTEGER,
+    ParticipantID_FK INTEGER,
     TransactionDate TEXT NOT NULL,
     Amount REAL NOT NULL,
     PaymentMethod TEXT,
     Notes TEXT,
     FOREIGN KEY (VehicleID_FK) REFERENCES Vehicles(VehicleID),
     FOREIGN KEY (CategoryID_FK) REFERENCES Categories(CategoryID),
-    FOREIGN KEY (InvoiceID_FK) REFERENCES Invoices(InvoiceID)
+    FOREIGN KEY (InvoiceID_FK) REFERENCES Invoices(InvoiceID),
+    FOREIGN KEY (ParticipantID_FK) REFERENCES Participants(ParticipantID)
 );
 
 -- 📝 Event Log
@@ -117,7 +119,7 @@ CREATE TABLE Users (
     MiddleName VARCHAR(255),
     LastName VARCHAR(255),
     Email VARCHAR(255),
-    UserRole VARCHAR(50) NOT NULL, -- e.g., "ADMIN", "TREASURER", "USER"
+    UserRole VARCHAR(50) NOT NULL, -- e.g., "ADMIN", "TREASURER", "USER", "COORDINATOR"
     Active INTEGER NOT NULL DEFAULT 1, -- Assuming 1 for TRUE, 0 for FALSE
     DateCreated TEXT DEFAULT CURRENT_TIMESTAMP -- SQLite uses TEXT for DATETIME and CURRENT_TIMESTAMP
 );
