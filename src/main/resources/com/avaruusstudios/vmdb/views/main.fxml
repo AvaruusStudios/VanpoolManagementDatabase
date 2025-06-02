@@ -107,6 +107,13 @@
                 <Hyperlink fx:id="deleteLocation" text="Delete Location" />
               </VBox>
             </TitledPane>
+            <TitledPane fx:id="vehicleTitledPane" animated="false" text="Vehicles">
+              <VBox>
+                <Hyperlink fx:id="createVehicle" text="Create Vehicle" />
+                <Hyperlink fx:id="updateVehicle" text="Update Vehicle" />
+                <Hyperlink fx:id="deleteVehicle" text="Delete Vehicle" />
+              </VBox>
+            </TitledPane>
           </panes>
         </Accordion>
         <AnchorPane>
