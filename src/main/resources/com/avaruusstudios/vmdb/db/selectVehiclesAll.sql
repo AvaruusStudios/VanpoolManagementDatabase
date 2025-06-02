@@ -1,0 +1,14 @@
+SELECT
+    Vehicles.VehicleID,
+    Vehicles.VehicleNumber,
+    Vehicles.Make,
+    Vehicles.Model,
+    Vehicles.Year,
+    Vehicles.Capacity,
+    Vehicles.LeaseStartDate,
+    Vehicles.LeaseEndDate,
+    Vehicles.IsActive,
+    Vehicles.SubsidyAmount,
+    Vehicles.Notes
+FROM
+    Vehicles;
