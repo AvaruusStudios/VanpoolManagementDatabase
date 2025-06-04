@@ -94,44 +94,62 @@
           <panes>
             <TitledPane fx:id="participantTitledPane" animated="false" text="Participants">
               <VBox spacing="5.0" style="-fx-padding: 10px;">
-                <Hyperlink fx:id="createParticipant" text="Create Participant" />
-                <Hyperlink fx:id="updateParticipant" text="Update Participant" />
-                <Hyperlink fx:id="deleteParticipant" text="Delete Participant" />
+                <Button fx:id="createParticipant" text="Create Participant" maxWidth="Infinity" alignment="CENTER_LEFT"
+                        styleClass="nav-button"/>
+                <Button fx:id="updateParticipant" text="Update Participant" maxWidth="Infinity" alignment="CENTER_LEFT"
+                        styleClass="nav-button"/>
+                <Button fx:id="deleteParticipant" text="Delete Participant" maxWidth="Infinity" alignment="CENTER_LEFT"
+                        styleClass="nav-button"/>
               </VBox>
             </TitledPane>
             <TitledPane fx:id="transactionTitledPane" animated="false" text="Transactions">
               <VBox spacing="5.0" style="-fx-padding: 10px;">
-                <Hyperlink fx:id="createTransaction" text="Create Transaction" />
-                <Hyperlink fx:id="updateTransaction" text="Update Transaction" />
-                <Hyperlink fx:id="deleteTransaction" text="Delete Transaction" />
+                <Button fx:id="createTransaction" text="Create Transaction" maxWidth="Infinity" alignment="CENTER_LEFT"
+                        styleClass="nav-button"/>
+                <Button fx:id="updateTransaction" text="Update Transaction" maxWidth="Infinity" alignment="CENTER_LEFT"
+                        styleClass="nav-button"/>
+                <Button fx:id="deleteTransaction" text="Delete Transaction" maxWidth="Infinity" alignment="CENTER_LEFT"
+                        styleClass="nav-button"/>
               </VBox>
             </TitledPane>
             <TitledPane fx:id="locationTitledPane" animated="false" text="Locations">
               <VBox spacing="5.0" style="-fx-padding: 10px;">
-                <Hyperlink fx:id="createLocation" text="Create Location" />
-                <Hyperlink fx:id="updateLocation" text="Update Location" />
-                <Hyperlink fx:id="deleteLocation" text="Delete Location" />
+                <Button fx:id="createLocation" text="Create Location" maxWidth="Infinity" alignment="CENTER_LEFT"
+                        styleClass="nav-button"/>
+                <Button fx:id="updateLocation" text="Update Location" maxWidth="Infinity" alignment="CENTER_LEFT"
+                        styleClass="nav-button"/>
+                <Button fx:id="deleteLocation" text="Delete Location" maxWidth="Infinity" alignment="CENTER_LEFT"
+                        styleClass="nav-button"/>
               </VBox>
             </TitledPane>
             <TitledPane fx:id="vehicleTitledPane" animated="false" text="Vehicles">
               <VBox spacing="5.0" style="-fx-padding: 10px;">
-                <Hyperlink fx:id="createVehicle" text="Create Vehicle" />
-                <Hyperlink fx:id="updateVehicle" text="Update Vehicle" />
-                <Hyperlink fx:id="deleteVehicle" text="Delete Vehicle" />
+                <Button fx:id="createVehicle" text="Create Vehicle" maxWidth="Infinity" alignment="CENTER_LEFT"
+                        styleClass="nav-button"/>
+                <Button fx:id="updateVehicle" text="Update Vehicle" maxWidth="Infinity" alignment="CENTER_LEFT"
+                        styleClass="nav-button"/>
+                <Button fx:id="deleteVehicle" text="Delete Vehicle" maxWidth="Infinity" alignment="CENTER_LEFT"
+                        styleClass="nav-button"/>
               </VBox>
             </TitledPane>
             <TitledPane fx:id="invoiceTitledPane" animated="false" text="Invoices">
               <VBox spacing="5.0" style="-fx-padding: 10px;">
-                <Hyperlink fx:id="createInvoice" text="Create Invoice" />
-                <Hyperlink fx:id="updateInvoice" text="Update Invoice" />
-                <Hyperlink fx:id="deleteInvoice" text="Delete Invoice" />
+                <Button fx:id="createInvoice" text="Create Invoice" maxWidth="Infinity" alignment="CENTER_LEFT"
+                        styleClass="nav-button"/>
+                <Button fx:id="updateInvoice" text="Update Invoice" maxWidth="Infinity" alignment="CENTER_LEFT"
+                        styleClass="nav-button"/>
+                <Button fx:id="deleteInvoice" text="Delete Invoice" maxWidth="Infinity" alignment="CENTER_LEFT"
+                        styleClass="nav-button"/>
               </VBox>
             </TitledPane>
             <TitledPane fx:id="categoryTitledPane" animated="false" text="Categories">
               <VBox spacing="5.0" style="-fx-padding: 10px;">
-                <Hyperlink fx:id="createCategory" text="Create Category" />
-                <Hyperlink fx:id="updateCategory" text="Update Category" />
-                <Hyperlink fx:id="deleteCategory" text="Delete Category" />
+                <Button fx:id="createCategory" text="Create Category" maxWidth="Infinity" alignment="CENTER_LEFT"
+                        styleClass="nav-button"/>
+                <Button fx:id="updateCategory" text="Update Category" maxWidth="Infinity" alignment="CENTER_LEFT"
+                        styleClass="nav-button"/>
+                <Button fx:id="deleteCategory" text="Delete Category" maxWidth="Infinity" alignment="CENTER_LEFT"
+                        styleClass="nav-button"/>
               </VBox>
             </TitledPane>
           </panes>
