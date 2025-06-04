@@ -37,6 +37,8 @@ public class MainController {
     @FXML
     private TitledPane vehicleTitledPane;
     @FXML
+    private TitledPane invoiceTitledPane;
+    @FXML
     private Hyperlink createParticipant;
     @FXML
     private Hyperlink updateParticipant;
@@ -60,6 +62,12 @@ public class MainController {
     private Hyperlink updateVehicle;
     @FXML
     private Hyperlink deleteVehicle;
+    @FXML
+    private Hyperlink createInvoice;
+    @FXML
+    private Hyperlink updateInvoice;
+    @FXML
+    private Hyperlink deleteInvoice;
 
     // The 'isFullyInitialized' flag is still useful for other potential deferred logic,
     // but the 'oldValue == null' check directly addresses initial listener firings.
@@ -139,6 +147,23 @@ public class MainController {
             revertHyperlinkColor(deleteVehicle);
         });
 
+        // Set onAction handlers for Invoice Hyperlinks
+        createInvoice.setOnAction(event -> {
+            System.out.println("Create Invoice clicked - Implement Add Logic");
+            createInvoice.setTextFill(Color.BLACK);
+            revertHyperlinkColor(createInvoice);
+        });
+        updateInvoice.setOnAction(event -> {
+            System.out.println("Update Invoice clicked - Implement Edit Logic");
+            updateInvoice.setTextFill(Color.BLACK);
+            revertHyperlinkColor(updateInvoice);
+        });
+        deleteInvoice.setOnAction(event -> {
+            System.out.println("Delete Invoice clicked - Implement Delete Logic");
+            deleteInvoice.setTextFill(Color.BLACK);
+            revertHyperlinkColor(deleteInvoice);
+        });
+
         // **Centralized Listener for Accordion's expanded pane**
         mainAccordion.expandedPaneProperty().addListener((observable, oldPane, newPane) -> {
             // Only proceed after initial setup is complete
@@ -169,6 +194,9 @@ public class MainController {
                 } else if (newPane == vehicleTitledPane) {
                     InputStream inputStream = getClass().getResourceAsStream("/com/avaruusstudios/vmdb/db/selectVehiclesAll.sql");
                     loadTableData(inputStream, "selectVehiclesAll.sql");
+                } else if (newPane == invoiceTitledPane) {
+                    InputStream inputStream = getClass().getResourceAsStream("/com/avaruusstudios/vmdb/db/selectInvoicesAll.sql");
+                    loadTableData(inputStream, "selectInvoicesAll.sql");
                 }
             }
         });

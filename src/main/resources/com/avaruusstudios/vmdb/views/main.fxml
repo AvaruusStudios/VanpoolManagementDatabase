@@ -114,6 +114,13 @@
                 <Hyperlink fx:id="deleteVehicle" text="Delete Vehicle" />
               </VBox>
             </TitledPane>
+            <TitledPane fx:id="invoiceTitledPane" animated="false" text="Invoices">
+              <VBox>
+                <Hyperlink fx:id="createInvoice" text="Create Invoice" />
+                <Hyperlink fx:id="updateInvoice" text="Update Invoice" />
+                <Hyperlink fx:id="deleteInvoice" text="Delete Invoice" />
+              </VBox>
+            </TitledPane>
           </panes>
         </Accordion>
         <AnchorPane>
