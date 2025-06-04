@@ -40,41 +40,41 @@ public class MainController {
     @FXML
     private TitledPane categoryTitledPane;
     @FXML
-    private Hyperlink createParticipant;
+    private Button createParticipant;
     @FXML
-    private Hyperlink updateParticipant;
+    private Button updateParticipant;
     @FXML
-    private Hyperlink deleteParticipant;
+    private Button deleteParticipant;
     @FXML
-    private Hyperlink createTransaction;
+    private Button createTransaction;
     @FXML
-    private Hyperlink updateTransaction;
+    private Button updateTransaction;
     @FXML
-    private Hyperlink deleteTransaction;
+    private Button deleteTransaction;
     @FXML
-    private Hyperlink createLocation;
+    private Button createLocation;
     @FXML
-    private Hyperlink updateLocation;
+    private Button updateLocation;
     @FXML
-    private Hyperlink deleteLocation;
+    private Button deleteLocation;
     @FXML
-    private Hyperlink createVehicle;
+    private Button createVehicle;
     @FXML
-    private Hyperlink updateVehicle;
+    private Button updateVehicle;
     @FXML
-    private Hyperlink deleteVehicle;
+    private Button deleteVehicle;
     @FXML
-    private Hyperlink createInvoice;
+    private Button createInvoice;
     @FXML
-    private Hyperlink updateInvoice;
+    private Button updateInvoice;
     @FXML
-    private Hyperlink deleteInvoice;
+    private Button deleteInvoice;
     @FXML
-    private Hyperlink createCategory;
+    private Button createCategory;
     @FXML
-    private Hyperlink updateCategory;
+    private Button updateCategory;
     @FXML
-    private Hyperlink deleteCategory;
+    private Button deleteCategory;
 
     // The 'isFullyInitialized' flag is still useful for other potential deferred logic,
     // but the 'oldValue == null' check directly addresses initial listener firings.
@@ -86,106 +86,70 @@ public class MainController {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy");
         txtCurrentDate.setText(currentDate.format(formatter));
 
-        // Set onAction handlers for Participant Hyperlinks
+        // Set onAction handlers for Participant Buttons
         createParticipant.setOnAction(event -> {
             System.out.println("Create Participant clicked - Implement Add Logic");
-            createParticipant.setTextFill(Color.BLACK);
-            revertHyperlinkColor(createParticipant);
         });
         updateParticipant.setOnAction(event -> {
             System.out.println("Update Participant clicked - Implement Edit Logic");
-            updateParticipant.setTextFill(Color.BLACK);
-            revertHyperlinkColor(updateParticipant);
         });
         deleteParticipant.setOnAction(event -> {
             System.out.println("Delete Participant clicked - Implement Delete Logic");
-            deleteParticipant.setTextFill(Color.BLACK);
-            revertHyperlinkColor(deleteParticipant);
         });
 
-        // Set onAction handlers for Transaction Hyperlinks
+        // Set onAction handlers for Transaction Buttons
         createTransaction.setOnAction(event -> {
             System.out.println("Create Transaction clicked - Implement Add Logic");
-            createTransaction.setTextFill(Color.BLACK);
-            revertHyperlinkColor(createTransaction);
         });
         updateTransaction.setOnAction(event -> {
             System.out.println("Update Transaction clicked - Implement Edit Logic");
-            updateTransaction.setTextFill(Color.BLACK);
-            revertHyperlinkColor(updateTransaction);
         });
         deleteTransaction.setOnAction(event -> {
             System.out.println("Delete Transaction clicked - Implement Delete Logic");
-            deleteTransaction.setTextFill(Color.BLACK);
-            revertHyperlinkColor(deleteTransaction);
         });
 
-        // Set onAction handlers for Location Hyperlinks
+        // Set onAction handlers for Location Buttons
         createLocation.setOnAction(event -> {
             System.out.println("Create Location clicked - Implement Add Logic");
-            createLocation.setTextFill(Color.BLACK);
-            revertHyperlinkColor(createLocation);
         });
         updateLocation.setOnAction(event -> {
             System.out.println("Update Location clicked - Implement Edit Logic");
-            updateLocation.setTextFill(Color.BLACK);
-            revertHyperlinkColor(updateLocation);
         });
         deleteLocation.setOnAction(event -> {
             System.out.println("Delete Location clicked - Implement Delete Logic");
-            deleteLocation.setTextFill(Color.BLACK);
-            revertHyperlinkColor(deleteLocation);
         });
 
-        // Set onAction handlers for Vehicle Hyperlinks
+        // Set onAction handlers for Vehicle Buttons
         createVehicle.setOnAction(event -> {
             System.out.println("Create Vehicle clicked - Implement Add Logic");
-            createVehicle.setTextFill(Color.BLACK);
-            revertHyperlinkColor(createVehicle);
         });
         updateVehicle.setOnAction(event -> {
             System.out.println("Update Vehicle clicked - Implement Edit Logic");
-            updateVehicle.setTextFill(Color.BLACK);
-            revertHyperlinkColor(updateVehicle);
         });
         deleteVehicle.setOnAction(event -> {
             System.out.println("Delete Vehicle clicked - Implement Delete Logic");
-            deleteVehicle.setTextFill(Color.BLACK);
-            revertHyperlinkColor(deleteVehicle);
         });
 
-        // Set onAction handlers for Invoice Hyperlinks
+        // Set onAction handlers for Invoice Buttons
         createInvoice.setOnAction(event -> {
             System.out.println("Create Invoice clicked - Implement Add Logic");
-            createInvoice.setTextFill(Color.BLACK);
-            revertHyperlinkColor(createInvoice);
         });
         updateInvoice.setOnAction(event -> {
             System.out.println("Update Invoice clicked - Implement Edit Logic");
-            updateInvoice.setTextFill(Color.BLACK);
-            revertHyperlinkColor(updateInvoice);
         });
         deleteInvoice.setOnAction(event -> {
             System.out.println("Delete Invoice clicked - Implement Delete Logic");
-            deleteInvoice.setTextFill(Color.BLACK);
-            revertHyperlinkColor(deleteInvoice);
         });
 
-        // Set onAction handlers for Category Hyperlinks
+        // Set onAction handlers for Category Buttons
         createCategory.setOnAction(event -> {
             System.out.println("Create Category clicked - Implement Add Logic");
-            createCategory.setTextFill(Color.BLACK);
-            revertHyperlinkColor(createCategory);
         });
         updateCategory.setOnAction(event -> {
             System.out.println("Update Category clicked - Implement Edit Logic");
-            updateCategory.setTextFill(Color.BLACK);
-            revertHyperlinkColor(updateCategory);
         });
         deleteCategory.setOnAction(event -> {
             System.out.println("Delete Category clicked - Implement Delete Logic");
-            deleteCategory.setTextFill(Color.BLACK);
-            revertHyperlinkColor(deleteCategory);
         });
 
         // **Centralized Listener for Accordion's expanded pane**
@@ -352,14 +316,5 @@ public class MainController {
         mainTableView.getItems().clear();
         mainTableView.getColumns().clear();
         mainTableView.setPlaceholder(new Label("No data to display")); // Ensure placeholder is visible
-    }
-
-    /** Sets the color of the Hyperlinks back to DEFAULT */
-    private void revertHyperlinkColor(Hyperlink hyperlink) {
-        PauseTransition pause = new PauseTransition(Duration.seconds(1)); // Shorten pause for quicker revert
-        // Use a common web color for hyperlink blue, you might need to adjust based on actual default
-        // The default JavaFX hyperlink color is usually a darker blue like #0000EE or similar.
-        pause.setOnFinished(event -> hyperlink.setTextFill(Color.web("#0066CC"))); // A common hyperlink blue
-        pause.play();
     }
 }
