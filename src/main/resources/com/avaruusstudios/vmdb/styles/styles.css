@@ -1,0 +1,59 @@
+/* style.css */
+
+/* --- Styling for the Accordion TitledPanes themselves --- */
+/* This targets the actual text within the TitledPane header */
+.titled-pane .title .text {
+    -fx-font-size: 15px; /* Set TitledPane header text to 14px */
+    -fx-font-weight: normal; /* Optional: Make it bold for better visual hierarchy */
+    -fx-fill: #333333; /* Optional: Darken text color for headers */
+}
+
+.titled-pane .title {
+    -fx-background-color: #F0F0F0; /* Light grey background for the title area */
+    -fx-border-color: #CCCCCC;
+    -fx-border-width: 0 0 1px 0; /* Subtle bottom border */
+}
+
+.titled-pane > .title > .arrow-button .arrow {
+    -fx-background-color: #333333; /* Darker arrow color */
+}
+
+.titled-pane:expanded > .title {
+    -fx-background-color: #E0E0E0; /* Slightly darker when expanded */
+}
+
+/* --- General Nav Button Styling --- */
+.nav-button {
+    -fx-background-color: transparent; /* Makes the button flat */
+    -fx-text-fill: #333333;           /* Default text color */
+    -fx-font-size: 12px;              /* **CHANGED to 12px** */
+    -fx-padding: 8px 10px;            /* Padding around the text */
+    -fx-border-width: 0;              /* No border by default */
+    -fx-cursor: hand;                 /* Changes cursor to hand on hover */
+}
+
+/* --- Hover State --- */
+.nav-button:hover {
+    -fx-background-color: #E0E0E0;    /* Light gray background on hover */
+    -fx-text-fill: #000000;           /* Darker text on hover */
+}
+
+/* --- Pressed State --- */
+.nav-button:pressed {
+    -fx-background-color: #D0D0D0;    /* Slightly darker gray when pressed */
+    -fx-text-fill: #000000;
+}
+
+/* --- Focused State (e.g., after clicking or tabbing) --- */
+.nav-button:focused {
+    -fx-focus-color: transparent; /* Removes default blue focus border */
+    -fx-faint-focus-color: transparent; /* Removes default faint focus border */
+    -fx-background-color: #E0E0E0; /* Keep hover background if focused */
+}
+
+/* --- Optional: Styling for the left sidebar background --- */
+.left-sidebar {
+    -fx-background-color: #F8F8F8; /* A very light grey for the whole sidebar */
+    -fx-border-color: #CCCCCC;
+    -fx-border-width: 0 1px 0 0; /* Right border to separate from main content */
+}
