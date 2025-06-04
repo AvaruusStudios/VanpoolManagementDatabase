@@ -32,12 +32,12 @@
   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 
-<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
 <VBox prefHeight="768.0" prefWidth="1024.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.avaruusstudios.vmdb.views.MainController">
+
   <MenuBar VBox.vgrow="NEVER">
     <Menu mnemonicParsing="false" text="File">
       <MenuItem mnemonicParsing="false" text="New" />
@@ -62,67 +62,73 @@
       <MenuItem mnemonicParsing="false" text="About MyHelloApp" />
     </Menu>
   </MenuBar>
-  <SplitPane dividerPositions="0.5" orientation="VERTICAL" VBox.vgrow="ALWAYS">
-    <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="1024.0">
-      <Label text="Vanpool Management Database" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
-        <font>
-          <Font name="System Bold" size="24.0" />
-        </font>
-      </Label>
-      <Group layoutX="400.0" layoutY="25.0" AnchorPane.leftAnchor="545.0" AnchorPane.topAnchor="25.0">
-        <Label text="Current Date" />
-        <Label fx:id="txtCurrentDate" layoutY="20.0" />
-      </Group>
-      <Group layoutX="400.0" layoutY="25.0" AnchorPane.leftAnchor="704.0" AnchorPane.topAnchor="25.0">
-        <Label text="Recent Transaction" />
-        <Label fx:id="txtRecentTransaction" layoutY="20.0" />
-      </Group>
-      <Group layoutX="400.0" layoutY="25.0" AnchorPane.leftAnchor="864.0" AnchorPane.topAnchor="25.0">
-        <Label text="Balance" />
-        <Label fx:id="txtBalance" layoutY="20.0" />
-      </Group>
-    </AnchorPane>
-    <AnchorPane>
-      <SplitPane dividerPositions="0.3">
-        <Accordion fx:id="mainAccordion" maxWidth="300.0" minWidth="300.00">
+
+  <BorderPane VBox.vgrow="ALWAYS">
+
+    <top>
+      <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-padding: 15px;">
+        <Label text="Vanpool Management Database">
+          <font>
+            <Font name="System Bold" size="24.0" />
+          </font>
+        </Label>
+        <Region HBox.hgrow="ALWAYS" />
+        <VBox>
+          <Label style="-fx-font-weight: bold;" text="Current Date" />
+          <Label fx:id="txtCurrentDate" />
+        </VBox>
+        <VBox>
+          <Label style="-fx-font-weight: bold;" text="Recent Transaction" />
+          <Label fx:id="txtRecentTransaction" />
+        </VBox>
+        <VBox>
+          <Label style="-fx-font-weight: bold;" text="Balance" />
+          <Label fx:id="txtBalance" />
+        </VBox>
+      </HBox>
+    </top>
+
+    <center>
+      <SplitPane dividerPositions="0.25">
+        <Accordion fx:id="mainAccordion" maxWidth="300.0" minWidth="200.0">
           <panes>
             <TitledPane fx:id="participantTitledPane" animated="false" text="Participants">
-              <VBox>
+              <VBox spacing="5.0" style="-fx-padding: 10px;">
                 <Hyperlink fx:id="createParticipant" text="Create Participant" />
                 <Hyperlink fx:id="updateParticipant" text="Update Participant" />
                 <Hyperlink fx:id="deleteParticipant" text="Delete Participant" />
               </VBox>
             </TitledPane>
             <TitledPane fx:id="transactionTitledPane" animated="false" text="Transactions">
-              <VBox>
+              <VBox spacing="5.0" style="-fx-padding: 10px;">
                 <Hyperlink fx:id="createTransaction" text="Create Transaction" />
-                <Hyperlink fx:id="updateTransaction" text="Update Participant" />
-                <Hyperlink fx:id="deleteTransaction" text="Delete Participant" />
+                <Hyperlink fx:id="updateTransaction" text="Update Transaction" />
+                <Hyperlink fx:id="deleteTransaction" text="Delete Transaction" />
               </VBox>
             </TitledPane>
             <TitledPane fx:id="locationTitledPane" animated="false" text="Locations">
-              <VBox>
+              <VBox spacing="5.0" style="-fx-padding: 10px;">
                 <Hyperlink fx:id="createLocation" text="Create Location" />
                 <Hyperlink fx:id="updateLocation" text="Update Location" />
                 <Hyperlink fx:id="deleteLocation" text="Delete Location" />
               </VBox>
             </TitledPane>
             <TitledPane fx:id="vehicleTitledPane" animated="false" text="Vehicles">
-              <VBox>
+              <VBox spacing="5.0" style="-fx-padding: 10px;">
                 <Hyperlink fx:id="createVehicle" text="Create Vehicle" />
                 <Hyperlink fx:id="updateVehicle" text="Update Vehicle" />
                 <Hyperlink fx:id="deleteVehicle" text="Delete Vehicle" />
               </VBox>
             </TitledPane>
             <TitledPane fx:id="invoiceTitledPane" animated="false" text="Invoices">
-              <VBox>
+              <VBox spacing="5.0" style="-fx-padding: 10px;">
                 <Hyperlink fx:id="createInvoice" text="Create Invoice" />
                 <Hyperlink fx:id="updateInvoice" text="Update Invoice" />
                 <Hyperlink fx:id="deleteInvoice" text="Delete Invoice" />
               </VBox>
             </TitledPane>
-            <TitledPane fx:id="categoryTitledPane" animated="false" text="Categorys">
-              <VBox>
+            <TitledPane fx:id="categoryTitledPane" animated="false" text="Categories">
+              <VBox spacing="5.0" style="-fx-padding: 10px;">
                 <Hyperlink fx:id="createCategory" text="Create Category" />
                 <Hyperlink fx:id="updateCategory" text="Update Category" />
                 <Hyperlink fx:id="deleteCategory" text="Delete Category" />
@@ -130,10 +136,23 @@
             </TitledPane>
           </panes>
         </Accordion>
-        <AnchorPane>
-          <TableView fx:id="mainTableView" layoutY="100.0" prefHeight="641.0" prefWidth="716.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-        </AnchorPane>
+
+        <TableView fx:id="mainTableView">
+          <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+          </columnResizePolicy>
+          <placeholder>
+            <Label text="Select a category from the left to view data." />
+          </placeholder>
+        </TableView>
       </SplitPane>
-    </AnchorPane>
-  </SplitPane>
+    </center>
+
+    <bottom>
+      <HBox alignment="CENTER_LEFT" style="-fx-padding: 5px; -fx-background-color: #f0f0f0; -fx-border-color: #cccccc; -fx-border-width: 1px 0 0 0;">
+        <Label text="Status: Ready" />
+      </HBox>
+    </bottom>
+
+  </BorderPane>
 </VBox>

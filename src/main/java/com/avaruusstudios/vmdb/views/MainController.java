@@ -8,7 +8,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
-
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -207,6 +206,7 @@ public class MainController {
                 // otherwise compare the TitledPane objects directly.
                 System.out.println("Pane '" + newPane.getText() + "' expanded - Loading data.");
 
+                // Use the new camelCase filenames
                 if (newPane == participantTitledPane) {
                     InputStream inputStream = getClass().getResourceAsStream("/com/avaruusstudios/vmdb/db/selectParticipantsAll.sql");
                     loadTableData(inputStream, "selectParticipantsAll.sql");
@@ -248,13 +248,14 @@ public class MainController {
     /** Loads data into the TableView based on the provided SQL query */
     private void loadTableData(InputStream inputStream, String filename) {
         ObservableList<Map<String, Object>> data = FXCollections.observableArrayList();
-        mainTableView.getColumns().clear();
+        mainTableView.getColumns().clear(); // Clear existing columns
 
-        String url = "jdbc:sqlite:./vanpool.db";
+        String url = "jdbc:sqlite:./vanpool.db"; // Your database connection URL
         String sqlQuery = "";
 
         if (inputStream == null) {
             System.err.println("Could not find SQL file: " + filename);
+            // Optionally, update a status label in your UI
             return;
         }
 
@@ -264,9 +265,10 @@ public class MainController {
                 sb.append(scanner.nextLine()).append("\n");
             }
             sqlQuery = sb.toString();
-        } catch (Exception e) { // Catching generic Exception for robustness in file reading
+        } catch (Exception e) {
             System.err.println("Error reading SQL file '" + filename + "': " + e.getMessage());
             e.printStackTrace();
+            // Update status label with error
             return;
         }
 
@@ -283,15 +285,46 @@ public class MainController {
             ResultSetMetaData metaData = resultSet.getMetaData();
             int columnCount = metaData.getColumnCount();
             List<String> columnNames = new ArrayList<>();
+
+            // 1. Create columns and apply sizing rules
             for (int i = 1; i <= columnCount; i++) {
-                String columnName = metaData.getColumnName(i);
+                String columnName = metaData.getColumnName(i); // Use getColumnName for schema name
+                String columnLabel = metaData.getColumnLabel(i); // Use getColumnLabel for preferred display name
                 columnNames.add(columnName);
-                TableColumn<Map<String, Object>, Object> column = new TableColumn<>(columnName);
-                final String finalColumnName = columnName;
+
+                TableColumn<Map<String, Object>, Object> column = new TableColumn<>(columnLabel); // Use label for header
+                final String finalColumnName = columnName; // Needs to be final for lambda
                 column.setCellValueFactory(cellData -> new javafx.beans.property.ReadOnlyObjectWrapper<>(cellData.getValue().get(finalColumnName)));
+
+                // --- APPLY COLUMN SIZING LOGIC HERE ---
+                // Identify PK/FK columns by convention (e.g., ends with ID or _FK)
+                // You might need to adjust these conditions based on your actual column names.
+                if (columnName.toLowerCase().endsWith("id") || columnName.toLowerCase().endsWith("_fk")) {
+                    column.setMinWidth(50);
+                    column.setPrefWidth(70);
+                    column.setMaxWidth(100); // Constrain width for IDs
+                }
+                // Give more space to common text fields
+                else if (columnName.toLowerCase().contains("name") ||
+                        columnName.toLowerCase().contains("address") ||
+                        columnName.toLowerCase().contains("notes") ||
+                        columnName.toLowerCase().contains("email") ||
+                        columnName.toLowerCase().contains("method") ||
+                        columnName.toLowerCase().contains("program")) {
+                    column.setMinWidth(100);
+                    column.setPrefWidth(180);
+                    // No maxWidth, allow these to grow
+                }
+                // Default for other numerical/date/boolean fields
+                else {
+                    column.setMinWidth(75);
+                    column.setPrefWidth(120);
+                }
+
                 mainTableView.getColumns().add(column);
             }
 
+            // 2. Populate data
             while (resultSet.next()) {
                 Map<String, Object> row = new HashMap<>();
                 for (String columnName : columnNames) {
@@ -305,6 +338,7 @@ public class MainController {
         } catch (SQLException e) {
             System.err.println("SQL Error while loading data from " + filename + ": " + e.getMessage());
             e.printStackTrace();
+            // Update status label with error
         } finally {
             // Ensure resources are closed in the finally block
             try { if (resultSet != null) resultSet.close(); } catch (SQLException e) { e.printStackTrace(); }
@@ -317,14 +351,15 @@ public class MainController {
     private void clearTableData() {
         mainTableView.getItems().clear();
         mainTableView.getColumns().clear();
-        mainTableView.setPlaceholder(new Label("No data to display"));
+        mainTableView.setPlaceholder(new Label("No data to display")); // Ensure placeholder is visible
     }
 
     /** Sets the color of the Hyperlinks back to DEFAULT */
     private void revertHyperlinkColor(Hyperlink hyperlink) {
-        PauseTransition pause = new PauseTransition(Duration.seconds(5));
+        PauseTransition pause = new PauseTransition(Duration.seconds(1)); // Shorten pause for quicker revert
         // Use a common web color for hyperlink blue, you might need to adjust based on actual default
-        pause.setOnFinished(event -> hyperlink.setTextFill(Color.web("#0000EE")));
+        // The default JavaFX hyperlink color is usually a darker blue like #0000EE or similar.
+        pause.setOnFinished(event -> hyperlink.setTextFill(Color.web("#0066CC"))); // A common hyperlink blue
         pause.play();
     }
 }
