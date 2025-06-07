@@ -1,0 +1,11 @@
+SELECT
+    EventLog.EventID,
+    EventLog.UserID_FK,
+    EventLog.EventDate,
+    EventLog.EventType,
+    EventLog.TableName,
+    EventLog.RecordID,
+    EventLog.ErrorCode,
+    EventLog.Description
+FROM
+    EventLog;
