@@ -66,7 +66,7 @@
   <BorderPane VBox.vgrow="ALWAYS">
 
     <top>
-      <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-padding: 15px;">
+      <HBox styleClass="header-bar" alignment="CENTER_LEFT" spacing="20.0" style="-fx-padding: 15px;">
         <Label text="Vanpool Management Database">
           <font>
             <Font name="System Bold" size="24.0" />
@@ -90,7 +90,7 @@
 
     <center>
       <SplitPane dividerPositions="0.25">
-        <Accordion fx:id="mainAccordion" maxWidth="300.0" minWidth="200.0">
+        <Accordion styleClass="left-sidebar" fx:id="mainAccordion" maxWidth="300.0" minWidth="200.0">
           <panes>
             <TitledPane fx:id="participantTitledPane" animated="false" text="Participants">
               <VBox spacing="5.0" style="-fx-padding: 10px;">
@@ -167,7 +167,7 @@
     </center>
 
     <bottom>
-      <HBox alignment="CENTER_LEFT" style="-fx-padding: 5px; -fx-background-color: #f0f0f0; -fx-border-color: #cccccc; -fx-border-width: 1px 0 0 0;">
+      <HBox styleClass="status-bar" alignment="CENTER_LEFT" style="-fx-padding: 5px; -fx-background-color: #f0f0f0; -fx-border-color: #cccccc; -fx-border-width: 1px 0 0 0;">
         <Label text="Status: Ready" />
       </HBox>
     </bottom>

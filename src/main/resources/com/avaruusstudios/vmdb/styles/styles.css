@@ -1,59 +1,183 @@
 /* style.css */
 
-/* --- Styling for the Accordion TitledPanes themselves --- */
-/* This targets the actual text within the TitledPane header */
-.titled-pane .title .text {
-    -fx-font-size: 15px; /* Set TitledPane header text to 14px */
-    -fx-font-weight: normal; /* Optional: Make it bold for better visual hierarchy */
-    -fx-fill: #333333; /* Optional: Darken text color for headers */
+/* --- Define Bootstrap-like colors and common values as root variables --- */
+/* These are custom properties (variables) for easier management */
+:root {
+    /* Main brand colors */
+    -bs-primary: #0d6efd;   /* Bootstrap blue */
+    -bs-secondary: #6c757d; /* Bootstrap gray */
+    -bs-success: #198754;   /* Bootstrap green */
+    -bs-danger: #dc3545;    /* Bootstrap red */
+    -bs-info: #0dcaf0;      /* Bootstrap cyan */
+    -bs-warning: #ffc107;   /* Bootstrap yellow */
+
+    /* Neutral colors */
+    -bs-light: #f8f9fa;     /* Very light grey */
+    -bs-dark: #212529;      /* Very dark grey (for text) */
+    -bs-white: #ffffff;
+    -bs-body-bg: #f8f9fa; /* General page background */
+
+    /* Borders & Shadows */
+    -bs-border-color: #dee2e6; /* Light grey border */
+    -bs-border-radius: 4px;    /* Typical Bootstrap border-radius (0.25rem) */
+
+    /* Spacing */
+    -bs-padding-y: 8px;
+    -bs-padding-x: 12px;
 }
 
+/* --- Base Styles (equivalent to Bootstrap's body/html) --- */
+.root {
+    -fx-font-family: "Segoe UI", "Arial", sans-serif; /* Prefer system sans-serif fonts */
+    -fx-font-size: 13px; /* Bootstrap's typical base font size */
+    -fx-text-fill: -bs-dark; /* Default text color */
+    -fx-background-color: -bs-body-bg; /* General application background */
+}
+
+/* --- Header Bar Styling (Top HBox) --- */
+.header-bar {
+    -fx-background-color: -bs-white; /* White background */
+    -fx-border-color: -bs-border-color;
+    -fx-border-width: 0 0 1px 0; /* Bottom border for separation */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 5, 0.0, 0, 2); /* Subtle shadow for depth */
+}
+
+.header-bar .label {
+    -fx-text-fill: -bs-dark; /* Dark text for header labels */
+}
+
+/* --- Left Sidebar Styling (Accordion) --- */
+.left-sidebar {
+    -fx-background-color: -bs-light; /* Light background for the sidebar */
+    -fx-border-color: -bs-border-color;
+    -fx-border-width: 0 1px 0 0; /* Right border to separate from content */
+}
+
+/* --- TitledPane Styling (Headers within Accordion) --- */
 .titled-pane .title {
-    -fx-background-color: #F0F0F0; /* Light grey background for the title area */
-    -fx-border-color: #CCCCCC;
+    -fx-background-color: -bs-light; /* Light background for the title area */
+    -fx-border-color: -bs-border-color;
     -fx-border-width: 0 0 1px 0; /* Subtle bottom border */
+    /*-fx-padding: 10px -bs-padding-x; !* Consistent padding *!*/
+    -fx-padding: 10px 12px; /* Changed from variable */
+    /* No border-radius here as it's part of a vertical stack, but we can round top of first one */
+}
+
+.titled-pane .title .text {
+    -fx-font-size: 14px; /* TitledPane header text */
+    -fx-font-weight: bold;
+    -fx-fill: -bs-dark;
 }
 
 .titled-pane > .title > .arrow-button .arrow {
-    -fx-background-color: #333333; /* Darker arrow color */
+    -fx-background-color: -bs-secondary; /* Grey arrow */
 }
 
 .titled-pane:expanded > .title {
-    -fx-background-color: #E0E0E0; /* Slightly darker when expanded */
+    -fx-background-color: derive(-bs-light, -5%); /* Slightly darker when expanded */
+    -fx-border-width: 0 0 1px 0;
 }
 
-/* --- General Nav Button Styling --- */
+/* Apply top-left/top-right border-radius to the first titled pane if it's the first child */
+.titled-pane:first-child .title {
+    /*-fx-background-radius: -bs-border-radius -bs-border-radius 0 0;*/
+    -fx-background-radius: 4px 4px 0 0; /* Changed from variable */
+}
+
+
+/* --- Navigation Buttons (within TitledPanes) --- */
 .nav-button {
-    -fx-background-color: transparent; /* Makes the button flat */
-    -fx-text-fill: #333333;           /* Default text color */
-    -fx-font-size: 12px;              /* **CHANGED to 12px** */
-    -fx-padding: 8px 10px;            /* Padding around the text */
+    -fx-background-color: transparent; /* Flat background */
+    -fx-text-fill: -bs-dark;           /* Dark text */
+    -fx-font-size: 12px;              /* Button font size */
+    /*-fx-padding: -bs-padding-y -bs-padding-x; !* Consistent padding *!*/
+    -fx-padding: 8px 12px; /* Changed from variable */
     -fx-border-width: 0;              /* No border by default */
-    -fx-cursor: hand;                 /* Changes cursor to hand on hover */
+    -fx-cursor: hand;                 /* Pointer cursor */
+    /*-fx-background-radius: -bs-border-radius; !* Subtle rounded corners *!*/
+    -fx-background-radius: 4px; /* Changed from variable */
 }
 
-/* --- Hover State --- */
 .nav-button:hover {
-    -fx-background-color: #E0E0E0;    /* Light gray background on hover */
-    -fx-text-fill: #000000;           /* Darker text on hover */
+    -fx-background-color: #e2e6ea;    /* Light grey background on hover (similar to Bootstrap's .btn-light:hover) */
+    -fx-text-fill: -bs-dark;
 }
 
-/* --- Pressed State --- */
-.nav-button:pressed {
-    -fx-background-color: #D0D0D0;    /* Slightly darker gray when pressed */
-    -fx-text-fill: #000000;
+.nav-button:pressed,
+.nav-button:armed { /* :armed covers mouse click and spacebar press */
+    -fx-background-color: #dae0e5;    /* Slightly darker grey when pressed */
+    -fx-text-fill: -bs-dark;
+    /* Optional: subtle shadow for pressed state */
+    -fx-effect: innershadow(gaussian, rgba(0,0,0,0.1), 5, 0.0, 0, 1);
 }
 
-/* --- Focused State (e.g., after clicking or tabbing) --- */
 .nav-button:focused {
-    -fx-focus-color: transparent; /* Removes default blue focus border */
-    -fx-faint-focus-color: transparent; /* Removes default faint focus border */
-    -fx-background-color: #E0E0E0; /* Keep hover background if focused */
+    -fx-focus-color: derive(-bs-primary, 50%); /* A blue focus ring */
+    -fx-faint-focus-color: derive(-bs-primary, 80%);
+    -fx-border-color: derive(-bs-primary, 50%);
+    -fx-border-width: 1px;
+    /*-fx-border-radius: -bs-border-radius;*/
+    -fx-border-radius: 4px; /* Changed from variable */
+    -fx-background-color: transparent; /* Keep background clean if not hovered */
 }
 
-/* --- Optional: Styling for the left sidebar background --- */
-.left-sidebar {
-    -fx-background-color: #F8F8F8; /* A very light grey for the whole sidebar */
-    -fx-border-color: #CCCCCC;
-    -fx-border-width: 0 1px 0 0; /* Right border to separate from main content */
+
+/* --- TableView Styling --- */
+.table-view {
+    -fx-background-color: -bs-white; /* White background for the table itself */
+    -fx-border-color: -bs-border-color;
+    -fx-border-width: 1px;
+    /*-fx-border-radius: -bs-border-radius;*/
+    -fx-border-radius: 4px; /* Changed from variable */
+    -fx-padding: 1px; /* To make the border visible */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 5, 0.0, 0, 2); /* Subtle shadow for the table */
+}
+
+.table-view .column-header-background {
+    -fx-background-color: -bs-light; /* Light grey header background */
+    -fx-border-color: -bs-border-color;
+    -fx-border-width: 0 0 1px 0; /* Bottom border for header */
+    /*-fx-background-radius: -bs-border-radius -bs-border-radius 0 0; !* Top rounded corners *!*/
+    -fx-background-radius: 4px 4px 0 0; /* Changed from variable */
+}
+
+.table-view .column-header {
+    -fx-font-weight: bold;
+    -fx-text-fill: -bs-dark;
+    -fx-padding: 8px 10px; /* Padding for header text */
+}
+
+.table-row-cell {
+    -fx-background-color: -fx-table-cell-border-color, -bs-white;
+    -fx-background-insets: 0, 0 0 1 0; /* Bottom border for each row cell */
+    -fx-padding: 0;
+}
+
+.table-row-cell:odd {
+    -fx-background-color: -fx-table-cell-border-color, derive(-bs-white, -2%); /* Very subtle lighter shade for odd rows */
+}
+
+.table-row-cell:selected {
+    -fx-background-color: -bs-primary; /* Bootstrap blue for selected row */
+    -fx-text-fill: -bs-white; /* White text on selected row */
+}
+
+.table-cell {
+    -fx-text-fill: -bs-dark; /* Default cell text color */
+    -fx-padding: 8px 10px; /* Padding inside cells */
+}
+
+
+/* --- Status Bar Styling (Bottom HBox) --- */
+.status-bar {
+    -fx-background-color: -bs-light; /* Light grey background */
+    -fx-border-color: -bs-border-color;
+    -fx-border-width: 1px 0 0 0; /* Top border */
+    -fx-padding: 5px;
+    -fx-effect: innershadow(gaussian, rgba(0,0,0,0.05), 5, 0.0, 0, -2); /* Subtle shadow from top */
+}
+
+.status-bar .label {
+    -fx-text-fill: -bs-secondary; /* Secondary grey for status text */
+    -fx-font-size: 11px; /* Slightly smaller font for status */
 }
