@@ -58,9 +58,7 @@
     -fx-background-color: -bs-light; /* Light background for the title area */
     -fx-border-color: -bs-border-color;
     -fx-border-width: 0 0 1px 0; /* Subtle bottom border */
-    /*-fx-padding: 10px -bs-padding-x; !* Consistent padding *!*/
-    -fx-padding: 10px 12px; /* Changed from variable */
-    /* No border-radius here as it's part of a vertical stack, but we can round top of first one */
+    -fx-padding: 10px 12px;
 }
 
 .titled-pane .title .text {
@@ -80,8 +78,7 @@
 
 /* Apply top-left/top-right border-radius to the first titled pane if it's the first child */
 .titled-pane:first-child .title {
-    /*-fx-background-radius: -bs-border-radius -bs-border-radius 0 0;*/
-    -fx-background-radius: 4px 4px 0 0; /* Changed from variable */
+    -fx-background-radius: 4px 4px 0 0;
 }
 
 
@@ -90,12 +87,10 @@
     -fx-background-color: transparent; /* Flat background */
     -fx-text-fill: -bs-dark;           /* Dark text */
     -fx-font-size: 12px;              /* Button font size */
-    /*-fx-padding: -bs-padding-y -bs-padding-x; !* Consistent padding *!*/
-    -fx-padding: 8px 12px; /* Changed from variable */
+    -fx-padding: 8px 12px;
     -fx-border-width: 0;              /* No border by default */
     -fx-cursor: hand;                 /* Pointer cursor */
-    /*-fx-background-radius: -bs-border-radius; !* Subtle rounded corners *!*/
-    -fx-background-radius: 4px; /* Changed from variable */
+    -fx-background-radius: 4px;
 }
 
 .nav-button:hover {
@@ -107,7 +102,6 @@
 .nav-button:armed { /* :armed covers mouse click and spacebar press */
     -fx-background-color: #dae0e5;    /* Slightly darker grey when pressed */
     -fx-text-fill: -bs-dark;
-    /* Optional: subtle shadow for pressed state */
     -fx-effect: innershadow(gaussian, rgba(0,0,0,0.1), 5, 0.0, 0, 1);
 }
 
@@ -116,53 +110,50 @@
     -fx-faint-focus-color: derive(-bs-primary, 80%);
     -fx-border-color: derive(-bs-primary, 50%);
     -fx-border-width: 1px;
-    /*-fx-border-radius: -bs-border-radius;*/
-    -fx-border-radius: 4px; /* Changed from variable */
+    -fx-border-radius: 4px;
     -fx-background-color: transparent; /* Keep background clean if not hovered */
 }
 
 
-/* --- TableView Styling --- */
-.table-view {
+/* --- TableView Styling (RENAMED to .data-table) --- */
+.data-table { /* RENAMED FROM .table-view */
     -fx-background-color: -bs-white; /* White background for the table itself */
     -fx-border-color: -bs-border-color;
     -fx-border-width: 1px;
-    /*-fx-border-radius: -bs-border-radius;*/
-    -fx-border-radius: 4px; /* Changed from variable */
+    -fx-background-radius: 4px;
     -fx-padding: 1px; /* To make the border visible */
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 5, 0.0, 0, 2); /* Subtle shadow for the table */
 }
 
-.table-view .column-header-background {
+.data-table .column-header-background { /* Updated selector */
     -fx-background-color: -bs-light; /* Light grey header background */
     -fx-border-color: -bs-border-color;
     -fx-border-width: 0 0 1px 0; /* Bottom border for header */
-    /*-fx-background-radius: -bs-border-radius -bs-border-radius 0 0; !* Top rounded corners *!*/
-    -fx-background-radius: 4px 4px 0 0; /* Changed from variable */
+    -fx-background-radius: 4px 4px 0 0; /* Top rounded corners */
 }
 
-.table-view .column-header {
+.data-table .column-header { /* Updated selector */
     -fx-font-weight: bold;
     -fx-text-fill: -bs-dark;
     -fx-padding: 8px 10px; /* Padding for header text */
 }
 
-.table-row-cell {
+.data-table .table-row-cell { /* Updated selector */
     -fx-background-color: -fx-table-cell-border-color, -bs-white;
     -fx-background-insets: 0, 0 0 1 0; /* Bottom border for each row cell */
     -fx-padding: 0;
 }
 
-.table-row-cell:odd {
+.data-table .table-row-cell:odd { /* Updated selector */
     -fx-background-color: -fx-table-cell-border-color, derive(-bs-white, -2%); /* Very subtle lighter shade for odd rows */
 }
 
-.table-row-cell:selected {
+.data-table .table-row-cell:selected { /* Updated selector */
     -fx-background-color: -bs-primary; /* Bootstrap blue for selected row */
     -fx-text-fill: -bs-white; /* White text on selected row */
 }
 
-.table-cell {
+.data-table .table-cell { /* Updated selector */
     -fx-text-fill: -bs-dark; /* Default cell text color */
     -fx-padding: 8px 10px; /* Padding inside cells */
 }
@@ -180,4 +171,72 @@
 .status-bar .label {
     -fx-text-fill: -bs-secondary; /* Secondary grey for status text */
     -fx-font-size: 11px; /* Slightly smaller font for status */
+}
+
+/* --- New styles for ParticipantContent.fxml and similar content views --- */
+
+/* Base style for content views loaded into the StackPane */
+.content-view {
+    -fx-background-color: -bs-white; /* White background for the content area */
+    -fx-border-color: -bs-border-color;
+    -fx-border-width: 1px; /* Subtle border around the content */
+    -fx-background-radius: -bs-border-radius; /* Rounded corners for the content pane */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 5, 0.0, 0, 2); /* Subtle shadow for depth */
+    -fx-padding: 20px; /* Adjust padding as needed, or remove if padding is handled by VBox directly */
+}
+
+/* Header within the content view (e.g., "Participants List") */
+.content-header {
+    -fx-padding: 0 0 10px 0; /* Padding around content header elements */
+}
+
+.view-title {
+    -fx-font-size: 20px; /* Larger font for main view titles */
+    -fx-font-weight: bold;
+    -fx-text-fill: -bs-dark;
+}
+
+.header-separator {
+    -fx-background-color: -bs-border-color;
+    -fx-border-width: 0;
+    -fx-min-height: 1px;
+    -fx-max-height: 1px;
+    -fx-padding: 0;
+    -fx-margin: 0;
+}
+
+/* Summary labels in the header (e.g., "Total Participants:") */
+.summary-label-key {
+    -fx-font-weight: bold;
+    -fx-text-fill: -bs-dark;
+    -fx-font-size: 13px;
+}
+
+.summary-label-value {
+    -fx-font-weight: normal;
+    -fx-text-fill: -bs-primary; /* Use a primary color for values */
+    -fx-font-size: 13px;
+}
+
+/* Refresh button */
+.refresh-button {
+    -fx-background-color: -bs-primary;
+    -fx-text-fill: -bs-white;
+    -fx-font-size: 12px;
+    -fx-padding: 6px 10px;
+    -fx-background-radius: -bs-border-radius;
+    -fx-cursor: hand;
+}
+.refresh-button:hover {
+    -fx-background-color: derive(-bs-primary, -10%);
+}
+.refresh-button:pressed {
+    -fx-background-color: derive(-bs-primary, -20%);
+}
+
+/* Placeholder text within the StackPane (MainController.java) */
+.placeholder-text {
+    -fx-font-size: 16px;
+    -fx-text-fill: -bs-secondary;
+    -fx-font-style: italic;
 }
