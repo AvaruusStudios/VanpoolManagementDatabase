@@ -156,14 +156,14 @@
         </Accordion>
 
         <StackPane fx:id="contentStackPane">
-          <Label text="Select a category from the left to view data." />
+          <Label styleClass="placeholder-text" text="Select a category from the left to view data." />
         </StackPane>
       </SplitPane>
     </center>
 
     <bottom>
       <HBox styleClass="status-bar" alignment="CENTER_LEFT" style="-fx-padding: 5px; -fx-background-color: #f0f0f0; -fx-border-color: #cccccc; -fx-border-width: 1px 0 0 0;">
-        <Label text="Status: Ready" />
+        <Label fx:id="statusBarLabel" text="Status: Ready" />
       </HBox>
     </bottom>
 
