@@ -177,12 +177,12 @@
 
 /* Base style for content views loaded into the StackPane */
 .content-view {
-    -fx-background-color: -bs-white; /* White background for the content area */
+    -fx-background-color: -bs-white;
     -fx-border-color: -bs-border-color;
-    -fx-border-width: 1px; /* Subtle border around the content */
-    -fx-background-radius: -bs-border-radius; /* Rounded corners for the content pane */
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 5, 0.0, 0, 2); /* Subtle shadow for depth */
-    -fx-padding: 20px; /* Adjust padding as needed, or remove if padding is handled by VBox directly */
+    -fx-border-width: 1px;
+    -fx-background-radius: 4px; /* CHANGED from -bs-border-radius */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 5, 0.0, 0, 2);
+    -fx-padding: 20px;
 }
 
 /* Header within the content view (e.g., "Participants List") */
@@ -224,7 +224,7 @@
     -fx-text-fill: -bs-white;
     -fx-font-size: 12px;
     -fx-padding: 6px 10px;
-    -fx-background-radius: -bs-border-radius;
+    -fx-background-radius: 4px; /* CHANGED from -bs-border-radius */
     -fx-cursor: hand;
 }
 .refresh-button:hover {
