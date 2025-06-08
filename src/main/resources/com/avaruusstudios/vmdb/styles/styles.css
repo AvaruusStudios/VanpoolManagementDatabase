@@ -117,6 +117,7 @@
     -fx-background-color: transparent; /* Flat background */
     -fx-text-fill: -bs-dark;           /* Dark text */
     -fx-font-size: 12px;              /* Button font size */
+    -fx-font-weight: bold;
     -fx-padding: 8px 12px;
     -fx-border-width: 0;              /* No border by default */
     -fx-cursor: hand;                 /* Pointer cursor */
@@ -143,7 +144,6 @@
     -fx-border-radius: 4px;
     -fx-background-color: transparent; /* Keep background clean if not hovered */
 }
-
 
 /* --- TableView Styling (RENAMED to .data-table) --- */
 .data-table { /* RENAMED FROM .table-view */
@@ -188,7 +188,6 @@
     -fx-padding: 8px 10px; /* Padding inside cells */
 }
 
-
 /* --- Status Bar Styling (Bottom HBox) --- */
 .status-bar {
     -fx-background-color: -bs-light; /* Light grey background */
@@ -204,7 +203,6 @@
 }
 
 /* --- New styles for ParticipantContent.fxml and similar content views --- */
-
 /* Base style for content views loaded into the StackPane */
 .content-view {
     -fx-background-color: -bs-white;
