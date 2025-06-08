@@ -61,6 +61,36 @@
     -fx-padding: 10px 12px;
 }
 
+
+.titled-pane:focused > .title { /* This is the key change: ':focused > .title' */
+    /* Apply the same blue halo/tint effect as the nav-buttons */
+    -fx-focus-color: derive(-bs-primary, 50%);
+    -fx-faint-focus-color: derive(-bs-primary, 80%);
+
+    /* Apply the same blue border */
+    -fx-border-color: derive(-bs-primary, 50%);
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px 4px 0 0; /* Apply radius to top corners, as it's a header */
+
+    /* Ensure the background remains consistent with the nav-button focus state (transparent background) */
+    -fx-background-color: transparent;
+}
+
+/* Add or ensure this rule exists to prevent the arrow-button from showing its own default blue halo */
+.titled-pane .arrow-button:focused {
+    -fx-focus-color: transparent; /* Remove default JavaFX halo from the arrow-button */
+    -fx-faint-focus-color: transparent;
+    -fx-border-color: transparent; /* Remove border from the arrow-button itself */
+    -fx-background-color: transparent;
+}
+
+/* This rule ensures the arrow still looks good within the focused title,
+   it's less about focus and more about visual consistency */
+.titled-pane:focused > .title > .arrow-button .arrow {
+    -fx-background-color: derive(-bs-primary, -10%); /* Make arrow slightly darker to complement focused title */
+    -fx-effect: none; /* Remove any default glow if present */
+}
+
 .titled-pane .title .text {
     -fx-font-size: 14px; /* TitledPane header text */
     -fx-font-weight: bold;
