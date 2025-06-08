@@ -155,14 +155,9 @@
           </panes>
         </Accordion>
 
-        <TableView fx:id="mainTableView">
-          <columnResizePolicy>
-            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-          </columnResizePolicy>
-          <placeholder>
-            <Label text="Select a category from the left to view data." />
-          </placeholder>
-        </TableView>
+        <StackPane fx:id="contentStackPane">
+          <Label text="Select a category from the left to view data." />
+        </StackPane>
       </SplitPane>
     </center>
 

@@ -1,13 +1,11 @@
 package com.avaruusstudios.vmdb.views;
 
-import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.paint.Color;
-import javafx.util.Duration;
+import javafx.scene.layout.StackPane;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -22,7 +20,7 @@ import java.util.*;
 
 public class MainController {
     @FXML
-    private TableView<Map<String, Object>> mainTableView;
+    private StackPane contentStackPane;
     @FXML
     private Accordion mainAccordion;
     @FXML
