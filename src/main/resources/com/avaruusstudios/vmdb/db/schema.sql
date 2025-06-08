@@ -1,97 +1,97 @@
 -- 🚐 Vehicles
 CREATE TABLE Vehicles (
-    VehicleID INTEGER PRIMARY KEY AUTOINCREMENT,
-    VehicleNumber TEXT NOT NULL,
-    Make TEXT,
-    Model TEXT,
-    Year INTEGER,
-    Capacity INTEGER NOT NULL,
-    LeaseStartDate TEXT NOT NULL, -- ISO format recommended
-    LeaseEndDate TEXT,
-    IsActive INTEGER NOT NULL DEFAULT 1, -- 1=True, 0=False
-    SubsidyAmount REAL DEFAULT 0,
-    Notes TEXT
+    VehicleID INTEGER PRIMARY KEY AUTOINCREMENT,        -- Vehicle Identifier
+    VehicleNumber TEXT NOT NULL,                        -- Vehicle Number issues by Rental Agency
+    Make TEXT,                                          -- Vehicle Make
+    Model TEXT,                                         -- Vehicle Model
+    Year INTEGER,                                       -- Vehicle Year
+    Capacity INTEGER NOT NULL,                          -- Vehicle Seating Capacity
+    LeaseStartDate TEXT NOT NULL,                       -- Lease Start Date in ISO format recommended
+    LeaseEndDate TEXT,                                  -- Lease End Date in ISO format recommended
+    IsActive INTEGER NOT NULL DEFAULT 1,                -- 1=True, 0=False
+    SubsidyAmount REAL DEFAULT 0,                       -- Discount amount
+    Notes TEXT                                          -- Contextual Notes about the Vehicle
 );
 
 -- 📍 Locations
 CREATE TABLE Locations (
-    LocationID INTEGER PRIMARY KEY AUTOINCREMENT,
-    LocationName TEXT NOT NULL,
-    Address TEXT,
-    City TEXT,
-    State TEXT,
-    ZipCode TEXT,
-    Latitude INTEGER,
-    Longitude INTEGER,
-    Notes TEXT
+    LocationID INTEGER PRIMARY KEY AUTOINCREMENT,       -- Location Identifier
+    LocationName TEXT NOT NULL,                         -- Location Name
+    Address TEXT,                                       -- Location number and street
+    City TEXT,                                          -- Location City
+    State TEXT,                                         -- Location State
+    ZipCode TEXT,                                       -- Location Zip-Code
+    Latitude INTEGER,                                   -- Location Latitude
+    Longitude INTEGER,                                  -- Location Longitude
+    Notes TEXT                                          -- Contextual Notes about the Location
 );
 
 -- 👥 Participants
 CREATE TABLE Participants (
-    ParticipantID INTEGER PRIMARY KEY AUTOINCREMENT,
-    PickUpLocationID_FK INTEGER,
-    DropOffLocationID_FK INTEGER,
-    FirstName TEXT NOT NULL,
-    MiddleName TEXT,
-    LastName TEXT NOT NULL,
-    Email TEXT NOT NULL,
-    Phone TEXT,
-    DistanceMiles REAL NOT NULL,
-    JoinDate TEXT NOT NULL,
-    IsActive INTEGER NOT NULL DEFAULT 1,
-    Program TEXT,
-    BenefitAmount REAL DEFAULT 0,
-    Notes TEXT,
+    ParticipantID INTEGER PRIMARY KEY AUTOINCREMENT,                                        -- Participant Identifier
+    PickUpLocationID_FK INTEGER,                                                            -- Place the Participant is picked from in morning (Foreign Key)
+    DropOffLocationID_FK INTEGER,                                                           -- Place the Participant is dropped off for work in the morning (Foreign Key)
+    FirstName TEXT NOT NULL,                                                                -- Participant First Name
+    MiddleName TEXT,                                                                        -- Participant Middle Name
+    LastName TEXT NOT NULL,                                                                 -- Participant Last Name
+    Email TEXT NOT NULL,                                                                    -- Participant Email Address
+    Phone TEXT,                                                                             -- Participant Phone Number
+    DistanceMiles REAL NOT NULL,                                                            -- Distance in Miles from Pickup Location to Drop-Off Location
+    JoinDate TEXT NOT NULL,                                                                 -- Date Participant Joined the Vanpoool
+    IsActive INTEGER NOT NULL DEFAULT 1,                                                    -- 1=True, 0=False
+    Program TEXT CHECK (Program IN ('Transportation Incentive Program (TIP)', 'Daily')),    -- Program the Participant is associated with
+    BenefitAmount REAL DEFAULT 0,                                                           -- Benefit Amount the Participant receives each month
+    Notes TEXT,                                                                             -- Contextual Notes about the Participant
     FOREIGN KEY (PickUpLocationID_FK) REFERENCES Locations(LocationID),
     FOREIGN KEY (DropOffLocationID_FK) REFERENCES Locations(LocationID)
 );
 
 -- 🧾 Invoices
 CREATE TABLE Invoices (
-    InvoiceID INTEGER PRIMARY KEY AUTOINCREMENT,
-    VehicleID_FK INTEGER NOT NULL,
-    InvoiceDate TEXT NOT NULL,
-    DueDate TEXT NOT NULL,
-    PeriodLabel TEXT NOT NULL,
-    Notes TEXT,
+    InvoiceID INTEGER PRIMARY KEY AUTOINCREMENT,                -- Invoice Identifier
+    VehicleID_FK INTEGER NOT NULL,                              -- Vehicle Tied to the Invoice (Foreign Key)
+    InvoiceDate TEXT NOT NULL,                                  -- Date the Invoice was created
+    DueDate TEXT NOT NULL,                                      -- Date the Participants are required to pay their share of the Invoice
+    PeriodLabel TEXT NOT NULL,                                  -- Coverage period of the Invoice (eg. MMM YYYY)
+    Notes TEXT,                                                 -- Contextual Notes about the Invoice
     FOREIGN KEY (VehicleID_FK) REFERENCES Vehicles(VehicleID)
 );
 
 -- 💸 Invoice Items
 CREATE TABLE InvoiceItems (
-    InvoiceItemID INTEGER PRIMARY KEY AUTOINCREMENT,
-    InvoiceID_FK INTEGER NOT NULL,
-    ParticipantID_FK INTEGER NOT NULL,
-    BenefitPayment REAL NOT NULL,
-    PersonalPayment REAL NOT NULL,
-    PaidAmount REAL DEFAULT 0,
-    IsPaid INTEGER NOT NULL DEFAULT 0,
-    Notes TEXT,
+    InvoiceItemID INTEGER PRIMARY KEY AUTOINCREMENT,                        -- Invoice Item Identifier
+    InvoiceID_FK INTEGER NOT NULL,                                          -- Invoice the Invoice Item belongs to
+    ParticipantID_FK INTEGER NOT NULL,                                      -- Every Invoice Item is for a specific Participant
+    BenefitPayment REAL NOT NULL,                                           -- The amount the Participant is required to pay to their Benefit Card
+    PersonalPayment REAL NOT NULL,                                          -- The amount the Participant is required to pay to their personal credit card
+    PaidAmount REAL DEFAULT 0,                                              -- The Amount the Participant paid after the Invoice Date prior to the next Invoice Date
+    IsPaid INTEGER NOT NULL DEFAULT 0,                                      -- Did the Participant make their payment?
+    Notes TEXT,                                                             -- Contextual Notes about the Invoice Item
     FOREIGN KEY (InvoiceID_FK) REFERENCES Invoices(InvoiceID),
     FOREIGN KEY (ParticipantID_FK) REFERENCES Participants(ParticipantID)
 );
 
 -- 💳 Categories
 CREATE TABLE Categories (
-    CategoryID INTEGER PRIMARY KEY AUTOINCREMENT,
-    ParticipantID_FK INTEGER,
-    CategoryType TEXT NOT NULL CHECK (CategoryType IN ('Income', 'Expense', 'Credit')),
-    CategoryName TEXT NOT NULL,
-    Description TEXT,
+    CategoryID INTEGER PRIMARY KEY AUTOINCREMENT,                                       -- Category Identifier
+    ParticipantID_FK INTEGER,                                                           -- Participant Identifier (Foreign Key) Ties a Participant to a Category Name
+    CategoryType TEXT NOT NULL CHECK (CategoryType IN ('Income', 'Expense', 'Credit')), -- Category Types
+    CategoryName TEXT NOT NULL,                                                         -- Category Names
+    Description TEXT,                                                                   -- Category Long Descriptions
     FOREIGN KEY (ParticipantID_FK) REFERENCES Participants(ParticipantID)
 );
 
 -- 📒 Transactions
 CREATE TABLE Transactions (
-    TransactionID INTEGER PRIMARY KEY AUTOINCREMENT,
-    VehicleID_FK INTEGER NOT NULL,
-    CategoryID_FK INTEGER NOT NULL,
-    InvoiceID_FK INTEGER,
-    ParticipantID_FK INTEGER,
-    TransactionDate TEXT NOT NULL,
-    Amount REAL NOT NULL,
-    PaymentMethod TEXT,
-    Notes TEXT,
+    TransactionID INTEGER PRIMARY KEY AUTOINCREMENT,                        -- Transaction Identifier
+    VehicleID_FK INTEGER NOT NULL,                                          -- Vehicle Identifier (Foreign Key)
+    CategoryID_FK INTEGER NOT NULL,                                         -- Category Identifier (Foreign Key)
+    InvoiceID_FK INTEGER,                                                   -- Invoice Identifier (Foreign Key)
+    ParticipantID_FK INTEGER,                                               -- Participant Identifier (Foreign Key)
+    TransactionDate TEXT NOT NULL,                                          -- Date of the Transaction
+    Amount REAL NOT NULL,                                                   -- Transaction Amount
+    PaymentMethod TEXT,                                                     -- Method of Payment for the Transaction
+    Notes TEXT,                                                             -- Contextual Notes about the Transaction
     FOREIGN KEY (VehicleID_FK) REFERENCES Vehicles(VehicleID),
     FOREIGN KEY (CategoryID_FK) REFERENCES Categories(CategoryID),
     FOREIGN KEY (InvoiceID_FK) REFERENCES Invoices(InvoiceID),
@@ -100,26 +100,26 @@ CREATE TABLE Transactions (
 
 -- 📝 Event Log
 CREATE TABLE EventLog (
-    EventID INTEGER PRIMARY KEY AUTOINCREMENT,
-    UserID_FK INTEGER NOT NULL,
-    EventDate TEXT NOT NULL,
-    EventType TEXT NOT NULL CHECK (EventType IN ('CREATE', 'READ', 'UPDATE', 'DELETE', 'ERROR')),
-    TableName TEXT NOT NULL,
-    RecordID INTEGER,
-    ErrorCode INTEGER,
-    Description TEXT,
+    EventID INTEGER PRIMARY KEY AUTOINCREMENT,                                                      -- Event Identifier
+    UserID_FK INTEGER NOT NULL,                                                                     -- User Identifier (Foreign Key)
+    EventDate TEXT NOT NULL,                                                                        -- Date of the Event
+    EventType TEXT NOT NULL CHECK (EventType IN ('CREATE', 'READ', 'UPDATE', 'DELETE', 'ERROR')),   -- Type of Event
+    TableName TEXT NOT NULL,                                                                        -- Table the event happened in
+    RecordID INTEGER,                                                                               -- Record ID of the event happened to
+    ErrorCode INTEGER,                                                                              -- Error Code of the event
+    Description TEXT,                                                                               -- Description of the event
     FOREIGN KEY (UserID_FK) REFERENCES Users(UserID)
 );
 
 -- 👤 Users
 CREATE TABLE Users (
-    UserID INTEGER PRIMARY KEY AUTOINCREMENT,
-    WindowsUsername VARCHAR(255) UNIQUE NOT NULL,
-    FirstName VARCHAR(255),
-    MiddleName VARCHAR(255),
-    LastName VARCHAR(255),
-    Email VARCHAR(255),
-    UserRole VARCHAR(50) NOT NULL, -- e.g., "ADMIN", "TREASURER", "USER", "COORDINATOR"
-    Active INTEGER NOT NULL DEFAULT 1, -- Assuming 1 for TRUE, 0 for FALSE
-    DateCreated TEXT DEFAULT CURRENT_TIMESTAMP -- SQLite uses TEXT for DATETIME and CURRENT_TIMESTAMP
+    UserID INTEGER PRIMARY KEY AUTOINCREMENT,       -- User Identifier
+    WindowsUsername VARCHAR(255) UNIQUE NOT NULL,   -- System Username (Not sure this is required.  Was using this in Microsoft Access)
+    FirstName VARCHAR(255),                         -- First Name of the User
+    MiddleName VARCHAR(255),                        -- Middle Name of the User
+    LastName VARCHAR(255),                          -- Last Name of the User
+    Email VARCHAR(255),                             -- Email Address of the User
+    UserRole VARCHAR(50) NOT NULL,                  -- User Role (e.g., "ADMIN", "TREASURER", "USER", "COORDINATOR")
+    IsActive INTEGER NOT NULL DEFAULT 1,            -- 1 for TRUE, 0 for FALSE
+    DateCreated TEXT DEFAULT CURRENT_TIMESTAMP      -- SQLite uses TEXT for DATETIME and CURRENT_TIMESTAMP
 );
