@@ -5,7 +5,7 @@ import java.time.LocalDate;
 /**
  * Represents a vehicle used in the Vanpool Management System.
  * A vehicle contains metadata such as make, model, capacity, lease period, and subsidy details.
- * This object reflects the schema used to track active/inactive vanpool vehicles.
+ * This object reflects the schema used to track isActive/inactive vanpool vehicles.
  */
 public class Vehicle {
     /** Unique identifier for the vehicle */
@@ -24,8 +24,8 @@ public class Vehicle {
     private LocalDate leaseStartDate;
     /** Lease end date, nullable */
     private LocalDate leaseEndDate;
-    /** Indicates if vehicle is active (1=true, 0=false) */
-    private boolean active;
+    /** Indicates if vehicle is isActive (1=true, 0=false) */
+    private boolean isActive;
     /** Subsidy amount associated with the vehicle */
     private double subsidyAmount;
     /** Notes or comments about the vehicle */
@@ -46,13 +46,13 @@ public class Vehicle {
      * @param capacity       the number of seats
      * @param leaseStartDate lease starting date
      * @param leaseEndDate   lease ending date
-     * @param active         whether the vehicle is active
+     * @param isActive         whether the vehicle is isActive
      * @param subsidyAmount  subsidy amount associated
      * @param notes          any extra information
      */
     public Vehicle(int vehicleID, String vehicleNumber, String make, String model,
                    int year, int capacity, LocalDate leaseStartDate, LocalDate leaseEndDate,
-                   boolean active, double subsidyAmount, String notes) {
+                   boolean isActive, double subsidyAmount, String notes) {
         this.vehicleID = vehicleID;
         this.vehicleNumber = vehicleNumber;
         this.make = make;
@@ -61,7 +61,7 @@ public class Vehicle {
         this.capacity = capacity;
         this.leaseStartDate = leaseStartDate;
         this.leaseEndDate = leaseEndDate;
-        this.active = active;
+        this.isActive = isActive;
         this.subsidyAmount = subsidyAmount;
         this.notes = notes;
     }
@@ -209,19 +209,19 @@ public class Vehicle {
     /**
      * Indicates whether the vehicle is currently available and in use.
      *
-     * @return true if the vehicle is active; false if retired or unavailable.
+     * @return true if the vehicle is isActive; false if retired or unavailable.
      */
     public boolean isActive() {
-        return active;
+        return isActive;
     }
     /**
      * Toggles the vehicle's operational status.
-     * This flag helps in filtering active inventory or deactivating vehicles.
+     * This flag helps in filtering isActive inventory or deactivating vehicles.
      *
-     * @param active Set to true for active vehicles; false to deactivate.
+     * @param active Set to true for isActive vehicles; false to deactivate.
      */
     public void setActive(boolean active) {
-        this.active = active;
+        this.isActive = active;
     }
     /**
      * Gets the subsidy amount tied to this vehicle.
