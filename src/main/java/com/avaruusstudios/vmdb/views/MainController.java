@@ -1,22 +1,15 @@
 package com.avaruusstudios.vmdb.views;
 
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+
 
 public class MainController {
     @FXML
@@ -25,6 +18,12 @@ public class MainController {
     private Accordion mainAccordion;
     @FXML
     private Label txtCurrentDate;
+    @FXML
+    private Label txtRecentTransaction;
+    @FXML
+    private Label txtBalance;
+    @FXML
+    private Label statusBarLabel;
     @FXML
     private TitledPane participantTitledPane;
     @FXML
@@ -83,6 +82,10 @@ public class MainController {
         LocalDate currentDate = LocalDate.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy");
         txtCurrentDate.setText(currentDate.format(formatter));
+
+        // Initialize header summary labels (optional, can be done by a dashboard view later)
+        txtRecentTransaction.setText("N/A");
+        txtBalance.setText("N/A");
 
         // Set onAction handlers for Participant Buttons
         createParticipant.setOnAction(event -> {
@@ -161,7 +164,7 @@ public class MainController {
             if (newPane == null) {
                 // This means all panes are now collapsed
                 System.out.println("All TitledPanes collapsed - Clearing table.");
-                clearTableData();
+                clearContentPane();
             } else {
                 // A pane is now expanded, load its data
                 // Use newPane.getId() if you've set fx:id for your TitledPanes,
@@ -170,23 +173,17 @@ public class MainController {
 
                 // Use the new camelCase filenames
                 if (newPane == participantTitledPane) {
-                    InputStream inputStream = getClass().getResourceAsStream("/com/avaruusstudios/vmdb/db/selectParticipantsAll.sql");
-                    loadTableData(inputStream, "selectParticipantsAll.sql");
+                    loadView("/com/avaruusstudios/vmdb/views/participantContent.fxml");
                 } else if (newPane == transactionTitledPane) {
-                    InputStream inputStream = getClass().getResourceAsStream("/com/avaruusstudios/vmdb/db/selectTransactionsAll.sql");
-                    loadTableData(inputStream, "selectTransactionsAll.sql");
+                    loadView("/com/avaruusstudios/vmdb/views/TransactionContent.fxml");
                 } else if (newPane == locationTitledPane) {
-                    InputStream inputStream = getClass().getResourceAsStream("/com/avaruusstudios/vmdb/db/selectLocationsAll.sql");
-                    loadTableData(inputStream, "selectLocationsAll.sql");
+                    loadView("/com/avaruusstudios/vmdb/views/LocationContent.fxml");
                 } else if (newPane == vehicleTitledPane) {
-                    InputStream inputStream = getClass().getResourceAsStream("/com/avaruusstudios/vmdb/db/selectVehiclesAll.sql");
-                    loadTableData(inputStream, "selectVehiclesAll.sql");
+                    loadView("/com/avaruusstudios/vmdb/views/VehicleContent.fxml");
                 } else if (newPane == invoiceTitledPane) {
-                    InputStream inputStream = getClass().getResourceAsStream("/com/avaruusstudios/vmdb/db/selectInvoicesAll.sql");
-                    loadTableData(inputStream, "selectInvoicesAll.sql");
+                    loadView("/com/avaruusstudios/vmdb/views/InvoiceContent.fxml");
                 } else if (newPane == categoryTitledPane) {
-                    InputStream inputStream = getClass().getResourceAsStream("/com/avaruusstudios/vmdb/db/selectCategoriesAll.sql");
-                    loadTableData(inputStream, "selectCategoriesAll.sql");
+                    loadView("/com/avaruusstudios/vmdb/views/CategoryContent.fxml");
                 }
             }
         });
@@ -198,121 +195,69 @@ public class MainController {
             System.out.println("Application fully initialized and ready for user interaction.");
 
             // Optional: If you want the table to be explicitly clear on startup (even if Accordion is null),
-            // you can call clearTableData() here *once* after initialization.
-            // This is useful if no pane is expanded by default in your FXML.
+            // you can call clearContentPane() here *once* after initialization.
             if (mainAccordion.getExpandedPane() == null) {
-                clearTableData();
-                System.out.println("Table cleared initially as no pane is expanded.");
+                clearContentPane(); // NEW: Clear content pane initially
+                System.out.println("Content pane cleared initially as no pane is expanded.");
             }
+            // Optional: Load a default "Home" or "Dashboard" view on startup
+            // loadViewIntoContentPane("/com/avaruusstudios/vmdb/views/DashboardContent.fxml");
         });
     }
 
-    /** Loads data into the TableView based on the provided SQL query */
-    private void loadTableData(InputStream inputStream, String filename) {
-        ObservableList<Map<String, Object>> data = FXCollections.observableArrayList();
-        mainTableView.getColumns().clear(); // Clear existing columns
-
-        String url = "jdbc:sqlite:./vanpool.db"; // Your database connection URL
-        String sqlQuery = "";
-
-        if (inputStream == null) {
-            System.err.println("Could not find SQL file: " + filename);
-            // Optionally, update a status label in your UI
-            return;
-        }
-
-        try (Scanner scanner = new Scanner(inputStream, StandardCharsets.UTF_8.name())) {
-            StringBuilder sb = new StringBuilder();
-            while (scanner.hasNextLine()) {
-                sb.append(scanner.nextLine()).append("\n");
-            }
-            sqlQuery = sb.toString();
-        } catch (Exception e) {
-            System.err.println("Error reading SQL file '" + filename + "': " + e.getMessage());
-            e.printStackTrace();
-            // Update status label with error
-            return;
-        }
-
-
-        Connection connection = null;
-        Statement statement = null;
-        ResultSet resultSet = null;
-
-        try {
-            connection = DriverManager.getConnection(url);
-            statement = connection.createStatement();
-            resultSet = statement.executeQuery(sqlQuery);
-
-            ResultSetMetaData metaData = resultSet.getMetaData();
-            int columnCount = metaData.getColumnCount();
-            List<String> columnNames = new ArrayList<>();
-
-            // 1. Create columns and apply sizing rules
-            for (int i = 1; i <= columnCount; i++) {
-                String columnName = metaData.getColumnName(i); // Use getColumnName for schema name
-                String columnLabel = metaData.getColumnLabel(i); // Use getColumnLabel for preferred display name
-                columnNames.add(columnName);
-
-                TableColumn<Map<String, Object>, Object> column = new TableColumn<>(columnLabel); // Use label for header
-                final String finalColumnName = columnName; // Needs to be final for lambda
-                column.setCellValueFactory(cellData -> new javafx.beans.property.ReadOnlyObjectWrapper<>(cellData.getValue().get(finalColumnName)));
-
-                // --- APPLY COLUMN SIZING LOGIC HERE ---
-                // Identify PK/FK columns by convention (e.g., ends with ID or _FK)
-                // You might need to adjust these conditions based on your actual column names.
-                if (columnName.toLowerCase().endsWith("id") || columnName.toLowerCase().endsWith("_fk")) {
-                    column.setMinWidth(50);
-                    column.setPrefWidth(70);
-                    column.setMaxWidth(100); // Constrain width for IDs
-                }
-                // Give more space to common text fields
-                else if (columnName.toLowerCase().contains("name") ||
-                        columnName.toLowerCase().contains("address") ||
-                        columnName.toLowerCase().contains("notes") ||
-                        columnName.toLowerCase().contains("email") ||
-                        columnName.toLowerCase().contains("method") ||
-                        columnName.toLowerCase().contains("program")) {
-                    column.setMinWidth(100);
-                    column.setPrefWidth(180);
-                    // No maxWidth, allow these to grow
-                }
-                // Default for other numerical/date/boolean fields
-                else {
-                    column.setMinWidth(75);
-                    column.setPrefWidth(120);
-                }
-
-                mainTableView.getColumns().add(column);
-            }
-
-            // 2. Populate data
-            while (resultSet.next()) {
-                Map<String, Object> row = new HashMap<>();
-                for (String columnName : columnNames) {
-                    row.put(columnName, resultSet.getObject(columnName));
-                }
-                data.add(row);
-            }
-
-            mainTableView.setItems(data);
-
-        } catch (SQLException e) {
-            System.err.println("SQL Error while loading data from " + filename + ": " + e.getMessage());
-            e.printStackTrace();
-            // Update status label with error
-        } finally {
-            // Ensure resources are closed in the finally block
-            try { if (resultSet != null) resultSet.close(); } catch (SQLException e) { e.printStackTrace(); }
-            try { if (statement != null) statement.close(); } catch (SQLException e) { e.printStackTrace(); }
-            try { if (connection != null) connection.close(); } catch (SQLException e) { e.printStackTrace(); }
+    /**
+     * Updates the text in the main application's status bar.
+     * This method is called by child controllers to provide status feedback.
+     * @param message The message to display in the status bar.
+     */
+    public void updateStatusBar(String message) {
+        if (statusBarLabel != null) {
+            statusBarLabel.setText("Status: " + message);
         }
     }
 
-    /** Clears the data from the TableView */
-    private void clearTableData() {
-        mainTableView.getItems().clear();
-        mainTableView.getColumns().clear();
-        mainTableView.setPlaceholder(new Label("No data to display")); // Ensure placeholder is visible
+    /**
+     * Loads an FXML view into the contentStackPane.
+     * Each loaded FXML view is expected to have its own controller responsible for its data and logic.
+     *
+     * @param fxmlPath The path to the FXML file to load.
+     */
+    private void loadView(String fxmlPath) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
+            Parent view = loader.load(); // Load the FXML
+
+            // Get the controller of the loaded view
+            Object controller = loader.getController();
+
+            // Pass the MainController instance to the child controller if it needs it.
+            // This is a common pattern for child controllers to communicate back to the parent.
+            if (controller instanceof ParticipantContentController) {
+                ((ParticipantContentController) controller).setMainController(this);
+            }
+            // Add similar 'if' blocks for other specific content controllers as you create them:
+            // else if (controller instanceof TransactionContentController) {
+            //     ((TransactionContentController) controller).setMainController(this);
+            // }
+
+            contentStackPane.getChildren().clear(); // Clear existing content
+            contentStackPane.getChildren().add(view); // Add the new view
+            System.out.println("Loaded view: " + fxmlPath);
+            updateStatusBar("Loaded view: " + fxmlPath); // Update status bar
+        } catch (IOException e) {
+            System.err.println("Failed to load FXML view from " + fxmlPath + ": " + e.getMessage());
+            e.printStackTrace();
+            updateStatusBar("ERROR loading view: " + fxmlPath); // Update status bar on error
+        }
+    }
+
+    /** Clears the current view from the contentStackPane */
+    private void clearContentPane() {
+        contentStackPane.getChildren().clear();
+        // Optionally, display a default message or placeholder
+        Label placeholder = new Label("Select a category from the left to view data.");
+        placeholder.getStyleClass().add("placeholder-text"); // Apply styling if needed
+        contentStackPane.getChildren().add(placeholder);
+        updateStatusBar("Content pane cleared. Ready for selection.");
     }
 }
