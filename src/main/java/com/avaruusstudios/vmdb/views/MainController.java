@@ -173,7 +173,7 @@ public class MainController {
 
                 // Use the new camelCase filenames
                 if (newPane == participantTitledPane) {
-                    loadView("/com/avaruusstudios/vmdb/views/participantContent.fxml");
+                    loadView("/com/avaruusstudios/vmdb/views/ParticipantContent.fxml");
                 } else if (newPane == transactionTitledPane) {
                     loadView("/com/avaruusstudios/vmdb/views/TransactionContent.fxml");
                 } else if (newPane == locationTitledPane) {
