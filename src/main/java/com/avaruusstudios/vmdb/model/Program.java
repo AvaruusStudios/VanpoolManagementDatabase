@@ -16,7 +16,7 @@ import java.util.Arrays;
  *
  * @see Participant
  */
-public enum ProgramType {
+public enum Program {
     /**
      * Represents the "Transportation Incentive Program (TIP)" program.
      * This is typically for participants who receive a specific incentive.
@@ -47,7 +47,7 @@ public enum ProgramType {
      *
      * @param dbValue The string value that corresponds to this enum constant in the database.
      */
-    ProgramType(String dbValue) {
+    Program(String dbValue) {
         this.dbValue = dbValue;
     }
 
@@ -70,9 +70,9 @@ public enum ProgramType {
      * Returns {@link #NONE} if no matching program type is found for the given string,
      * ensuring null safety.
      */
-    public static ProgramType fromDbValue(String dbValue) {
+    public static Program fromDbValue(String dbValue) {
         // Using Optional for robust handling of null or non-matching dbValue
-        return Arrays.stream(ProgramType.values())
+        return Arrays.stream(Program.values())
                 .filter(program -> program.getDbValue().equalsIgnoreCase(dbValue)) // Case-insensitive match
                 .findFirst()
                 .orElse(NONE); // Return NONE if no match
