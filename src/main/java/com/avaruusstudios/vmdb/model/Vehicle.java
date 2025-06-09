@@ -1,54 +1,110 @@
 package com.avaruusstudios.vmdb.model;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 /**
- * Represents a vehicle used in the Vanpool Management System.
- * A vehicle contains metadata such as make, model, capacity, lease period, and subsidy details.
- * This object reflects the schema used to track isActive/inactive vanpool vehicles.
+ * <p>
+ * Represents a vehicle managed within the Vanpool Management System.
+ * This class encapsulates all essential metadata and operational details
+ * pertaining to a vehicle, such as its specifications, lease information,
+ * and active status.
+ * </p>
+ *
+ * <p>
+ * This object directly reflects the schema used to track individual vehicles,
+ * which are typically assigned to a {@link Vanpool}.
+ * </p>
+ *
+ * @see Vanpool // Added reference to Vanpool as per clarification
  */
 public class Vehicle {
-    /** Unique identifier for the vehicle */
+    /**
+     * Unique identifier for the vehicle. This serves as the primary key
+     * in the database for vehicle records.
+     */
     private int vehicleID;
-    /** Vehicle number, e.g., license plate or unit number */
+
+    /**
+     * A unique identifying number or string for the vehicle, such as a license plate
+     * or an internal unit number (e.g., "VAN-001").
+     */
     private String vehicleNumber;
-    /** Vehicle make (e.g., Ford, Toyota) */
+
+    /**
+     * The manufacturer's name of the vehicle (e.g., "Ford", "Toyota", "Honda").
+     */
     private String make;
-    /** Vehicle model (e.g., Transit, Sienna) */
+
+    /**
+     * The specific model of the vehicle (e.g., "Transit", "Sienna", "Odyssey").
+     */
     private String model;
-    /** Year of manufacture */
+
+    /**
+     * The four-digit year of manufacture for the vehicle (e.g., 2020).
+     */
     private int year;
-    /** Seating capacity of the vehicle */
+
+    /**
+     * The maximum seating capacity of the vehicle, indicating the number of
+     * passengers it can legally and safely accommodate.
+     */
     private int capacity;
-    /** Lease start date in ISO format (yyyy-MM-dd HH:MM) */
+
+    /**
+     * The {@link LocalDate} when the vehicle's lease or service period officially began.
+     */
     private LocalDate leaseStartDate;
-    /** Lease end date, nullable */
+
+    /**
+     * The {@link LocalDate} when the vehicle's lease or service period is scheduled to end.
+     * This field can be {@code null} if the lease is indefinite or not yet determined.
+     */
     private LocalDate leaseEndDate;
-    /** Indicates if vehicle is isActive (1=true, 0=false) */
+
+    /**
+     * A boolean flag indicating whether the vehicle is currently active and operational
+     * within the vanpool system. {@code true} if active; {@code false} if inactive, retired, or unavailable.
+     */
     private boolean isActive;
-    /** Subsidy amount associated with the vehicle */
+
+    /**
+     * The monetary subsidy amount associated with this vehicle. This could be
+     * a government subsidy, a company contribution, or any other financial aid.
+     */
     private double subsidyAmount;
-    /** Notes or comments about the vehicle */
+
+    /**
+     * Optional notes or administrative comments about the vehicle. This field can
+     * contain information such as maintenance history, custom configurations,
+     * or specific operational instructions.
+     */
     private String notes;
 
     /**
-     * Default constructor
+     * Default constructor for creating an empty {@code Vehicle} object.
+     * This constructor is useful for frameworks that instantiate objects via reflection
+     * (e.g., Spring, JSON deserializers) before populating their fields.
      */
     public Vehicle() {}
+
     /**
-     * Full constructor to initialize all fields.
+     * Full constructor to initialize all fields of a {@code Vehicle} instance.
+     * This constructor allows for the complete creation of a vehicle record
+     * with all necessary details upon instantiation.
      *
-     * @param vehicleID      the unique vehicle ID
-     * @param vehicleNumber  the identifying vehicle number
-     * @param make           the make of the vehicle
-     * @param model          the model of the vehicle
-     * @param year           the manufacture year
-     * @param capacity       the number of seats
-     * @param leaseStartDate lease starting date
-     * @param leaseEndDate   lease ending date
-     * @param isActive         whether the vehicle is isActive
-     * @param subsidyAmount  subsidy amount associated
-     * @param notes          any extra information
+     * @param vehicleID      The unique integer ID for the vehicle.
+     * @param vehicleNumber  The unique alphanumeric identifier for the vehicle (e.g., license plate).
+     * @param make           The manufacturer's brand name (e.g., "Ford").
+     * @param model          The specific model name of the vehicle (e.g., "Transit").
+     * @param year           The year of manufacture (e.g., 2021).
+     * @param capacity       The maximum seating capacity for passengers.
+     * @param leaseStartDate The {@link LocalDate} when the vehicle lease or service period began.
+     * @param leaseEndDate   The {@link LocalDate} when the lease is scheduled to end (can be {@code null}).
+     * @param isActive       A boolean indicating if the vehicle is currently active and in use.
+     * @param subsidyAmount  The monetary subsidy associated with this vehicle.
+     * @param notes          Optional notes or comments about the vehicle.
      */
     public Vehicle(int vehicleID, String vehicleNumber, String make, String model,
                    int year, int capacity, LocalDate leaseStartDate, LocalDate leaseEndDate,
@@ -71,70 +127,66 @@ public class Vehicle {
     // ---------------------
 
     /**
-     * Gets the unique ID assigned to this vehicle.
+     * Retrieves the unique ID assigned to this vehicle.
      *
-     * @return vehicleID A numeric primary key used to identify this record.
+     * @return The integer primary key used to identify this vehicle record.
      */
-    public int getVehicleId() {
+    public int getVehicleID() { // Changed method name from getVehicleId()
         return vehicleID;
     }
     /**
-     * Sets the unique vehicle ID.
-     * This method is typically used when initializing a vehicle object from a persisted source.
+     * Sets the unique identifier for this vehicle.
+     * This method is typically used when populating a vehicle object from the database.
      *
-     * @param vehicleId Numeric primary key from the database.
+     * @param vehicleID The unique integer ID for the vehicle.
      */
-    public void setVehicleId(int vehicleId) {
-        this.vehicleID = vehicleId;
+    public void setVehicleID(int vehicleID) { // Changed parameter name and method name from setVehicleId()
+        this.vehicleID = vehicleID;
     }
     /**
-     * Retrieves the vehicle number used for internal tracking.
-     * This is often a human-readable alphanumeric ID assigned during fleet onboarding.
+     * Retrieves the unique vehicle number used for internal tracking or as a license plate.
      *
-     * @return vehicleNumber Fleet tracking number such as "VAN-1024".
+     * @return The alphanumeric string representing the vehicle's unique number.
      */
     public String getVehicleNumber() {
         return vehicleNumber;
     }
     /**
-     * Sets the vehicle number that uniquely identifies it within the organization.
+     * Sets the unique vehicle number that identifies it within the organization or as a license plate.
      *
-     * @param vehicleNumber Alphanumeric tracking code for internal reference.
+     * @param vehicleNumber The alphanumeric tracking code for internal reference or license plate.
      */
     public void setVehicleNumber(String vehicleNumber) {
         this.vehicleNumber = vehicleNumber;
     }
     /**
-     * Gets the manufacturer name of this vehicle.
-     * Common examples include Ford, Toyota, Honda.
+     * Retrieves the manufacturer's name of this vehicle.
      *
-     * @return make Vehicle's manufacturer brand name.
+     * @return The string representing the vehicle's manufacturer brand name (e.g., "Ford").
      */
     public String getMake() {
         return make;
     }
     /**
      * Sets the make or brand of the vehicle.
-     * Used to distinguish between manufacturers in reports or filters.
      *
-     * @param make Brand name such as "Ford" or "Chevrolet".
+     * @param make The manufacturer's brand name (e.g., "Chevrolet").
      */
     public void setMake(String make) {
         this.make = make;
     }
     /**
-     * Gets the specific model of the vehicle (e.g., Transit, Odyssey).
+     * Retrieves the specific model of the vehicle.
      *
-     * @return model Model name assigned by the manufacturer.
+     * @return The string representing the manufacturer's model name (e.g., "Transit").
      */
     public String getModel() {
         return model;
     }
     /**
      * Sets the specific model for this vehicle.
-     * Helps distinguish between different configurations or types in the same make.
      *
-     * @param model Manufacturer model name.
+     * @param model The manufacturer's model name.
      */
     public void setModel(String model) {
         this.model = model;
@@ -142,7 +194,7 @@ public class Vehicle {
     /**
      * Retrieves the manufacturing year of the vehicle.
      *
-     * @return year 4-digit year of production (e.g., 2021).
+     * @return The four-digit year of production (e.g., 2021).
      */
     public int getYear() {
         return year;
@@ -150,113 +202,171 @@ public class Vehicle {
     /**
      * Sets the vehicle's year of manufacture.
      *
-     * @param year Year vehicle was built, used for age, compliance, or valuation.
+     * @param year The year the vehicle was built, used for age, compliance, or valuation.
      */
     public void setYear(int year) {
         this.year = year;
     }
     /**
-     * Returns the maximum passenger capacity of this vehicle.
+     * Returns the maximum passenger seating capacity of this vehicle.
      *
-     * @return capacity Number of riders this vehicle can accommodate.
+     * @return The integer number of riders this vehicle can accommodate.
      */
     public int getCapacity() {
         return capacity;
     }
     /**
-     * Defines the number of passengers the vehicle can hold.
-     * May be used for route planning and eligibility validation.
+     * Sets the number of passengers the vehicle can hold.
      *
-     * @param capacity Number of passenger seats available.
+     * @param capacity The integer number of passenger seats available.
      */
     public void setCapacity(int capacity) {
         this.capacity = capacity;
     }
     /**
-     * Retrieves the date the vehicle lease started.
+     * Retrieves the {@link LocalDate} when the vehicle's lease or service period started.
      *
-     * @return leaseStartDate Start of lease in ISO format (YYYY-MM-DD).
+     * @return The {@link LocalDate} representing the start of the lease.
      */
     public LocalDate getLeaseStartDate() {
         return leaseStartDate;
     }
     /**
-     * Sets the lease start date for this vehicle.
-     * Indicates when the leasing agreement or service period began.
+     * Sets the {@link LocalDate} for the vehicle's lease start date.
      *
-     * @param leaseStartDate ISO 8601-formatted start date.
+     * @param leaseStartDate The {@link LocalDate} to set as the lease start date.
      */
     public void setLeaseStartDate(LocalDate leaseStartDate) {
         this.leaseStartDate = leaseStartDate;
     }
     /**
-     * Retrieves the date the lease ends, if one is set.
+     * Retrieves the {@link LocalDate} when the vehicle's lease is scheduled to end.
      *
-     * @return leaseEndDate The scheduled lease termination date or null if indefinite.
+     * @return The {@link LocalDate} representing the scheduled lease termination date,
+     * or {@code null} if the lease is indefinite or not yet set.
      */
     public LocalDate getLeaseEndDate() {
         return leaseEndDate;
     }
     /**
-     * Sets the lease end date for this vehicle.
-     * Can be null if the lease is open-ended or not yet terminated.
+     * Sets the {@link LocalDate} for the vehicle's lease end date.
      *
-     * @param leaseEndDate ISO-formatted end date or null.
+     * @param leaseEndDate The {@link LocalDate} to set as the lease end date. Can be {@code null}.
      */
     public void setLeaseEndDate(LocalDate leaseEndDate) {
         this.leaseEndDate = leaseEndDate;
     }
     /**
-     * Indicates whether the vehicle is currently available and in use.
+     * Indicates whether the vehicle is currently available and in active use within the system.
      *
-     * @return true if the vehicle is isActive; false if retired or unavailable.
+     * @return {@code true} if the vehicle is active; {@code false} if retired, undergoing maintenance, or unavailable.
      */
     public boolean isActive() {
         return isActive;
     }
     /**
-     * Toggles the vehicle's operational status.
-     * This flag helps in filtering isActive inventory or deactivating vehicles.
+     * Toggles or sets the vehicle's operational status.
+     * This flag helps in filtering active inventory or deactivating vehicles from service.
      *
-     * @param active Set to true for isActive vehicles; false to deactivate.
+     * @param active {@code true} to mark the vehicle as active; {@code false} to deactivate it.
      */
     public void setActive(boolean active) {
         this.isActive = active;
     }
     /**
-     * Gets the subsidy amount tied to this vehicle.
-     * This may be used in cost calculations, reports, or eligibility audits.
+     * Retrieves the monetary subsidy amount associated with this vehicle.
      *
-     * @return subsidyAmount Dollar amount of external or internal funding.
+     * @return The subsidy amount as a double (e.g., 300.00).
      */
     public double getSubsidyAmount() {
         return subsidyAmount;
     }
     /**
      * Sets the monetary subsidy provided for this vehicle.
-     * May be used to offset leasing costs or participant dues.
      *
-     * @param subsidyAmount Amount in USD (e.g., 300.00).
+     * @param subsidyAmount The monetary amount of the subsidy to set.
      */
     public void setSubsidyAmount(double subsidyAmount) {
         this.subsidyAmount = subsidyAmount;
     }
     /**
-     * Retrieves any supplemental notes or comments for the vehicle.
-     * Could include maintenance details, custom configurations, or usage instructions.
+     * Retrieves any supplemental notes or comments recorded for the vehicle.
      *
-     * @return notes Optional string of notes; may be null or empty.
+     * @return A string containing notes, or {@code null} if no notes are present.
      */
     public String getNotes() {
         return notes;
     }
     /**
      * Assigns additional notes or commentary to this vehicle record.
-     * This can be used for informal remarks, scheduling quirks, or internal memos.
      *
-     * @param notes Additional comments or remarks about this vehicle.
+     * @param notes The string containing additional comments or remarks about this vehicle. Can be {@code null}.
      */
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    // ---------------------
+    // Utilities
+    // ---------------------
+
+    /**
+     * <p>
+     * Returns a string representation of the {@code Vehicle} object.
+     * This method is primarily used for debugging and logging, providing
+     * a concise summary of the vehicle's key identifying attributes.
+     * </p>
+     * <p>
+     * The format includes the vehicle ID, number, make, model, and year.
+     * </p>
+     *
+     * @return A string in the format:
+     * "Vehicle{ID=..., Number='...', Make='...', Model='...', Year=...}"
+     */
+    @Override
+    public String toString() {
+        return "Vehicle{" +
+                "vehicleID=" + vehicleID +
+                ", vehicleNumber='" + vehicleNumber + '\'' +
+                ", make='" + make + '\'' +
+                ", model='" + model + '\'' +
+                ", year=" + year +
+                '}';
+    }
+    /**
+     * <p>
+     * Indicates whether some other object is "equal to" this one.
+     * The comparison is based primarily on the unique {@code vehicleID}.
+     * </p>
+     * <p>
+     * This method adheres to the general contract of the {@link Object#equals(Object)} method.
+     * </p>
+     *
+     * @param o The reference object with which to compare.
+     * @return {@code true} if this object is the same as the obj argument; {@code false} otherwise.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true; // Same object reference
+        if (o == null || getClass() != o.getClass()) return false; // Null or different class
+        Vehicle vehicle = (Vehicle) o; // Cast to Vehicle
+        // Equality is based on the primary key (vehicleID)
+        return vehicleID == vehicle.vehicleID;
+    }
+    /**
+     * <p>
+     * Returns a hash code value for the object. This method is supported for the benefit of
+     * hash tables such as those provided by {@link java.util.HashMap}.
+     * </p>
+     * <p>
+     * The hash code is generated based on the unique {@code vehicleID}, ensuring that
+     * objects considered equal by {@link #equals(Object)} will have the same hash code.
+     * </p>
+     *
+     * @return A hash code value for this object.
+     */
+    @Override
+    public int hashCode() {
+        return Objects.hash(vehicleID); // Hash code based on the primary key
     }
 }
