@@ -22,20 +22,17 @@ public enum Program {
      * This is typically for participants who receive a specific incentive.
      */
     TRANSPORTATION_INCENTIVE_PROGRAM("Transportation Incentive Program (TIP)"),
-
     /**
      * Represents the "Daily" program.
      * This is for participants who commute on a daily basis without specific incentives.
      */
     DAILY("Daily"),
-
     /**
      * Represents a program type that is unknown, not applicable, or not yet defined.
      * This serves as a default or fallback when a matching program cannot be found,
      * such as during database deserialization.
      */
     NONE("None"); // Changed from UNKNOWN to NONE as per enum value
-
 
     /**
      * The string representation of the program type as stored in the database.
@@ -50,7 +47,6 @@ public enum Program {
     Program(String dbValue) {
         this.dbValue = dbValue;
     }
-
     /**
      * Retrieves the database string value associated with this {@code ProgramType} enum constant.
      * This value is used for persisting the enum to the database.
@@ -60,7 +56,6 @@ public enum Program {
     public String getDbValue() {
         return dbValue;
     }
-
     /**
      * Converts a database string value into its corresponding {@code ProgramType} enum constant.
      * This method is essential for deserializing data from the database into Java objects.
@@ -76,5 +71,21 @@ public enum Program {
                 .filter(program -> program.getDbValue().equalsIgnoreCase(dbValue)) // Case-insensitive match
                 .findFirst()
                 .orElse(NONE); // Return NONE if no match
+    }
+    /**
+     * <p>
+     * Returns the user-friendly string representation of this program type.
+     * This method overrides the default {@link Enum#toString()} behavior to
+     * provide the more descriptive {@code dbValue} instead of the enum constant's name.
+     * </p>
+     * <p>
+     * This is highly beneficial for logging, debugging, and user interface display.
+     * </p>
+     *
+     * @return The string value of the program type as stored in the database and intended for display.
+     */
+    @Override
+    public String toString() {
+        return dbValue;
     }
 }
