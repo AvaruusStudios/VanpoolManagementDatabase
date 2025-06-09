@@ -21,8 +21,8 @@ CREATE TABLE Locations (
     City TEXT,                                          -- Location City
     State TEXT,                                         -- Location State
     ZipCode TEXT,                                       -- Location Zip-Code
-    Latitude INTEGER,                                   -- Location Latitude
-    Longitude INTEGER,                                  -- Location Longitude
+    Latitude REAL,                                   -- Location Latitude
+    Longitude REAL,                                  -- Location Longitude
     Notes TEXT                                          -- Contextual Notes about the Location
 );
 
