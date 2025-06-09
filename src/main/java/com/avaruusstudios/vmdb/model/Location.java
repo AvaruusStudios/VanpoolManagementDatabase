@@ -17,6 +17,10 @@ public class Location {
     private String state;
     /** Postal zip code for this location */
     private String zipCode;
+    /** Location Latitude */
+    private double latitude;
+    /** Location Longitude */
+    private double longitude;
     /** Optional notes about the location, such as landmarks, accessibility, or scheduling info */
     private String notes;
 
@@ -33,15 +37,21 @@ public class Location {
      * @param locationName  Descriptive name of the location
      * @param address       Street address or physical details
      * @param city          City where the location resides
+     * @param state         State where the location is situated
      * @param zipCode       Postal zip code
+     * @param latitude      Geographical latitude
+     * @param longitude     Geographical longitude
      * @param notes         Optional notes or description
      */
-    public Location(int locationID, String locationName, String address, String city, String zipCode, String notes) {
+    public Location(int locationID, String locationName, String address, String city, String state, String zipCode, double latitude, double longitude, String notes) {
         this.locationID = locationID;
         this.locationName = locationName;
         this.address = address;
         this.city = city;
+        this.state = state;
         this.zipCode = zipCode;
+        this.latitude = latitude;
+        this.longitude = longitude;
         this.notes = notes;
     }
 
@@ -146,6 +156,39 @@ public class Location {
      */
     public void setZipCode(String zipCode) {
         this.zipCode = zipCode;
+    }
+    /**
+     * Gets the Latitude as a double
+     *
+     * @return latitude The latitude as a double
+     */
+    public double getLatitude() {
+        return latitude;
+    }
+    /**
+     * Assigns the Latitude of the location
+     * May be used for distance calculations
+     *
+     * @param latitude Latitude as a double for the location
+     */
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+    /**
+     * Gets the Longitude of the location
+     * @return longitude The longitude of the Location
+     */
+    public double getLongitude() {
+        return longitude;
+    }
+    /**
+     * Assigns the Longitude of the Location
+     * May be used for distance calculations
+     *
+     * @param longitude Longitude as a double for the location
+     */
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
     }
     /**
      * Retrieves any additional notes about this location.
