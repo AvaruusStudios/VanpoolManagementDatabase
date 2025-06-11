@@ -21,8 +21,8 @@ CREATE TABLE Locations (
     City TEXT,                                          -- Location City
     State TEXT,                                         -- Location State
     ZipCode TEXT,                                       -- Location Zip-Code
-    Latitude REAL,                                   -- Location Latitude
-    Longitude REAL,                                  -- Location Longitude
+    Latitude REAL,                                      -- Location Latitude
+    Longitude REAL,                                     -- Location Longitude
     Notes TEXT                                          -- Contextual Notes about the Location
 );
 
@@ -64,7 +64,6 @@ CREATE TABLE InvoiceItems (
     ParticipantID_FK INTEGER NOT NULL,                                      -- Every Invoice Item is for a specific Participant
     BenefitPayment REAL NOT NULL,                                           -- The amount the Participant is required to pay to their Benefit Card
     PersonalPayment REAL NOT NULL,                                          -- The amount the Participant is required to pay to their personal credit card
-    PaidAmount REAL DEFAULT 0,                                              -- The Amount the Participant paid after the Invoice Date prior to the next Invoice Date
     IsPaid INTEGER NOT NULL DEFAULT 0,                                      -- Did the Participant make their payment?
     Notes TEXT,                                                             -- Contextual Notes about the Invoice Item
     FOREIGN KEY (InvoiceID_FK) REFERENCES Invoices(InvoiceID),
@@ -87,15 +86,13 @@ CREATE TABLE Transactions (
     VehicleID_FK INTEGER NOT NULL,                                          -- Vehicle Identifier (Foreign Key)
     CategoryID_FK INTEGER NOT NULL,                                         -- Category Identifier (Foreign Key)
     InvoiceID_FK INTEGER,                                                   -- Invoice Identifier (Foreign Key)
-    ParticipantID_FK INTEGER,                                               -- Participant Identifier (Foreign Key)
     TransactionDate TEXT NOT NULL,                                          -- Date of the Transaction
     Amount REAL NOT NULL,                                                   -- Transaction Amount
     PaymentMethod TEXT,                                                     -- Method of Payment for the Transaction
     Notes TEXT,                                                             -- Contextual Notes about the Transaction
     FOREIGN KEY (VehicleID_FK) REFERENCES Vehicles(VehicleID),
     FOREIGN KEY (CategoryID_FK) REFERENCES Categories(CategoryID),
-    FOREIGN KEY (InvoiceID_FK) REFERENCES Invoices(InvoiceID),
-    FOREIGN KEY (ParticipantID_FK) REFERENCES Participants(ParticipantID)
+    FOREIGN KEY (InvoiceID_FK) REFERENCES Invoices(InvoiceID)
 );
 
 -- 📝 Event Log
