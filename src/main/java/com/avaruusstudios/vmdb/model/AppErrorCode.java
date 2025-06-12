@@ -31,6 +31,10 @@ public enum AppErrorCode {
     UNEXPECTED_APP_STATE(1000, "Unexpected application state encountered."),
     /** Generic internal processing error. */
     INTERNAL_PROCESSING_ERROR(1001, "An internal processing error occurred."),
+    /** Database connection could not be established or driver failed to load. */
+    DB_CONNECTION_FAILED(1002, "Failed to establish database connection or load driver."),
+    /** Error occurred while executing the database schema script. */
+    DB_SCHEMA_EXECUTION_ERROR(1003, "Error during database schema script execution."),
 
     // --- 2000s: Configuration / Setup Errors ---
     /** Application configuration setting is missing or invalid. */
