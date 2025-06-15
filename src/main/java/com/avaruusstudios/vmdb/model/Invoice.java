@@ -20,7 +20,7 @@ import java.util.Objects;
  * </p>
  *
  * @see Vehicle
- * @see InvoiceItem
+ * @see LineItem
  * @see Transaction
  */
 public class Invoice {
