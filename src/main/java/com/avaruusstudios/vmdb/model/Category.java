@@ -71,12 +71,11 @@ public class Category {
      * <p>
      * This enum field provides a strong type-safe way to classify the category's nature,
      * directly mapping to a {@code TEXT NOT NULL} column in the database, where the enum's
-     * name (e.g., "INCOME") would be stored. It helps in filtering and reporting based on
-     * the financial flow direction. This field is **immutable** once set at construction.
+     * name (e.g., "INCOME") would be stored. This field is **mutable** and validated via its setter.
      * </p>
      * @see CategoryType
      */
-    private final CategoryType categoryType; // Remains final
+    private CategoryType categoryType; // Changed to mutable (not final)
     /**
      * <p>
      * The user-friendly name of the category (e.g., "Fuel", "Van Rental", "Participant Payment").
@@ -88,8 +87,7 @@ public class Category {
      * to prevent ambiguity when retrieving categories by name. This field is **mutable**.
      * </p>
      */
-    private String categoryName; // Changed back to mutable
-
+    private String categoryName; // Remains mutable
     /**
      * <p>
      * A longer, optional description providing more detailed information about the category's purpose or usage.
@@ -103,22 +101,22 @@ public class Category {
     private String description;
 
     /**
-     * Default constructor for creating a new, unpersisted {@code Category} object.
-     * This constructor should primarily be used by frameworks (e.g., ORM tools)
-     * that instantiate objects and then populate them via setters.
-     *
      * <p>
-     * **Warning:** As `categoryType` is final, this constructor cannot fully initialize
-     * a valid `Category` object on its own. `setCategoryType` and `setCategoryName`
-     * (for initial population) would need to be called immediately after.
-     * It is generally recommended to use one of the parameterized constructors for
-     * creating logically complete `Category` objects in application code.
+     * Default constructor for creating a new {@code Category} object.
+     * </p>
+     * <p>
+     * This constructor initializes {@code categoryID} to {@code null} and other fields to
+     * their default values ({@code null}). It is useful for frameworks (like ORMs or
+     * deserializers) that instantiate objects via reflection and then populate them
+     * using setters. When used in application code, all required fields
+     * ({@link #categoryType} and {@link #categoryName}) and the associated
+     * {@link #participant} (if {@link CategoryType#INCOME}) must be set subsequently
+     * using the appropriate setters.
      * </p>
      */
     public Category() {
         this.categoryID = null; // Explicitly null for unpersisted entity
-        this.categoryType = null; // Will be set by ORM or later via a private setter if needed for reflection
-        this.categoryName = null; // Will be set by ORM or later
+        // Other fields will be null/default and set via setters
     }
     /**
      * <p>
@@ -142,11 +140,9 @@ public class Category {
      */
     public Category(Integer categoryID, Participant participant, CategoryType categoryType, String categoryName, String description) {
         this.categoryID = Objects.requireNonNull(categoryID, "CategoryID cannot be null for an existing category.");
-        this.categoryType = Objects.requireNonNull(categoryType, "CategoryType cannot be null.");
-        validateCategoryTypeAndParticipant(categoryType, participant); // Validate type and participant coupling
-        this.participant = participant; // Set after validation
-
-        setCategoryName(categoryName); // Use the setter for validation
+        setCategoryType(categoryType); // Use setter for validation
+        setParticipant(participant);   // Use setter for validation (will internally check against this.categoryType)
+        setCategoryName(categoryName); // Use setter for validation
         this.description = description; // Can be null
     }
     /**
@@ -168,15 +164,14 @@ public class Category {
      */
     public Category(Participant participant, CategoryType categoryType, String categoryName, String description) {
         this.categoryID = null; // New entity, ID will be assigned by DB, so it's null
-        this.categoryType = Objects.requireNonNull(categoryType, "CategoryType cannot be null.");
-        validateCategoryTypeAndParticipant(categoryType, participant); // Validate type and participant coupling
-        this.participant = participant; // Set after validation
-
-        setCategoryName(categoryName); // Use the setter for validation
+        setCategoryType(categoryType); // Use setter for validation
+        setParticipant(participant);   // Use setter for validation (will internally check against this.categoryType)
+        setCategoryName(categoryName); // Use setter for validation
         this.description = description; // Can be null
     }
     /**
      * Internal helper method to validate the coupling between CategoryType and Participant.
+     * This method is called by constructors and `setParticipant`.
      *
      * @param type The CategoryType to validate against.
      * @param participant The Participant to validate.
@@ -212,6 +207,9 @@ public class Category {
     public Integer getCategoryID() {
         return categoryID;
     }
+
+    // setCategoryID is not provided as categoryID is final and set via constructors or by DAO (not via public setter)
+
     /**
      * <p>
      * Retrieves the {@link Participant} object this category is tied to.
@@ -241,7 +239,7 @@ public class Category {
      * @param participant The {@link Participant} object to set, or {@code null}.
      * @throws IllegalArgumentException if the participant assignment violates business rules
      * based on the category's {@link CategoryType}.
-     * @throws IllegalStateException if `categoryType` is not yet set (e.g., after default constructor).
+     * @throws IllegalStateException if `categoryType` is not yet set when attempting to set participant (e.g., after default constructor).
      */
     public void setParticipant(Participant participant) {
         // Ensure categoryType is set before attempting to validate participant based on it
@@ -257,13 +255,34 @@ public class Category {
      * </p>
      * <p>
      * Corresponds to the {@code CategoryType} column in the database.
-     * Since {@link #categoryType} is final, this value is set at construction time.
      * </p>
      *
      * @return The {@link CategoryType} enum constant (Income, Expense, or Credit).
      */
     public CategoryType getCategoryType() {
         return categoryType;
+    }
+    /**
+     * <p>
+     * Sets the {@link CategoryType} for this category.
+     * </p>
+     * <p>
+     * This field is mapped as {@code NOT NULL} in the database schema,
+     * so it's important to ensure a valid {@link CategoryType} is always provided.
+     * If a {@code null} value is attempted, a {@link NullPointerException} will be thrown.
+     * This setter also triggers validation for {@link #participant} association based on the new type.
+     * </p>
+     *
+     * @param categoryType The {@link CategoryType} to set. Must not be {@code null}.
+     * @throws NullPointerException if {@code categoryType} is {@code null}.
+     * @throws IllegalArgumentException if the current {@link #participant} association
+     * violates business rules for the newly set {@link CategoryType}.
+     */
+    public void setCategoryType(CategoryType categoryType) {
+        Objects.requireNonNull(categoryType, "CategoryType cannot be null.");
+        // Validate participant association against the *new* type being set
+        validateCategoryTypeAndParticipant(categoryType, this.participant);
+        this.categoryType = categoryType;
     }
     /**
      * <p>
