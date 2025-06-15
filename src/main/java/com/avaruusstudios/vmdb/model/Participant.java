@@ -26,7 +26,7 @@ import java.util.Objects;
  *
  * <p>
  * Each participant has a specific {@link Role} within the vanpool context
- * (e.g., Coordinator, Treasurer, Driver).
+ * (e.g., Coordinator, Treasurer, Participant).
  * </p>
  *
  * @see Location
@@ -80,7 +80,12 @@ public class Participant {
     private String email;
     /**
      * The primary phone number for contacting the participant.
-     * This field is **required**. It's stored as text, but the UI **MUST** display it in the format `+# (###) ###-####`.
+     * <p>
+     * This field stores only **numerical digits**. All special characters (spaces, hyphens,
+     * parentheses) are removed upon setting. The UI is responsible for displaying this
+     * number in a formatted way (e.g., `+# (###) ###-####`).
+     * </p>
+     * This field is **required**.
      */
     private String phone;
     /**
@@ -150,13 +155,13 @@ public class Participant {
      * record from the database, where {@code participantID} has already been assigned.
      *
      * @param participantID     The unique system-generated identifier for the participant. Must not be {@code null} for existing.
-     * @param pickUpLocation    The {@link Location} object representing the participant's pickup point. Must not be {@code null}.
-     * @param dropOffLocation   The {@link Location} object representing the participant's drop-off point. Must not be {@code null}.
      * @param firstName         The first name of the participant. Must not be {@code null} or empty.
      * @param middleName        The middle name of the participant (can be null or empty).
      * @param lastName          The last name of the participant. Must not be {@code null} or empty.
      * @param email             The contact email address of the participant. Must not be {@code null} or empty, and must be a valid format.
      * @param phone             The contact phone number of the participant. Must not be {@code null} or empty.
+     * @param pickUpLocation    The {@link Location} object representing the participant's pickup point. Must not be {@code null}.
+     * @param dropOffLocation   The {@link Location} object representing the participant's drop-off point. Must not be {@code null}.
      * @param distanceMiles     The distance in miles between the pickup and drop-off locations. Must be non-negative.
      * @param joinDate          The {@link LocalDate} when the participant joined the program. Must not be {@code null} and must not be in the future.
      * @param isActive          A boolean indicating the participant's active status.
@@ -167,26 +172,35 @@ public class Participant {
      * @throws NullPointerException     if `participantID` or any other required object-type parameters (e.g., locations, names, email, date, program, benefitAmount, role) are {@code null}.
      * @throws IllegalArgumentException if any required string parameters are empty, or if `distanceMiles` or `benefitAmount` are negative, or `joinDate` is in the future.
      */
-    public Participant(Integer participantID, Location pickUpLocation, Location dropOffLocation,
-                       String firstName, String middleName, String lastName, String email,
-                       String phone, BigDecimal distanceMiles, LocalDate joinDate,
-                       boolean isActive, Program program, BigDecimal benefitAmount, Role role, String notes) {
+    public Participant(Integer participantID,
+                       String firstName, String middleName, String lastName,
+                       String email, String phone,
+                       Location pickUpLocation, Location dropOffLocation, BigDecimal distanceMiles,
+                       LocalDate joinDate, boolean isActive, Program program, BigDecimal benefitAmount, Role role,
+                       String notes) {
         this.participantID = Objects.requireNonNull(participantID, "Participant ID cannot be null for an existing participant.");
 
-        this.setPickUpLocation(pickUpLocation);
-        this.setDropOffLocation(dropOffLocation);
+        // Personal / Contact Info
         this.setFirstName(firstName);
-        this.middleName = middleName; // middleName can be null
+        this.setMiddleName(middleName); // middleName can be null
         this.setLastName(lastName);
         this.setEmail(email);
-        this.setPhone(phone);
+        this.setPhone(phone); // Will now validate and strip non-digits
+
+        // Location Info
+        this.setPickUpLocation(pickUpLocation);
+        this.setDropOffLocation(dropOffLocation);
         this.setDistanceMiles(distanceMiles);
+
+        // Participation / Program Info
         this.setJoinDate(joinDate);
-        this.isActive = isActive;
+        this.isActive = isActive; // boolean, no setter validation needed
         this.setProgram(program);
         this.setBenefitAmount(benefitAmount);
         this.setRole(role);
-        this.notes = notes;
+
+        // Notes
+        this.setNotes(notes); // Notes can be null/empty, use setter for potential trimming consistency
     }
 
     // ---------------------
@@ -265,11 +279,12 @@ public class Participant {
     }
     /**
      * Sets the middle name of the participant.
+     * If the provided middle name is not {@code null}, leading and trailing whitespace will be stripped.
      *
      * @param middleName The desired middle name for the participant. Can be {@code null}.
      */
     public void setMiddleName(String middleName) {
-        this.middleName = middleName;
+        this.middleName = (middleName != null) ? middleName.strip() : null;
     }
     /**
      * Retrieves the last name or surname of the participant.
@@ -315,8 +330,11 @@ public class Participant {
     }
     /**
      * Retrieves the primary phone number for the participant.
-     *
-     * @return The participant's contact phone number.
+     * <p>
+     * Note: This method returns the phone number as stored (numerical digits only).
+     * The UI is responsible for formatting this number for display (e.g., `+# (###) ###-####`).
+     * </p>
+     * @return The participant's contact phone number as a string of digits.
      */
     public String getPhone() {
         return phone;
@@ -324,17 +342,28 @@ public class Participant {
     /**
      * Sets the primary phone number for the participant.
      * <p>
-     * This method stores the phone number as plain text. The UI layer is responsible
-     * for formatting this number for display in the `+# (###) ###-####` format.
+     * This method processes the input to store only numerical digits.
+     * Any non-digit characters (spaces, hyphens, parentheses, etc.) will be removed.
+     * It also validates that the resulting numeric string is not empty and has a reasonable length.
      * </p>
-     * @param phone The desired contact phone number. Must not be {@code null} or empty.
+     * @param phone The desired contact phone number. Must not be {@code null}.
      * @throws NullPointerException if {@code phone} is {@code null}.
-     * @throws IllegalArgumentException if {@code phone} is empty after stripping whitespace.
+     * @throws IllegalArgumentException if the phone number, after stripping non-digits, is empty
+     * or shorter than 7 digits (a common minimum for local phone numbers).
      */
     public void setPhone(String phone) {
-        this.phone = Objects.requireNonNull(phone, "Phone number cannot be null.").strip();
-        if (this.phone.isEmpty()) throw new IllegalArgumentException("Phone number cannot be empty.");
-        // Optional: Add regex for phone number validation if needed
+        Objects.requireNonNull(phone, "Phone number cannot be null.");
+        String numericPhone = phone.replaceAll("[^0-9]", ""); // Keep only digits
+
+        if (numericPhone.isEmpty()) {
+            throw new IllegalArgumentException("Phone number cannot be empty after removing special characters.");
+        }
+        // Basic length validation (e.g., min 7 digits for a local number, up to 15 for international)
+        if (numericPhone.length() < 7 || numericPhone.length() > 15) {
+            throw new IllegalArgumentException("Phone number must be between 7 and 15 digits long.");
+        }
+
+        this.phone = numericPhone;
     }
     /**
      * Retrieves the calculated distance in miles between the participant's pickup and drop-off locations.
@@ -383,7 +412,7 @@ public class Participant {
      *
      * @return {@code true} if the participant is active; {@code false} otherwise.
      */
-    public boolean getIsActive() {
+    public boolean isActive() { // Changed getter name to isActive()
         return isActive;
     }
     /**
@@ -391,7 +420,7 @@ public class Participant {
      *
      * @param isActive {@code true} to mark the participant as active; {@code false} to mark as inactive.
      */
-    public void setIsActive(boolean isActive) {
+    public void setIsActive(boolean isActive) { // Setter name remains setIsActive()
         this.isActive = isActive;
     }
     /**
@@ -460,11 +489,12 @@ public class Participant {
     }
     /**
      * Sets additional notes or administrative comments for this participant.
+     * If the provided notes are not {@code null}, leading and trailing whitespace will be stripped.
      *
      * @param notes The string containing notes to set. Can be {@code null}.
      */
     public void setNotes(String notes) {
-        this.notes = notes;
+        this.notes = (notes != null) ? notes.strip() : null;
     }
 
     // ---------------------
