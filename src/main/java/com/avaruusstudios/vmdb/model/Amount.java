@@ -1,83 +1,117 @@
 package com.avaruusstudios.vmdb.model;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 
 /**
  * <p>
- * Represents a composite financial amount, typically used to encapsulate components
- * like benefit payments and personal payments. This class provides a structured way
- * to handle monetary values that consist of distinct parts.
+ * Represents a composite financial amount, typically used to encapsulate monetary values
+ * that consist of distinct components, such as a **benefit due** portion and a
+ * **personal due** portion. This class provides a structured and **immutable** way
+ * to handle these dual-component amounts, often seen in financial transactions within the
+ * Vanpool Management System.
  * </p>
  *
  * <p>
- * It provides methods to access individual components and calculate a total.
+ * **Crucially, all monetary values are handled using {@link BigDecimal} to ensure
+ * arbitrary precision and avoid floating-point arithmetic errors, which are unacceptable
+ * in financial calculations.**
+ * </p>
+ *
+ * <p>
+ * Once an {@code Amount} object is created, its values cannot be changed. This ensures
+ * data integrity and makes the object inherently thread-safe.
+ * </p>
+ *
+ * <p>
+ * It offers methods to access individual components and to conveniently calculate their total sum.
+ * This model is designed to correspond directly to composite amount fields in database tables
+ * like {@code InvoiceItems}.
  * </p>
  */
-public class Amount {
+public final class Amount {
     /**
-     * The portion of an amount designated for benefit payment or subsidy.
-     * Corresponds to {@code BenefitPayment REAL NOT NULL} in the InvoiceItems table.
+     * <p>
+     * The portion of an amount designated as **due for benefit coverage** or **subsidy**.
+     * </p>
+     * <p>
+     * This {@link BigDecimal} field represents a monetary value that is covered by a
+     * benefit program or a subsidy, rather than being paid directly by an individual.
+     * It corresponds to the {@code BenefitPayment REAL NOT NULL} column in the
+     * {@code InvoiceItems} table. When storing in a database, {@link BigDecimal} values
+     * should be carefully converted to a suitable database type (e.g., `REAL` or `NUMERIC`),
+     * ensuring that precision is maintained.
+     * </p>
      */
-    private double benefitPayment;
+    private final BigDecimal benefitDue; // Changed from benefitPayment
     /**
-     * The portion of an amount designated for personal payment.
-     * Corresponds to {@code PersonalPayment REAL NOT NULL} in the InvoiceItems table.
+     * <p>
+     * The portion of an amount designated as **due for personal payment**.
+     * </p>
+     * <p>
+     * This {@link BigDecimal} field represents a monetary value that is the responsibility
+     * of an individual (e.g., a participant) to pay directly. It corresponds to the
+     * {@code PersonalPayment REAL NOT NULL} column in the {@code InvoiceItems} table.
+     * Like {@link #benefitDue}, proper conversion is needed for database storage.
+     * </p>
      */
-    private double personalPayment;
+    private final BigDecimal personalDue; // Changed from personalPayment
 
     /**
+     * <p>
      * Default constructor for creating an empty {@code Amount} object.
-     * Initializes both benefit and personal payments to 0.0.
+     * </p>
+     * <p>
+     * This constructor initializes both the benefit and personal due components to {@code BigDecimal.ZERO},
+     * effectively creating an amount with no value, which can then be used as a starting point.
+     * </p>
      */
     public Amount() {
-        this(0.0, 0.0);
+        this(BigDecimal.ZERO, BigDecimal.ZERO);
     }
     /**
-     * Constructs an {@code Amount} object with specified benefit and personal payment components.
+     * <p>
+     * Constructs an {@code Amount} object with specified benefit and personal due components.
+     * </p>
+     * <p>
+     * This is the primary constructor used to create an immutable {@code Amount} instance.
+     * All components are set at the time of instantiation and cannot be changed thereafter.
+     * {@link BigDecimal} values are used for precise financial representation.
+     * </p>
      *
-     * @param benefitPayment The amount designated for benefit payment.
-     * @param personalPayment The amount designated for personal payment.
+     * @param benefitDue The {@link BigDecimal} monetary value designated as due for benefit coverage. Must not be {@code null}.
+     * @param personalDue The {@link BigDecimal} monetary value designated as due for personal payment. Must not be {@code null}.
+     * @throws NullPointerException if {@code benefitDue} or {@code personalDue} is {@code null}.
      */
-    public Amount(double benefitPayment, double personalPayment) {
-        this.benefitPayment = benefitPayment;
-        this.personalPayment = personalPayment;
+    public Amount(BigDecimal benefitDue, BigDecimal personalDue) {
+        // Ensure that BigDecimal objects are not null
+        this.benefitDue = Objects.requireNonNull(benefitDue, "Benefit due amount cannot be null.");
+        this.personalDue = Objects.requireNonNull(personalDue, "Personal due amount cannot be null.");
     }
 
     // ---------------------
-    // Getters and Setters
+    // Getters (Setters are removed for immutability)
     // ---------------------
 
     /**
-     * Retrieves the benefit payment portion of this amount.
+     * <p>
+     * Retrieves the portion of this amount designated as due for benefit coverage.
+     * </p>
      *
-     * @return The benefit payment amount.
+     * @return The {@link BigDecimal} value representing the benefit due component.
      */
-    public double getBenefitPayment() {
-        return benefitPayment;
+    public BigDecimal getBenefitDue() { // Changed from getBenefitPayment()
+        return benefitDue;
     }
     /**
-     * Sets the benefit payment portion of this amount.
+     * <p>
+     * Retrieves the portion of this amount designated as due for personal payment.
+     * </p>
      *
-     * @param benefitPayment The benefit payment amount to set.
+     * @return The {@link BigDecimal} value representing the personal due component.
      */
-    public void setBenefitPayment(double benefitPayment) {
-        this.benefitPayment = benefitPayment;
-    }
-    /**
-     * Retrieves the personal payment portion of this amount.
-     *
-     * @return The personal payment amount.
-     */
-    public double getPersonalPayment() {
-        return personalPayment;
-    }
-    /**
-     * Sets the personal payment portion of this amount.
-     *
-     * @param personalPayment The personal payment amount to set.
-     */
-    public void setPersonalPayment(double personalPayment) {
-        this.personalPayment = personalPayment;
+    public BigDecimal getPersonalDue() { // Changed from getPersonalPayment()
+        return personalDue;
     }
 
     // ---------------------
@@ -85,30 +119,49 @@ public class Amount {
     // ---------------------
 
     /**
-     * Calculates the total sum of the benefit and personal payment components.
+     * <p>
+     * Calculates the total sum of the benefit due and personal due components of this amount.
+     * </p>
+     * <p>
+     * This method provides the combined monetary value of the composite amount using
+     * {@link BigDecimal#add(BigDecimal)} for precise addition.
+     * </p>
      *
-     * @return The combined total of benefitPayment and personalPayment.
+     * @return The {@link BigDecimal} value representing the combined total of {@link #benefitDue} and {@link #personalDue}.
      */
-    public double getTotal() {
-        return benefitPayment + personalPayment;
+    public BigDecimal getTotal() {
+        return benefitDue.add(personalDue); // Updated calculation
     }
+
     /**
+     * <p>
      * Returns a string representation of the {@code Amount} object.
-     * Primarily used for debugging and logging.
+     * </p>
+     * <p>
+     * This method is primarily used for debugging and logging purposes, offering a
+     * concise summary of the amount's components and its calculated total.
+     * </p>
      *
      * @return A string in the format "Amount{benefit=..., personal=..., total=...}".
      */
     @Override
     public String toString() {
         return "Amount{" +
-                "benefit=" + benefitPayment +
-                ", personal=" + personalPayment +
+                "benefit=" + benefitDue + // Updated field name
+                ", personal=" + personalDue + // Updated field name
                 ", total=" + getTotal() +
                 '}';
     }
     /**
+     * <p>
      * Indicates whether some other object is "equal to" this one.
-     * Equality is based on both {@code benefitPayment} and {@code personalPayment}.
+     * </p>
+     * <p>
+     * Equality for {@code Amount} objects is determined by precisely comparing both
+     * the {@code benefitDue} and {@code personalDue} components using
+     * {@link BigDecimal#equals(Object)}. This method considers two {@code BigDecimal}
+     * objects equal if they have the same value and scale.
+     * </p>
      *
      * @param o The reference object with which to compare.
      * @return {@code true} if this object is the same as the obj argument; {@code false} otherwise.
@@ -118,17 +171,26 @@ public class Amount {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Amount amount = (Amount) o;
-        return Double.compare(amount.benefitPayment, benefitPayment) == 0 &&
-                Double.compare(amount.personalPayment, personalPayment) == 0;
+        // Use BigDecimal's equals method for precise comparison
+        return benefitDue.equals(amount.benefitDue) && // Updated field name
+                personalDue.equals(amount.personalDue); // Updated field name
     }
     /**
+     * <p>
      * Returns a hash code value for the object.
-     * The hash code is generated based on {@code benefitPayment} and {@code personalPayment}.
+     * </p>
+     * <p>
+     * The hash code is generated based on both the {@code benefitDue} and
+     * {@code personalDue} components. This ensures that objects considered equal
+     * by {@link #equals(Object)} will also have the same hash code, fulfilling
+     * the contract required for proper functioning in hash-based collections
+     * like {@link java.util.HashMap} and {@link java.util.HashSet}.
+     * </p>
      *
      * @return A hash code value for this object.
      */
     @Override
     public int hashCode() {
-        return Objects.hash(benefitPayment, personalPayment);
+        return Objects.hash(benefitDue, personalDue); // Updated field names
     }
 }
