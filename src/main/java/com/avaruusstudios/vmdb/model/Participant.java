@@ -1,151 +1,191 @@
 package com.avaruusstudios.vmdb.model;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Objects;
+
+// Import the consolidated Role enum
+
 
 /**
  * <p>
  * Represents an individual participant within the Vanpool Management System.
  * This class encapsulates all personal, contact, and participation details
- * for a commuter assigned to specific pickup and drop-off locations, and potentially a vehicle.
+ * for a commuter assigned to specific pickup and drop-off locations.
  * </p>
  *
  * <p>
- * It serves as a core model for managing individuals involved in the vanpool program,
- * including their enrollment, activity status, and associated program benefits.
+ * This class directly maps to the `Participants` table in the database,
+ * which is understood to *not* have a direct foreign key to the `Users` table
+ * nor a direct foreign key to the `Vehicles` table.
+ * If a participant is also a system user, the linkage is implicitly made
+ * through common fields like the email address, managed at the application layer.
+ * Participants are assigned to a Vanpool, and Vanpools have assigned Vehicles,
+ * making the link between Participant and Vehicle indirect.
+ * </p>
+ *
+ * <p>
+ * Each participant has a specific {@link Role} within the vanpool context
+ * (e.g., Coordinator, Treasurer, Driver).
  * </p>
  *
  * @see Location
  * @see Program
+ * @see Role
  */
 public class Participant {
     /**
      * Unique identifier for the participant. This serves as the primary key
-     * in the database for participant records.
+     * in the database for participant records ({@code ParticipantID INTEGER PRIMARY KEY AUTOINCREMENT}).
+     * <p>
+     * For a newly created participant not yet persisted to the database, this value will be {@code null}.
+     * Once assigned by the database, it becomes immutable.
+     * </p>
      */
-    private int participantID;
-
+    private final Integer participantID;
     /**
      * The {@link Location} object representing the designated pickup point for the participant
      * in the morning. This establishes a foreign key relationship to the Locations table.
+     * It is a **required** field for active participants.
      */
     private Location pickUpLocation;
-
     /**
      * The {@link Location} object representing the designated drop-off point for the participant
      * for work in the morning. This establishes a foreign key relationship to the Locations table.
+     * It is a **required** field for active participants.
      */
     private Location dropOffLocation;
-
     /**
      * The first name of the participant.
-     * This field is typically required for identification.
+     * This field is **required** for identification and communication.
+     * It should not be null or empty.
      */
     private String firstName;
-
     /**
-     * The middle name of the participant. This field is optional.
+     * The middle name of the participant. This field is **optional** and may be null or empty.
      */
     private String middleName;
-
     /**
      * The last name or surname of the participant.
-     * This field is typically required for identification.
+     * This field is **required** for identification and communication.
+     * It should not be null or empty.
      */
     private String lastName;
-
     /**
      * The primary email address for contacting the participant.
      * Used for notifications, schedules, and general communication.
+     * This field is **required** and should be unique. Validation ensures it's a valid email format.
+     * This may also serve as an implicit link to the `Users` table if a participant is also a system user.
      */
     private String email;
-
     /**
      * The primary phone number for contacting the participant.
-     * May include a mobile number or office line.
+     * This field is **required**. It's stored as text, but the UI **MUST** display it in the format `+# (###) ###-####`.
      */
     private String phone;
-
     /**
      * The calculated distance in miles from the {@link #pickUpLocation} to the {@link #dropOffLocation}.
-     * This might be used for route planning or benefit calculations.
+     * This value is used for route planning or potential benefit calculations.
+     * It is represented as a {@link BigDecimal} for **precision**, and must be non-negative.
      */
-    private double distanceMiles;
-
+    private BigDecimal distanceMiles;
     /**
      * The {@link LocalDate} when the participant officially joined or was added to the vanpool system.
+     * This field is **required** and represents the start date of their participation.
+     * Validation ensures this date is not in the future.
      */
     private LocalDate joinDate;
-
     /**
      * A boolean flag indicating whether the participant is currently active in the system.
-     * {@code true} if active, {@code false} if inactive (e.g., suspended, terminated, or on leave).
+     * {@code true} if active (currently participating in vanpool activities, incurring charges);
+     * {@code false} if inactive (e.g., suspended, terminated, or on leave, not incurring regular charges).
      */
     private boolean isActive;
-
     /**
      * The {@link Program} enum representing the specific program the participant is associated with
-     * (e.g., "Transportation Incentive Program (TIP)", "Daily").
+     * (e.g., "Transportation Incentive Program (TIP)", "Daily"). This field is **required**.
      */
-    private Program program; // Updated type to Program
-
+    private Program program;
     /**
-     * The monetary benefit amount, if any, that the participant receives each month.
-     * This value typically corresponds to the associated {@link #program}.
+     * The **static monthly benefit amount** (allowance) that the participant is allotted.
+     * This value is typically tied to their associated {@link #program} and represents the
+     * *maximum* benefit they can utilize in a given billing period.
+     * <p>
+     * **Important:** As clarified in business logic discussions, this field stores the
+     * **fixed monthly allowance**. It is **not** a running balance that is decremented
+     * by benefit usage. The actual consumption of benefit is tracked by summing
+     * {@code InvoiceItem.Amount.benefitDue} entries for the participant within the current period,
+     * which is managed externally to this field. This value is managed outside this application
+     * (e.g., via a manual update or external system integration). It is a non-negative {@link BigDecimal}.
+     * </p>
      */
-    private double benefitAmount;
-
+    private BigDecimal benefitAmount;
+    /**
+     * The {@link Role} assigned to the participant, indicating their specific
+     * responsibilities or administrative privileges within the vanpool (e.g., Coordinator, Treasurer, Driver).
+     * This is the vanpool-specific role, distinct from a user's general system role.
+     * This field is **required** and directly influences logic like remainder distribution.
+     */
+    private Role role;
     /**
      * Optional notes about the participant. This field can contain administrative comments,
      * special preferences, medical considerations, or any other relevant annotations.
+     * May be null or empty.
      */
     private String notes;
 
-
     /**
-     * Default constructor for creating an empty {@code Participant} object.
-     * This constructor is useful for frameworks that instantiate objects via reflection
-     * (e.g., Spring, JSON deserializers) before populating their fields.
+     * Default constructor for creating a new, unpersisted {@code Participant} object.
+     * The {@code participantID} is set to {@code null} to explicitly indicate that
+     * this participant has not yet been assigned a unique ID by the database.
+     * This constructor is useful for frameworks that instantiate objects via reflection.
      */
-    public Participant() {}
-
+    public Participant() {
+        this.participantID = null; // Explicitly null for unpersisted entity
+        this.role = Role.PARTICIPANT; // Default vanpool role for a new participant (rider)
+    }
     /**
      * Full constructor to initialize all fields of a {@code Participant} instance.
-     * This constructor allows for the complete creation of a participant record
-     * with all necessary details upon instantiation.
+     * This constructor is typically used when loading an *existing* participant
+     * record from the database, where {@code participantID} has already been assigned.
      *
-     * @param participantID     Unique system-generated identifier for the participant.
-     * @param pickUpLocation    The {@link Location} object representing the participant's pickup point.
-     * @param dropOffLocation   The {@link Location} object representing the participant's drop-off point.
-     * @param firstName         The first name of the participant.
+     * @param participantID     The unique system-generated identifier for the participant. Must not be {@code null} for existing.
+     * @param pickUpLocation    The {@link Location} object representing the participant's pickup point. Must not be {@code null}.
+     * @param dropOffLocation   The {@link Location} object representing the participant's drop-off point. Must not be {@code null}.
+     * @param firstName         The first name of the participant. Must not be {@code null} or empty.
      * @param middleName        The middle name of the participant (can be null or empty).
-     * @param lastName          The last name of the participant.
-     * @param email             The contact email address of the participant.
-     * @param phone             The contact phone number of the participant.
-     * @param distanceMiles     The distance in miles between the pickup and drop-off locations.
-     * @param joinDate          The {@link LocalDate} when the participant joined the program.
+     * @param lastName          The last name of the participant. Must not be {@code null} or empty.
+     * @param email             The contact email address of the participant. Must not be {@code null} or empty, and must be a valid format.
+     * @param phone             The contact phone number of the participant. Must not be {@code null} or empty.
+     * @param distanceMiles     The distance in miles between the pickup and drop-off locations. Must be non-negative.
+     * @param joinDate          The {@link LocalDate} when the participant joined the program. Must not be {@code null} and must not be in the future.
      * @param isActive          A boolean indicating the participant's active status.
-     * @param program           The {@link Program} enum indicating the program the participant is in. // Updated type
-     * @param benefitAmount     The monthly benefit amount the participant receives.
-     * @param notes             Any optional notes or administrative comments about the participant.
+     * @param program           The {@link Program} enum indicating the program the participant is in. Must not be {@code null}.
+     * @param benefitAmount     The monthly benefit amount the participant receives (static allowance). Must not be {@code null} and non-negative.
+     * @param role              The {@link Role} of the participant within the vanpool context. Must not be {@code null}.
+     * @param notes             Any optional notes or administrative comments about the participant. Can be {@code null}.
+     * @throws NullPointerException     if `participantID` or any other required object-type parameters (e.g., locations, names, email, date, program, benefitAmount, role) are {@code null}.
+     * @throws IllegalArgumentException if any required string parameters are empty, or if `distanceMiles` or `benefitAmount` are negative, or `joinDate` is in the future.
      */
-    public Participant(int participantID, Location pickUpLocation, Location dropOffLocation,
+    public Participant(Integer participantID, Location pickUpLocation, Location dropOffLocation,
                        String firstName, String middleName, String lastName, String email,
-                       String phone, double distanceMiles, LocalDate joinDate,
-                       boolean isActive, Program program, double benefitAmount, String notes) { // Updated type
-        this.participantID = participantID;
-        this.pickUpLocation = pickUpLocation;
-        this.dropOffLocation = dropOffLocation;
-        this.firstName = firstName;
-        this.middleName = middleName;
-        this.lastName = lastName;
-        this.email = email;
-        this.phone = phone;
-        this.distanceMiles = distanceMiles;
-        this.joinDate = joinDate;
+                       String phone, BigDecimal distanceMiles, LocalDate joinDate,
+                       boolean isActive, Program program, BigDecimal benefitAmount, Role role, String notes) {
+        this.participantID = Objects.requireNonNull(participantID, "Participant ID cannot be null for an existing participant.");
+
+        this.setPickUpLocation(pickUpLocation);
+        this.setDropOffLocation(dropOffLocation);
+        this.setFirstName(firstName);
+        this.middleName = middleName; // middleName can be null
+        this.setLastName(lastName);
+        this.setEmail(email);
+        this.setPhone(phone);
+        this.setDistanceMiles(distanceMiles);
+        this.setJoinDate(joinDate);
         this.isActive = isActive;
-        this.program = program;
-        this.benefitAmount = benefitAmount;
+        this.setProgram(program);
+        this.setBenefitAmount(benefitAmount);
+        this.setRole(role);
         this.notes = notes;
     }
 
@@ -155,59 +195,47 @@ public class Participant {
 
     /**
      * Retrieves the unique identifier for this participant.
+     * For new, unpersisted participants, this will be {@code null}.
      *
-     * @return The integer primary key used to identify this participant in the system.
+     * @return The {@link Integer} primary key used to identify this participant in the system, or {@code null} if not yet assigned.
      */
-    public int getParticipantID() {
+    public Integer getParticipantID() {
         return participantID;
     }
-
-    /**
-     * Sets the unique identifier for this participant.
-     * This method is typically used when populating a participant object from the database.
-     *
-     * @param participantID The unique integer ID for the participant.
-     */
-    public void setParticipantID(int participantID) {
-        this.participantID = participantID;
-    }
-
     /**
      * Retrieves the {@link Location} object representing the participant's pickup point.
      *
-     * @return The {@link Location} object, or {@code null} if not set.
+     * @return The {@link Location} object, or {@code null} if not set (though typically required for active participants).
      */
     public Location getPickUpLocation() {
         return pickUpLocation;
     }
-
     /**
      * Sets the {@link Location} object for the participant's pickup point.
      *
-     * @param pickUpLocation The {@link Location} object to associate with this participant's pickup.
+     * @param pickUpLocation The {@link Location} object to associate with this participant's pickup. Must not be {@code null}.
+     * @throws NullPointerException if {@code pickUpLocation} is {@code null}.
      */
     public void setPickUpLocation(Location pickUpLocation) {
-        this.pickUpLocation = pickUpLocation;
+        this.pickUpLocation = Objects.requireNonNull(pickUpLocation, "Pickup location cannot be null.");
     }
-
     /**
      * Retrieves the {@link Location} object representing the participant's drop-off point.
      *
-     * @return The {@link Location} object, or {@code null} if not set.
+     * @return The {@link Location} object, or {@code null} if not set (though typically required for active participants).
      */
     public Location getDropOffLocation() {
         return dropOffLocation;
     }
-
     /**
      * Sets the {@link Location} object for the participant's drop-off point.
      *
-     * @param dropOffLocation The {@link Location} object to associate with this participant's drop-off.
+     * @param dropOffLocation The {@link Location} object to associate with this participant's drop-off. Must not be {@code null}.
+     * @throws NullPointerException if {@code dropOffLocation} is {@code null}.
      */
     public void setDropOffLocation(Location dropOffLocation) {
-        this.dropOffLocation = dropOffLocation;
+        this.dropOffLocation = Objects.requireNonNull(dropOffLocation, "Drop-off location cannot be null.");
     }
-
     /**
      * Retrieves the first name of the participant.
      *
@@ -216,16 +244,17 @@ public class Participant {
     public String getFirstName() {
         return firstName;
     }
-
     /**
      * Sets the first name of the participant.
      *
-     * @param firstName The desired first name for the participant.
+     * @param firstName The desired first name for the participant. Must not be {@code null} or empty.
+     * @throws NullPointerException if {@code firstName} is {@code null}.
+     * @throws IllegalArgumentException if {@code firstName} is empty after stripping whitespace.
      */
     public void setFirstName(String firstName) {
-        this.firstName = firstName;
+        this.firstName = Objects.requireNonNull(firstName, "First name cannot be null.").strip();
+        if (this.firstName.isEmpty()) throw new IllegalArgumentException("First name cannot be empty.");
     }
-
     /**
      * Retrieves the middle name of the participant.
      *
@@ -234,7 +263,6 @@ public class Participant {
     public String getMiddleName() {
         return middleName;
     }
-
     /**
      * Sets the middle name of the participant.
      *
@@ -243,7 +271,6 @@ public class Participant {
     public void setMiddleName(String middleName) {
         this.middleName = middleName;
     }
-
     /**
      * Retrieves the last name or surname of the participant.
      *
@@ -252,16 +279,17 @@ public class Participant {
     public String getLastName() {
         return lastName;
     }
-
     /**
      * Sets the last name or surname of the participant.
      *
-     * @param lastName The desired last name for the participant.
+     * @param lastName The desired last name for the participant. Must not be {@code null} or empty.
+     * @throws NullPointerException if {@code lastName} is {@code null}.
+     * @throws IllegalArgumentException if {@code lastName} is empty after stripping whitespace.
      */
     public void setLastName(String lastName) {
-        this.lastName = lastName;
+        this.lastName = Objects.requireNonNull(lastName, "Last name cannot be null.").strip();
+        if (this.lastName.isEmpty()) throw new IllegalArgumentException("Last name cannot be empty.");
     }
-
     /**
      * Retrieves the primary email address for the participant.
      *
@@ -270,16 +298,21 @@ public class Participant {
     public String getEmail() {
         return email;
     }
-
     /**
      * Sets the primary email address for the participant.
      *
-     * @param email The desired email address for communication.
+     * @param email The desired email address for communication. Must not be {@code null} or empty, and must be a valid email format.
+     * @throws NullPointerException if {@code email} is {@code null}.
+     * @throws IllegalArgumentException if {@code email} is empty after stripping whitespace, or if it's not a valid email format.
      */
     public void setEmail(String email) {
-        this.email = email;
+        this.email = Objects.requireNonNull(email, "Email cannot be null.").strip();
+        if (this.email.isEmpty()) throw new IllegalArgumentException("Email cannot be empty.");
+        // Basic email format validation (more robust validation might be in a dedicated validator)
+        if (!this.email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$")) {
+            throw new IllegalArgumentException("Invalid email format.");
+        }
     }
-
     /**
      * Retrieves the primary phone number for the participant.
      *
@@ -288,52 +321,63 @@ public class Participant {
     public String getPhone() {
         return phone;
     }
-
     /**
      * Sets the primary phone number for the participant.
-     *
-     * @param phone The desired contact phone number.
+     * <p>
+     * This method stores the phone number as plain text. The UI layer is responsible
+     * for formatting this number for display in the `+# (###) ###-####` format.
+     * </p>
+     * @param phone The desired contact phone number. Must not be {@code null} or empty.
+     * @throws NullPointerException if {@code phone} is {@code null}.
+     * @throws IllegalArgumentException if {@code phone} is empty after stripping whitespace.
      */
     public void setPhone(String phone) {
-        this.phone = phone;
+        this.phone = Objects.requireNonNull(phone, "Phone number cannot be null.").strip();
+        if (this.phone.isEmpty()) throw new IllegalArgumentException("Phone number cannot be empty.");
+        // Optional: Add regex for phone number validation if needed
     }
-
     /**
      * Retrieves the calculated distance in miles between the participant's pickup and drop-off locations.
      *
-     * @return The distance in miles as a double.
+     * @return The distance in miles as a {@link BigDecimal}.
      */
-    public double getDistanceMiles() {
+    public BigDecimal getDistanceMiles() {
         return distanceMiles;
     }
-
     /**
      * Sets the calculated distance in miles between the participant's pickup and drop-off locations.
      *
-     * @param distanceMiles The distance in miles to set.
+     * @param distanceMiles The distance in miles to set. Must not be {@code null} and must be non-negative.
+     * @throws NullPointerException if {@code distanceMiles} is {@code null}.
+     * @throws IllegalArgumentException if {@code distanceMiles} is negative.
      */
-    public void setDistanceMiles(double distanceMiles) {
-        this.distanceMiles = distanceMiles;
+    public void setDistanceMiles(BigDecimal distanceMiles) {
+        this.distanceMiles = Objects.requireNonNull(distanceMiles, "Distance in miles cannot be null.");
+        if (this.distanceMiles.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Distance in miles cannot be negative.");
+        }
     }
-
     /**
-     * Retrieves the {@link LocalDate} when the participant joined the vanpool program.
+     * Retrieves the {@link LocalDate} when the participant officially joined or was added to the vanpool system.
      *
      * @return The {@link LocalDate} representing the join date.
      */
     public LocalDate getJoinDate() {
         return joinDate;
     }
-
     /**
      * Sets the {@link LocalDate} when the participant joined the vanpool program.
      *
-     * @param joinDate The {@link LocalDate} to set as the join date.
+     * @param joinDate The {@link LocalDate} to set as the join date. Must not be {@code null} and must not be in the future.
+     * @throws NullPointerException if {@code joinDate} is {@code null}.
+     * @throws IllegalArgumentException if {@code joinDate} is in the future.
      */
     public void setJoinDate(LocalDate joinDate) {
-        this.joinDate = joinDate;
+        this.joinDate = Objects.requireNonNull(joinDate, "Join date cannot be null.");
+        if (this.joinDate.isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("Join date cannot be in the future.");
+        }
     }
-
     /**
      * Checks if the participant is currently marked as active in the system.
      *
@@ -342,7 +386,6 @@ public class Participant {
     public boolean getIsActive() {
         return isActive;
     }
-
     /**
      * Sets the active status of the participant.
      *
@@ -351,43 +394,62 @@ public class Participant {
     public void setIsActive(boolean isActive) {
         this.isActive = isActive;
     }
-
     /**
      * Retrieves the {@link Program} enum associated with the participant.
      *
      * @return The {@link Program} enum constant for the participant's program.
      */
-    public Program getProgram() { // Updated return type
+    public Program getProgram() {
         return program;
     }
-
     /**
      * Sets the {@link Program} for the participant.
      *
-     * @param program The {@link Program} enum constant to set. // Updated parameter type
+     * @param program The {@link Program} enum constant to set. Must not be {@code null}.
+     * @throws NullPointerException if {@code program} is {@code null}.
      */
-    public void setProgram(Program program) { // Updated parameter type
-        this.program = program;
+    public void setProgram(Program program) {
+        this.program = Objects.requireNonNull(program, "Program cannot be null.");
     }
-
     /**
-     * Retrieves the monthly benefit amount the participant receives.
+     * Retrieves the monthly benefit amount the participant is allotted.
      *
-     * @return The monetary benefit amount as a double.
+     * @return The {@link BigDecimal} monetary benefit amount (static monthly allowance).
      */
-    public double getBenefitAmount() {
+    public BigDecimal getBenefitAmount() {
         return benefitAmount;
     }
-
     /**
-     * Sets the monthly benefit amount the participant receives.
+     * Sets the monthly benefit amount the participant is allotted.
      *
-     * @param benefitAmount The monetary benefit amount to set.
+     * @param benefitAmount The {@link BigDecimal} monetary benefit amount to set. Must not be {@code null} and must be non-negative.
+     * @throws NullPointerException if {@code benefitAmount} is {@code null}.
+     * @throws IllegalArgumentException if {@code benefitAmount} is negative.
      */
-    public void setBenefitAmount(double benefitAmount) {
-        this.benefitAmount = benefitAmount;
+    public void setBenefitAmount(BigDecimal benefitAmount) {
+        this.benefitAmount = Objects.requireNonNull(benefitAmount, "Benefit amount cannot be null.");
+        if (this.benefitAmount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Benefit amount cannot be negative.");
+        }
     }
-
+    /**
+     * Retrieves the {@link Role} assigned to this participant, indicating their specific
+     * responsibilities or administrative privileges within the vanpool (e.g., Coordinator, Treasurer, Driver).
+     *
+     * @return The {@link Role} enum constant for the participant's role.
+     */
+    public Role getRole() {
+        return role;
+    }
+    /**
+     * Sets the {@link Role} for the participant.
+     *
+     * @param role The {@link Role} enum constant to set. Must not be {@code null}.
+     * @throws NullPointerException if {@code role} is {@code null}.
+     */
+    public void setRole(Role role) {
+        this.role = Objects.requireNonNull(role, "Participant role cannot be null.");
+    }
     /**
      * Retrieves any additional notes or remarks associated with this participant.
      *
@@ -396,7 +458,6 @@ public class Participant {
     public String getNotes() {
         return notes;
     }
-
     /**
      * Sets additional notes or administrative comments for this participant.
      *
@@ -417,11 +478,12 @@ public class Participant {
      * a concise summary of the participant's key identifying attributes.
      * </p>
      * <p>
-     * The format includes the participant ID, first name, last name, and email.
+     * The format includes the participant ID (or "null" if not assigned),
+     * first name, last name, email, and vanpool role.
      * </p>
      *
      * @return A string in the format:
-     * "Participant{ID=..., Name='...', Email='...'}"
+     * "Participant{ID=..., Name='...', Email='...', VanpoolRole='...'}"
      */
     @Override
     public String toString() {
@@ -430,6 +492,7 @@ public class Participant {
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", email='" + email + '\'' +
+                ", role=" + role +
                 '}';
     }
     /**
@@ -439,6 +502,7 @@ public class Participant {
      * </p>
      * <p>
      * This method adheres to the general contract of the {@link Object#equals(Object)} method.
+     * It correctly handles cases where {@code participantID} might be {@code null} for unpersisted entities.
      * </p>
      *
      * @param o The reference object with which to compare.
@@ -446,11 +510,11 @@ public class Participant {
      */
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true; // Same object reference
-        if (o == null || getClass() != o.getClass()) return false; // Null or different class
-        Participant that = (Participant) o; // Cast to Participant
-        // Equality is based on the primary key (participantID)
-        return participantID == that.participantID;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Participant that = (Participant) o;
+        // Use Objects.equals to handle potential null participantIDs gracefully
+        return Objects.equals(participantID, that.participantID);
     }
     /**
      * <p>
@@ -458,14 +522,15 @@ public class Participant {
      * hash tables such as those provided by {@link java.util.HashMap}.
      * </p>
      * <p>
-     * The hash code is generated based on the unique {@code participantID}, ensuring that
-     * objects considered equal by {@link #equals(Object)} will have the same hash code.
+     * The hash code is generated based on the unique {@code participantID}. If {@code participantID}
+     * is {@code null} (for unpersisted entities), its hash code will be 0, as per {@link Objects#hash(Object...)}.
+     * This ensures that objects considered equal by {@link #equals(Object)} will have the same hash code.
      * </p>
      *
      * @return A hash code value for this object.
      */
     @Override
     public int hashCode() {
-        return Objects.hash(participantID); // Hash code based on the primary key
+        return Objects.hash(participantID);
     }
 }
