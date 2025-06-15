@@ -79,14 +79,24 @@ public final class Amount {
      * {@link BigDecimal} values are used for precise financial representation.
      * </p>
      *
-     * @param benefitDue The {@link BigDecimal} monetary value designated as due for benefit coverage. Must not be {@code null}.
-     * @param personalDue The {@link BigDecimal} monetary value designated as due for personal payment. Must not be {@code null}.
+     * @param benefitDue The {@link BigDecimal} monetary value designated as due for benefit coverage. Must not be {@code null} and must be non-negative.
+     * @param personalDue The {@link BigDecimal} monetary value designated as due for personal payment. Must not be {@code null} and must be non-negative.
      * @throws NullPointerException if {@code benefitDue} or {@code personalDue} is {@code null}.
+     * @throws IllegalArgumentException if {@code benefitDue} or {@code personalDue} is negative.
      */
     public Amount(BigDecimal benefitDue, BigDecimal personalDue) {
         // Ensure that BigDecimal objects are not null
         this.benefitDue = Objects.requireNonNull(benefitDue, "Benefit due amount cannot be null.");
+        // Ensure that benefitDue is non-negative
+        if (this.benefitDue.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Benefit due amount cannot be negative.");
+        }
+
         this.personalDue = Objects.requireNonNull(personalDue, "Personal due amount cannot be null.");
+        // Ensure that personalDue is non-negative
+        if (this.personalDue.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Personal due amount cannot be negative.");
+        }
     }
 
     // ---------------------
@@ -132,7 +142,6 @@ public final class Amount {
     public BigDecimal getTotal() {
         return benefitDue.add(personalDue); // Updated calculation
     }
-
     /**
      * <p>
      * Returns a string representation of the {@code Amount} object.
