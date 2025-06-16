@@ -2,10 +2,10 @@ package com.avaruusstudios.vmdb.model;
 
 /**
  * <p>
- * Defines a set of custom application-specific error codes for the Vanpool Management System.
- * These codes are used to categorize and identify errors originating from application logic,
- * validation failures, business rule violations, and internal operations, distinct from
- * database-specific errors.
+ * Defines a comprehensive set of custom error codes for the Vanpool Management System.
+ * These codes are used to categorize and identify any and all errors that could be
+ * encountered within the application, including system, runtime, configuration,
+ * security, data handling, business logic, and external resource related issues.
  * </p>
  *
  * <p>
@@ -14,18 +14,18 @@ package com.avaruusstudios.vmdb.model;
  * The codes are categorized by thousands ranges, similar to a Standard Subject
  * Identification Code (SSIC) structure, for better organization and quick identification:
  * <ul>
- * <li>1XXX: System / Runtime Errors</li>
+ * <li>1XXX: System / Runtime Errors (e.g., unexpected states, internal processing, database connection)</li>
  * <li>2XXX: Configuration / Setup Errors</li>
- * <li>3XXX: Security / Access Control Errors</li>
- * <li>4XXX: Data Handling / Validation Errors</li>
- * <li>5XXX: Business Logic / Process Errors</li>
- * <li>6XXX: External Resource / I/O Errors</li>
+ * <li>3XXX: Security / Access Control Errors (e.g., authentication, permissions)</li>
+ * <li>4XXX: Data Handling / Validation Errors (e.g., missing fields, invalid input, duplicates)</li>
+ * <li>5XXX: Business Logic / Process Errors (e.g., dependencies, insufficient resources, rule violations)</li>
+ * <li>6XXX: External Resource / I/O Errors (e.g., file operations)</li>
  * </ul>
  * </p>
  *
  * @see EventLog
  */
-public enum AppErrorCode {
+public enum ErrorCode { // Renamed from AppErrorCode to ErrorCode
     // --- 1000s: System / Runtime Errors ---
     /** Indicates an unexpected or unhandled application state. */
     UNEXPECTED_APP_STATE(1000, "Unexpected application state encountered."),
@@ -90,17 +90,17 @@ public enum AppErrorCode {
     private final String defaultDescription;
 
     /**
-     * Constructs an AppErrorCode enum constant.
+     * Constructs an ErrorCode enum constant.
      *
      * @param value The unique integer value for the error code.
      * @param defaultDescription A default, human-readable description for the error.
      */
-    AppErrorCode(int value, String defaultDescription) {
+    ErrorCode(int value, String defaultDescription) {
         this.value = value;
         this.defaultDescription = defaultDescription;
     }
     /**
-     * Retrieves the integer value of the application error code.
+     * Retrieves the integer value of the error code.
      * This is the value that would be stored in the `ErrorCode` column of the `EventLog` table.
      *
      * @return The integer representation of the error code.
@@ -109,7 +109,7 @@ public enum AppErrorCode {
         return value;
     }
     /**
-     * Retrieves a default description for the application error code.
+     * Retrieves a default description for the error code.
      * This can be used as a starting point for the `Description` field in the `EventLog`.
      *
      * @return A string describing the error.
@@ -128,20 +128,20 @@ public enum AppErrorCode {
     }
     /**
      * <p>
-     * Converts an integer error code value into its corresponding {@code AppErrorCode} enum constant.
+     * Converts an integer error code value into its corresponding {@code ErrorCode} enum constant.
      * This static method can be useful when retrieving error codes from logs or external sources.
      * </p>
      *
-     * @param value The integer value of the application error code.
-     * @return The matching {@code AppErrorCode} enum constant.
-     * @throws IllegalArgumentException if the provided integer value does not match any known application error code.
+     * @param value The integer value of the error code.
+     * @return The matching {@code ErrorCode} enum constant.
+     * @throws IllegalArgumentException if the provided integer value does not match any known error code.
      */
-    public static AppErrorCode fromValue(int value) {
-        for (AppErrorCode code : AppErrorCode.values()) {
+    public static ErrorCode fromValue(int value) { // Updated to ErrorCode
+        for (ErrorCode code : ErrorCode.values()) { // Updated to ErrorCode
             if (code.value == value) {
                 return code;
             }
         }
-        throw new IllegalArgumentException("Unknown AppErrorCode value: " + value);
+        throw new IllegalArgumentException("Unknown ErrorCode value: " + value); // Updated to ErrorCode
     }
 }
