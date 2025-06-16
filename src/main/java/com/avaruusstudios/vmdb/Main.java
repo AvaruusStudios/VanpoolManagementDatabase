@@ -2,7 +2,6 @@ package com.avaruusstudios.vmdb;
 
 import com.avaruusstudios.vmdb.db.Database;
 import com.avaruusstudios.vmdb.db.DatabaseInitializationException;
-import com.avaruusstudios.vmdb.model.AppErrorCode; // Not directly used here, but good for context
 import javafx.application.Application;
 import javafx.application.Platform; // For exiting the platform
 import javafx.fxml.FXMLLoader;
