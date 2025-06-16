@@ -35,6 +35,9 @@ public enum ErrorCode { // Renamed from AppErrorCode to ErrorCode
     DB_CONNECTION_FAILED(1002, "Failed to establish database connection or load driver."),
     /** Error occurred while executing the database schema script. */
     DB_SCHEMA_EXECUTION_ERROR(1003, "Error during database schema script execution."),
+    /** Indicates an unmapped SQL error. */
+    UNKNOWN_SQL_ERROR(1004, "An unknown SQL error occurred."), // Added this line
+
 
     // --- 2000s: Configuration / Setup Errors ---
     /** Application configuration setting is missing or invalid. */

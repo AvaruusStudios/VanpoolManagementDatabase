@@ -1,6 +1,6 @@
 package com.avaruusstudios.vmdb.db;
 
-import com.avaruusstudios.vmdb.model.AppErrorCode;
+import com.avaruusstudios.vmdb.model.ErrorCode; // Import ErrorCode
 import com.avaruusstudios.vmdb.model.EventLog;
 import com.avaruusstudios.vmdb.model.EventType;
 import com.avaruusstudios.vmdb.model.User;
@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
  * system for recording critical database initialization errors.
  * </p>
  *
- * @see AppErrorCode
+ * @see ErrorCode
  * @see EventLog
  * @see com.avaruusstudios.vmdb.db.DatabaseInitializationException
  */
@@ -101,9 +101,10 @@ public class Database {
             // Log to EventLog and throw a critical error as database operations are impossible without the driver
             logDatabaseError(
                     null, // No user context during driver load
-                    AppErrorCode.DB_CONNECTION_FAILED.getValue(),
+                    ErrorCode.DB_CONNECTION_FAILED, // Pass ErrorCode enum directly
                     "Failed to load SQLite JDBC driver: " + e.getMessage(),
-                    "Database.static block" // Context
+                    "Database.static block",
+                    e // Pass the exception
             );
             // Re-throw as a runtime exception since the application cannot proceed without the driver
             throw new DatabaseInitializationException("SQLite JDBC driver not found.", e);
@@ -125,9 +126,10 @@ public class Database {
         } catch (SQLException e) {
             logDatabaseError(
                     null, // No specific user context for connection failure
-                    AppErrorCode.DB_CONNECTION_FAILED.getValue(),
+                    ErrorCode.DB_CONNECTION_FAILED, // Pass ErrorCode enum directly
                     "Failed to establish database connection to " + JDBC_URL + ": " + e.getMessage(),
-                    "Database.getConnection()"
+                    "Database.getConnection()",
+                    e // Pass the exception
             );
             throw e; // Re-throw the original SQLException
         }
@@ -164,9 +166,10 @@ public class Database {
             } catch (SQLException e) {
                 logDatabaseError(
                         null, // User context might be null during app init
-                        AppErrorCode.DB_CONNECTION_FAILED.getValue(),
+                        ErrorCode.DB_CONNECTION_FAILED, // Pass ErrorCode enum directly
                         "Error creating database connection for '" + DATABASE_FILE + "': " + e.getMessage(),
-                        "Database.createDatabase()"
+                        "Database.createDatabase()",
+                        e // Pass the exception
                 );
                 throw new DatabaseInitializationException("Failed to create database: " + e.getMessage(), e);
             }
@@ -198,9 +201,10 @@ public class Database {
                 String errorMsg = "Error: Could not find schema file at " + SCHEMA_FILEPATH;
                 logDatabaseError(
                         null,
-                        AppErrorCode.DB_SCHEMA_EXECUTION_ERROR.getValue(),
+                        ErrorCode.DB_SCHEMA_EXECUTION_ERROR, // Pass ErrorCode enum directly
                         errorMsg,
-                        "Database.executeSchema()"
+                        "Database.executeSchema()",
+                        null // No underlying exception here
                 );
                 throw new DatabaseInitializationException(errorMsg);
             }
@@ -225,18 +229,20 @@ public class Database {
             String errorMsg = "Error reading schema file '" + SCHEMA_FILEPATH + "': " + e.getMessage();
             logDatabaseError(
                     null,
-                    AppErrorCode.DB_SCHEMA_EXECUTION_ERROR.getValue(),
+                    ErrorCode.FILE_IO_ERROR, // Use a relevant ErrorCode
                     errorMsg,
-                    "Database.executeSchema()"
+                    "Database.executeSchema()",
+                    e // Pass the exception
             );
             throw new DatabaseInitializationException(errorMsg, e);
         } catch (SQLException e) {
-            String errorMsg = "Error executing schema SQL: " + e.getMessage();
+            String errorMsg = "Error executing schema SQL (SQLState: " + e.getSQLState() + ", ErrorCode: " + e.getErrorCode() + "): " + e.getMessage();
             logDatabaseError(
                     null,
-                    e.getErrorCode(), // Use specific DB error code
+                    ErrorCode.UNKNOWN_SQL_ERROR, // Use a generic SQL error code for unmapped SQL exceptions
                     errorMsg,
-                    "Database.executeSchema()"
+                    "Database.executeSchema()",
+                    e // Pass the exception
             );
             throw new DatabaseInitializationException(errorMsg, e);
         }
@@ -254,26 +260,31 @@ public class Database {
      * </p>
      *
      * @param user        The {@link User} associated with the error, or {@code null} if no specific user context.
-     * @param errorCode   The numeric error code (either from {@link AppErrorCode} or a raw SQL error code).
+     * @param errorCode   The {@link ErrorCode} enum value representing the specific error. Can be {@code null} if no specific internal code applies.
      * @param description A descriptive message for the error.
      * @param context     A string indicating where the error occurred (e.g., "Database.getConnection()").
+     * @param cause       The underlying {@link Throwable} cause of the error, or {@code null} if no specific cause.
      */
-    private static void logDatabaseError(User user, Integer errorCode, String description, String context) {
+    private static void logDatabaseError(User user, ErrorCode errorCode, String description, String context, Throwable cause) { // Changed errorCode type to ErrorCode, added cause
         // Log to standard logger (e.g., console/file via Logback/Log4j2)
-        logger.error("[{}]: {}", context, description);
+        // Log with cause if present
+        if (cause != null) {
+            logger.error("[{}]: {}", context, description, cause);
+        } else {
+            logger.error("[{}]: {}", context, description);
+        }
 
         // Create and log to EventLog (assuming a mechanism to save EventLog exists,
         // or a simple static method to directly create an EventLog instance).
         // For actual persistence, this would ideally go through an EventLogDAO.
         // For now, we'll just instantiate it; actual saving would happen later.
         EventLog eventLog = new EventLog(
-                0, // EventID will be auto-generated by DB
-                user,
+                user, // No eventID for new entry
                 LocalDateTime.now(),
                 EventType.ERROR,
                 "DatabaseInitialization", // TableName can be a descriptive string for system errors
                 null, // RecordID not applicable for system errors
-                errorCode,
+                errorCode, // Now directly passes the ErrorCode enum
                 description
         );
         // In a full application, you'd have an EventLogDAO here:
