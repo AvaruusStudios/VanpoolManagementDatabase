@@ -1,6 +1,7 @@
 package com.avaruusstudios.vmdb.model;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * <p>
@@ -10,8 +11,10 @@ import java.util.Arrays;
  * </p>
  *
  * <p>
- * Each enum constant holds a corresponding string value that is used for persistence
- * in the database, aligning with the `Program` column in the `Participants` table.
+ * When stored in the database, the canonical name of the enum constant (e.g., "DAILY",
+ * "TRANSPORTATION_INCENTIVE_PROGRAM") is used. For user-facing display, a more
+ * descriptive string (e.g., "Daily", "Transportation Incentive Program (TIP)") is
+ * available via {@link #getDisplayValue()} and {@link #toString()}.
  * </p>
  *
  * @see Participant
@@ -29,63 +32,82 @@ public enum Program {
     DAILY("Daily"),
     /**
      * Represents a program type that is unknown, not applicable, or not yet defined.
-     * This serves as a default or fallback when a matching program cannot be found,
-     * such as during database deserialization.
+     * This serves as a default or fallback when a matching program cannot be found during
+     * database deserialization, ensuring null safety and a graceful fallback.
      */
-    NONE("None"); // Changed from UNKNOWN to NONE as per enum value
+    NONE("None");
 
     /**
-     * The string representation of the program type as stored in the database.
+     * The user-friendly string representation of the program type, suitable for display in the UI.
      */
-    private final String dbValue;
+    private final String displayValue;
 
     /**
-     * Constructs a {@code ProgramType} enum constant with its associated database string value.
+     * Constructs a {@code Program} enum constant with its associated display string value.
      *
-     * @param dbValue The string value that corresponds to this enum constant in the database.
+     * @param displayValue The user-friendly string value that corresponds to this enum constant,
+     * intended for display.
      */
-    Program(String dbValue) {
-        this.dbValue = dbValue;
+    Program(String displayValue) {
+        this.displayValue = displayValue;
     }
+
     /**
-     * Retrieves the database string value associated with this {@code ProgramType} enum constant.
-     * This value is used for persisting the enum to the database.
+     * Retrieves the canonical name of the enum constant (e.g., "DAILY", "TRANSPORTATION_INCENTIVE_PROGRAM").
+     * This is the recommended string value for storing in the database to ensure consistency
+     * with enum constant definitions.
      *
-     * @return The string value stored in the database for this program type.
+     * @return The ALLCAPS string value used for database storage.
      */
     public String getDbValue() {
-        return dbValue;
+        return this.name(); // Returns "TRANSPORTATION_INCENTIVE_PROGRAM", "DAILY", etc.
     }
     /**
-     * Converts a database string value into its corresponding {@code ProgramType} enum constant.
-     * This method is essential for deserializing data from the database into Java objects.
+     * Retrieves the user-friendly string value for this program type, suitable for display in the UI.
      *
-     * @param dbValue The string value retrieved from the database's `Program` column.
-     * @return The {@code ProgramType} enum constant matching the provided string.
-     * Returns {@link #NONE} if no matching program type is found for the given string,
-     * ensuring null safety.
+     * @return The displayable string value of the program type.
      */
-    public static Program fromDbValue(String dbValue) {
-        // Using Optional for robust handling of null or non-matching dbValue
-        return Arrays.stream(Program.values())
-                .filter(program -> program.getDbValue().equalsIgnoreCase(dbValue)) // Case-insensitive match
-                .findFirst()
-                .orElse(NONE); // Return NONE if no match
+    public String getDisplayValue() {
+        return displayValue;
     }
     /**
-     * <p>
      * Returns the user-friendly string representation of this program type.
      * This method overrides the default {@link Enum#toString()} behavior to
-     * provide the more descriptive {@code dbValue} instead of the enum constant's name.
-     * </p>
-     * <p>
-     * This is highly beneficial for logging, debugging, and user interface display.
-     * </p>
+     * provide the more descriptive {@code displayValue} instead of the enum constant's name,
+     * making it suitable for logging and UI display.
      *
-     * @return The string value of the program type as stored in the database and intended for display.
+     * @return The displayable string value of the program type.
      */
     @Override
     public String toString() {
-        return dbValue;
+        return displayValue;
+    }
+    /**
+     * <p>
+     * Converts a database string value (which should be the ALLCAPS canonical name of the enum constant)
+     * into its corresponding {@code Program} enum constant.
+     * This method is essential for deserializing data from the database into Java objects,
+     * providing a type-safe conversion.
+     * </p>
+     * <p>
+     * The conversion is robust, trimming whitespace and converting the input to uppercase
+     * to match the enum constant names. If no matching program type is found, it
+     * gracefully returns {@link #NONE}.
+     * </p>
+     *
+     * @param dbString The string value retrieved from the database's `Program` column (e.g., "DAILY").
+     * @return The {@code Program} enum constant matching the provided string.
+     * Returns {@link #NONE} if no matching program type is found for the given string,
+     * or if the input string is null or empty.
+     */
+    public static Program fromDbValue(String dbString) {
+        if (dbString == null || dbString.trim().isEmpty()) {
+            return NONE; // Consistent with your original logic to return NONE for null/empty
+        }
+        String trimmedUpperDbString = dbString.trim().toUpperCase();
+        return Arrays.stream(Program.values())
+                .filter(program -> program.name().equalsIgnoreCase(trimmedUpperDbString)) // Compare with canonical name
+                .findFirst()
+                .orElse(NONE); // Return NONE if no match
     }
 }

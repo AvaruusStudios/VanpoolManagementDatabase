@@ -1,5 +1,8 @@
 package com.avaruusstudios.vmdb.model;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 /**
  * <p>
  * Defines the possible roles a {@link User} (and by extension, a {@link Participant})
@@ -8,10 +11,11 @@ package com.avaruusstudios.vmdb.model;
  * </p>
  *
  * <p>
- * This enum strictly enforces the allowed role types as defined in the database schema's
- * `UserRole VARCHAR(50) NOT NULL` field (for general users) and `Role VARCHAR(50) NOT NULL`
- * field (for specific participant functions), supporting roles such as "ADMIN", "TREASURER",
- * "USER", "COORDINATOR", "PARTICIPANT", and "DRIVER".
+ * This enum strictly enforces the allowed role types. When stored in the database,
+ * the canonical name of the enum constant (e.g., "ADMIN", "PARTICIPANT") is used.
+ * For display purposes in the user interface, a more user-friendly PascalCase string
+ * (e.g., "Admin", "Participant") is available via {@link #getDisplayValue()} and
+ * {@link #toString()}.
  * </p>
  *
  * @see User
@@ -44,17 +48,18 @@ public enum Role {
      * Represents a standard participant in a vanpool with no special administrative or driving duties.
      * Stored in DB as "PARTICIPANT". Primarily a Participant Role.
      */
-    PARTICIPANT("Participant", false, true);
+    PARTICIPANT("Participant", false, true),
     /**
      * Represents a participant designated as a primary or secondary driver of the van.
      * Stored in DB as "DRIVER". Primarily a Participant Role.
      */
-//    DRIVER("Driver", false, true);
+    DRIVER("Driver", false, true); // Uncommented as it's a valid role that may be used
 
     /**
-     * The string representation of the role as stored in the database.
+     * The user-friendly string representation of the role, suitable for display in the UI.
+     * This is typically PascalCase (e.g., "Admin", "Participant").
      */
-    private final String dbValue;
+    private final String displayValue;
     /**
      * Indicates if this role can be assigned to a system {@link User}.
      * {@code true} if applicable as a system role, {@code false} otherwise.
@@ -67,26 +72,36 @@ public enum Role {
     private final boolean isParticipantApplicable;
 
     /**
-     * Constructor for the Role enum.
+     * Constructs a {@code Role} enum constant.
      *
-     * @param dbValue The string value used for database storage.
+     * @param displayValue The user-friendly string value for display purposes (e.g., "Admin").
      * @param isSystemApplicable A boolean indicating if this role can be assigned to a system {@link User}.
      * @param isParticipantApplicable A boolean indicating if this role can be assigned to a {@link Participant}.
      */
-    Role(String dbValue, boolean isSystemApplicable, boolean isParticipantApplicable) {
-        this.dbValue = dbValue;
+    Role(String displayValue, boolean isSystemApplicable, boolean isParticipantApplicable) {
+        this.displayValue = displayValue;
         this.isSystemApplicable = isSystemApplicable;
         this.isParticipantApplicable = isParticipantApplicable;
     }
 
     /**
-     * Retrieves the exact string value that should be stored in or read from the database
-     * for this role.
+     * Retrieves the canonical name of the enum constant (e.g., "ADMIN", "PARTICIPANT").
+     * This is the recommended string value for storing in the database to ensure consistency
+     * with enum constant definitions.
      *
-     * @return The database-compatible string value (e.g., "ADMIN", "TREASURER", "PARTICIPANT").
+     * @return The ALLCAPS string value used for database storage.
      */
     public String getDbValue() {
-        return dbValue;
+        return this.name(); // Returns "ADMIN", "PARTICIPANT", etc.
+    }
+    /**
+     * Retrieves the user-friendly string value for this role, suitable for display in the UI.
+     * This value is typically in PascalCase (e.g., "Admin", "Participant").
+     *
+     * @return The displayable string value of the role.
+     */
+    public String getDisplayValue() {
+        return displayValue;
     }
     /**
      * Checks if this role is typically applicable to a system {@link User}.
@@ -105,36 +120,46 @@ public enum Role {
         return isParticipantApplicable;
     }
     /**
-     * Returns the database value of the role when this enum constant is converted to a string.
+     * Returns the user-friendly string representation of this role.
+     * This method overrides the default {@link Enum#toString()} behavior to
+     * provide the more descriptive {@code displayValue} instead of the enum constant's name,
+     * making it suitable for logging and UI display.
      *
-     * @return The database string value of the role.
+     * @return The displayable string value of the role.
      */
     @Override
     public String toString() {
-        return dbValue;
+        return displayValue;
     }
     /**
      * <p>
-     * Converts a database string value into its corresponding {@code Role} enum constant.
-     * This static method is crucial for deserializing role data read from the database.
+     * Converts a database string value (which should be the ALLCAPS canonical name of the enum constant)
+     * into its corresponding {@code Role} enum constant.
+     * This static method is crucial for deserializing role data read from the database,
+     * providing a type-safe conversion.
      * </p>
      * <p>
-     * The comparison is case-insensitive for robustness.
+     * The conversion is robust, trimming whitespace and converting the input to uppercase
+     * to match the enum constant names.
      * </p>
      *
-     * @param dbValue The string value obtained from a database `Role` or `UserRole` column.
+     * @param dbString The string value obtained from a database `Role` or `UserRole` column (e.g., "ADMIN").
      * @return The matching {@code Role} enum constant.
-     * @throws IllegalArgumentException if the provided string does not match any valid role's {@code dbValue}.
+     * @throws IllegalArgumentException if the provided string does not match any valid {@code Role} enum constant name,
+     * or if the input string is null or empty.
      */
-    public static Role fromDbValue(String dbValue) {
-        if (dbValue == null || dbValue.trim().isEmpty()) {
-            throw new IllegalArgumentException("Role database value cannot be null or empty.");
+    public static Role fromDbValue(String dbString) {
+        Objects.requireNonNull(dbString, "Role database string cannot be null.");
+        String trimmedUpperDbString = dbString.trim().toUpperCase();
+        if (trimmedUpperDbString.isEmpty()) {
+            throw new IllegalArgumentException("Role database string cannot be empty after trimming.");
         }
-        for (Role role : Role.values()) {
-            if (role.dbValue.equalsIgnoreCase(dbValue.trim())) {
-                return role;
-            }
+        try {
+            // Enum.valueOf expects the exact constant name (ALLCAPS)
+            return Role.valueOf(trimmedUpperDbString);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Unknown Role database string: '" + dbString + "'. Valid roles are: " +
+                    Arrays.toString(Arrays.stream(Role.values()).map(Role::name).toArray()), e);
         }
-        throw new IllegalArgumentException("Unknown Role database value: '" + dbValue + "'");
     }
 }
