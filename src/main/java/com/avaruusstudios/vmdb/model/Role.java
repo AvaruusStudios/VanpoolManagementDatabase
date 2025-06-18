@@ -44,12 +44,12 @@ public enum Role {
      * Represents a standard participant in a vanpool with no special administrative or driving duties.
      * Stored in DB as "PARTICIPANT". Primarily a Participant Role.
      */
-    PARTICIPANT("PARTICIPANT", false, true),
+    PARTICIPANT("PARTICIPANT", false, true);
     /**
      * Represents a participant designated as a primary or secondary driver of the van.
      * Stored in DB as "DRIVER". Primarily a Participant Role.
      */
-    DRIVER("DRIVER", false, true);
+//    DRIVER("DRIVER", false, true);
 
     /**
      * The string representation of the role as stored in the database.
