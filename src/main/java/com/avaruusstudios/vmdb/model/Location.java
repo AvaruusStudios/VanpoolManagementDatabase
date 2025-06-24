@@ -476,7 +476,7 @@ public class Location {
         this.notes.set((notes == null) ? null : notes.trim());
     }
 
-    // Utility Methods
+    // --- Utility Methods ---
 
     /**
      * <p>
