@@ -62,7 +62,6 @@ public class Vehicle {
      * </p>
      */
     private final ReadOnlyObjectProperty<Integer> vehicleID;
-
     /**
      * <p>
      * This {@link StringProperty} stores a unique alphanumeric identifier for the vehicle,
@@ -86,7 +85,6 @@ public class Vehicle {
      * </p>
      */
     private final StringProperty vehicleNumber;
-
     /**
      * <p>
      * This {@link StringProperty} stores the name of the vehicle's manufacturer or brand,
@@ -106,7 +104,6 @@ public class Vehicle {
      * </p>
      */
     private final StringProperty make;
-
     /**
      * <p>
      * This {@link StringProperty} holds the specific model name of the vehicle, for example,
@@ -126,7 +123,6 @@ public class Vehicle {
      * </p>
      */
     private final StringProperty model;
-
     /**
      * <p>
      * This {@link IntegerProperty} stores the four-digit year of manufacture for the vehicle,
@@ -148,7 +144,6 @@ public class Vehicle {
      * </p>
      */
     private final IntegerProperty year;
-
     /**
      * <p>
      * This {@link IntegerProperty} specifies the maximum number of active participants that
@@ -171,7 +166,6 @@ public class Vehicle {
      * </p>
      */
     private final IntegerProperty capacity;
-
     /**
      * <p>
      * This {@link ObjectProperty} stores the {@link LocalDate} representing the official
@@ -194,7 +188,6 @@ public class Vehicle {
      * </p>
      */
     private final ObjectProperty<LocalDate> leaseStartDate;
-
     /**
      * <p>
      * This {@link ObjectProperty} stores the {@link LocalDate} when the vehicle's lease or
@@ -217,7 +210,6 @@ public class Vehicle {
      * </p>
      */
     private final ObjectProperty<LocalDate> leaseEndDate;
-
     /**
      * <p>
      * This {@link BooleanProperty} indicates the current operational status of the vehicle.
@@ -239,7 +231,6 @@ public class Vehicle {
      * </p>
      */
     private final BooleanProperty isActive;
-
     /**
      * <p>
      * This {@link ObjectProperty} stores a {@link BigDecimal} value representing any
@@ -264,7 +255,6 @@ public class Vehicle {
      * </p>
      */
     private final ObjectProperty<BigDecimal> discount;
-
     /**
      * <p>
      * This {@link StringProperty} holds optional free-form text for additional notes or
@@ -307,7 +297,6 @@ public class Vehicle {
     public Vehicle() {
         this(null, null, null, null, 0, 0, null, null, false, null, null);
     }
-
     /**
      * <p>
      * This comprehensive constructor initializes all fields of a {@code Vehicle} instance. It is
@@ -382,7 +371,6 @@ public class Vehicle {
         setDiscount(discount);
         setNotes(notes);
     }
-
     /**
      * <p>
      * This convenience constructor is specifically designed for creating a new {@code Vehicle} object
