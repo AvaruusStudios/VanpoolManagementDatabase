@@ -1,6 +1,7 @@
 package com.avaruusstudios.vmdb.model;
 
-import java.math.BigDecimal; // Import BigDecimal
+import javafx.beans.property.*; // Import JavaFX property classes
+import java.math.BigDecimal;
 import java.util.Objects;
 
 /**
@@ -22,7 +23,7 @@ import java.util.Objects;
  * @see Participant
  * @see Amount
  */
-public class LineItem { // Renamed from InvoiceItem to LineItem
+public class LineItem {
     /**
      * Unique identifier for the invoice line item. This serves as the primary key
      * in the database for invoice item records ({@code InvoiceItemID INTEGER PRIMARY KEY AUTOINCREMENT}).
@@ -31,37 +32,37 @@ public class LineItem { // Renamed from InvoiceItem to LineItem
      * Once assigned by the database, it becomes immutable.
      * </p>
      */
-    private final Integer invoiceItemID; // Changed from int to final Integer
+    private final ReadOnlyObjectProperty<Integer> invoiceItemID;
     /**
      * The {@link Invoice} object to which this invoice line item belongs.
      * This represents the foreign key relationship to the {@code Invoices} table.
      * This field is **required** (corresponds to {@code InvoiceID_FK INTEGER NOT NULL} in the database).
      */
-    private Invoice invoice;
+    private final ObjectProperty<Invoice> invoice;
     /**
      * The {@link Participant} object for whom this invoice line item is generated.
      * This represents the foreign key relationship to the {@code Participants} table.
      * This field is **required** (corresponds to {@code ParticipantID_FK INTEGER NOT NULL} in the database).
      */
-    private Participant participant;
+    private final ObjectProperty<Participant> participant;
     /**
      * A composite {@link Amount} object encapsulating the required benefit payment
      * and personal payment for this invoice line item.
      * This field is **required** (corresponds to {@code BenefitPayment REAL NOT NULL} and {@code PersonalPayment REAL NOT NULL} in the database).
      */
-    private Amount amountDue;
+    private final ObjectProperty<Amount> amountDue;
     /**
      * A boolean flag indicating whether the participant has officially paid for this invoice line item.
      * This status is typically updated by external business logic that matches transactions
      * to the required payments for this item.
      * Corresponds to {@code IsPaid INTEGER NOT NULL DEFAULT 0} in the database (where 1=true, 0=false).
      */
-    private boolean isPaid;
+    private final BooleanProperty isPaid;
     /**
      * Optional notes or contextual information about the invoice line item.
      * Corresponds to {@code Notes TEXT} in the database.
      */
-    private String notes;
+    private final StringProperty notes;
 
     /**
      * Default constructor for creating an empty {@code LineItem} object.
@@ -71,9 +72,13 @@ public class LineItem { // Renamed from InvoiceItem to LineItem
      * This constructor is primarily used by frameworks that instantiate objects
      * via reflection (e.g., ORMs, JSON deserializers) before populating their fields.
      */
-    public LineItem() { // Renamed from InvoiceItem
-        this.invoiceItemID = null; // Explicitly null for unpersisted entity
-        this.amountDue = new Amount(); // Ensure Amount is always initialized
+    public LineItem() {
+        this.invoiceItemID = new SimpleObjectProperty<>(this, "invoiceItemID", null);
+        this.invoice = new SimpleObjectProperty<>(this, "invoice");
+        this.participant = new SimpleObjectProperty<>(this, "participant");
+        this.amountDue = new SimpleObjectProperty<>(this, "amountDue", new Amount()); // Ensure Amount is always initialized
+        this.isPaid = new SimpleBooleanProperty(this, "isPaid", false); // Default to unpaid
+        this.notes = new SimpleStringProperty(this, "notes");
     }
     /**
      * Full constructor to initialize all fields of an {@code LineItem} instance.
@@ -89,14 +94,20 @@ public class LineItem { // Renamed from InvoiceItem to LineItem
      * @param notes             Any optional notes or additional information about the invoice item. Can be {@code null}.
      * @throws NullPointerException if `invoiceItemID`, `invoice`, `participant`, or `amountDue` are {@code null}.
      */
-    public LineItem(Integer invoiceItemID, Invoice invoice, Participant participant, // Renamed from InvoiceItem
+    public LineItem(Integer invoiceItemID, Invoice invoice, Participant participant,
                     Amount amountDue, boolean isPaid, String notes) {
-        this.invoiceItemID = Objects.requireNonNull(invoiceItemID, "Invoice item ID cannot be null for an existing item.");
+        this.invoiceItemID = new SimpleObjectProperty<>(this, "invoiceItemID", Objects.requireNonNull(invoiceItemID, "Invoice item ID cannot be null for an existing item."));
+        this.invoice = new SimpleObjectProperty<>(this, "invoice");
+        this.participant = new SimpleObjectProperty<>(this, "participant");
+        this.amountDue = new SimpleObjectProperty<>(this, "amountDue");
+        this.isPaid = new SimpleBooleanProperty(this, "isPaid");
+        this.notes = new SimpleStringProperty(this, "notes");
+
         setInvoice(invoice);
         setParticipant(participant);
         setAmountDue(amountDue);
-        this.isPaid = isPaid; // boolean, no setter validation needed
-        setNotes(notes); // Notes can be null, use setter for trimming consistency
+        setIsPaid(isPaid); // Use setter for consistency
+        setNotes(notes);
     }
     /**
      * Convenience constructor for creating a new {@code LineItem} object that doesn't yet have a database ID.
@@ -111,18 +122,76 @@ public class LineItem { // Renamed from InvoiceItem to LineItem
      * @param notes             Any optional notes or additional information about the invoice item. Can be {@code null}.
      * @throws NullPointerException if `invoice`, `participant`, or `amountDue` are {@code null}.
      */
-    public LineItem(Invoice invoice, Participant participant, // Renamed from InvoiceItem
+    public LineItem(Invoice invoice, Participant participant,
                     Amount amountDue, boolean isPaid, String notes) {
-        this.invoiceItemID = null; // New entity, ID will be assigned by DB
-        setInvoice(invoice);
-        setParticipant(participant);
-        setAmountDue(amountDue);
-        this.isPaid = isPaid;
-        setNotes(notes);
+        // Call the full constructor with null for invoiceItemID
+        this(null, invoice, participant, amountDue, isPaid, notes);
     }
 
     // ---------------------
-    // Getters and Setters
+    // JavaFX Property Accessors
+    // ---------------------
+
+    /**
+     * Retrieves the read-only property for the invoice line item's unique ID.
+     * This property represents the {@code InvoiceItemID} column in the database.
+     * <p>
+     * As this property is {@code ReadOnlyObjectProperty}, its value cannot be
+     * changed directly after initial assignment, enforcing the immutability
+     * of the primary key for persisted entities.
+     * </p>
+     *
+     * @return The {@link ReadOnlyObjectProperty} for {@code invoiceItemID}.
+     */
+    public ReadOnlyObjectProperty<Integer> invoiceItemIDProperty() {
+        return invoiceItemID;
+    }
+    /**
+     * Retrieves the {@link ObjectProperty} for the {@link Invoice} object
+     * to which this line item belongs.
+     *
+     * @return The {@link ObjectProperty} for {@code invoice}.
+     */
+    public ObjectProperty<Invoice> invoiceProperty() {
+        return invoice;
+    }
+    /**
+     * Retrieves the {@link ObjectProperty} for the {@link Participant} object
+     * for whom this line item is generated.
+     *
+     * @return The {@link ObjectProperty} for {@code participant}.
+     */
+    public ObjectProperty<Participant> participantProperty() {
+        return participant;
+    }
+    /**
+     * Retrieves the {@link ObjectProperty} for the {@link Amount} object
+     * representing the required benefit and personal payments.
+     *
+     * @return The {@link ObjectProperty} for {@code amountDue}.
+     */
+    public ObjectProperty<Amount> amountDueProperty() {
+        return amountDue;
+    }
+    /**
+     * Retrieves the {@link BooleanProperty} indicating whether the line item is paid.
+     *
+     * @return The {@link BooleanProperty} for {@code isPaid}.
+     */
+    public BooleanProperty isPaidProperty() {
+        return isPaid;
+    }
+    /**
+     * Retrieves the {@link StringProperty} for any optional notes.
+     *
+     * @return The {@link StringProperty} for {@code notes}.
+     */
+    public StringProperty notesProperty() {
+        return notes;
+    }
+
+    // ---------------------
+    // Value Getters and Setters
     // ---------------------
 
     /**
@@ -133,11 +202,30 @@ public class LineItem { // Renamed from InvoiceItem to LineItem
      * @return The {@link Integer} primary key used to identify this invoice line item record, or {@code null} if not yet assigned.
      */
     public Integer getInvoiceItemID() {
-        return invoiceItemID;
+        return invoiceItemID.get();
     }
-
-    // setInvoiceItemID method is removed as invoiceItemID is now final and set only via constructors
-
+    /**
+     * Sets the unique ID for this invoice line item. This method is designed to be package-private
+     * and is primarily for use by data access objects (DAOs) when an ID is generated
+     * by the database upon insertion.
+     * <p>
+     * It includes a check to prevent the ID from being modified once it has been set,
+     * ensuring the immutability of the primary key.
+     * </p>
+     *
+     * @param id The unique integer ID assigned by the database.
+     * @throws IllegalStateException if the ID has already been assigned to this object.
+     * @throws IllegalArgumentException if the provided ID is {@code null} or non-positive.
+     */
+    void _setInvoiceItemID(Integer id) { // Package-private for DAO use only
+        if (this.invoiceItemID.get() != null) {
+            throw new IllegalStateException("Invoice Item ID cannot be changed once set.");
+        }
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("Invoice Item ID cannot be null or non-positive.");
+        }
+        ((SimpleObjectProperty<Integer>) this.invoiceItemID).set(id);
+    }
     /**
      * Retrieves the {@link Invoice} object to which this invoice line item belongs.
      * Corresponds to the {@code InvoiceID_FK} column in the database.
@@ -145,7 +233,7 @@ public class LineItem { // Renamed from InvoiceItem to LineItem
      * @return The associated {@link Invoice} object.
      */
     public Invoice getInvoice() {
-        return invoice;
+        return invoice.get();
     }
     /**
      * Sets the {@link Invoice} object to which this invoice line item belongs.
@@ -154,7 +242,7 @@ public class LineItem { // Renamed from InvoiceItem to LineItem
      * @throws NullPointerException if {@code invoice} is {@code null}.
      */
     public void setInvoice(Invoice invoice) {
-        this.invoice = Objects.requireNonNull(invoice, "Invoice cannot be null.");
+        this.invoice.set(Objects.requireNonNull(invoice, "Invoice cannot be null."));
     }
     /**
      * Retrieves the {@link Participant} object for whom this invoice line item is generated.
@@ -163,7 +251,7 @@ public class LineItem { // Renamed from InvoiceItem to LineItem
      * @return The associated {@link Participant} object.
      */
     public Participant getParticipant() {
-        return participant;
+        return participant.get();
     }
     /**
      * Sets the {@link Participant} object for whom this invoice line item is generated.
@@ -172,7 +260,7 @@ public class LineItem { // Renamed from InvoiceItem to LineItem
      * @throws NullPointerException if {@code participant} is {@code null}.
      */
     public void setParticipant(Participant participant) {
-        this.participant = Objects.requireNonNull(participant, "Participant cannot be null.");
+        this.participant.set(Objects.requireNonNull(participant, "Participant cannot be null."));
     }
     /**
      * Retrieves the {@link Amount} object representing the required benefit and personal payments.
@@ -181,7 +269,7 @@ public class LineItem { // Renamed from InvoiceItem to LineItem
      * @return The {@link Amount} object containing the due payment components.
      */
     public Amount getAmountDue() {
-        return amountDue;
+        return amountDue.get();
     }
     /**
      * Sets the {@link Amount} object representing the required benefit and personal payments.
@@ -190,7 +278,7 @@ public class LineItem { // Renamed from InvoiceItem to LineItem
      * @throws NullPointerException if {@code amountDue} is {@code null}.
      */
     public void setAmountDue(Amount amountDue) {
-        this.amountDue = Objects.requireNonNull(amountDue, "Amount due cannot be null.");
+        this.amountDue.set(Objects.requireNonNull(amountDue, "Amount due cannot be null."));
     }
     /**
      * Checks if the participant has officially paid for this invoice line item based on the stored flag.
@@ -199,7 +287,7 @@ public class LineItem { // Renamed from InvoiceItem to LineItem
      * @return {@code true} if the item is marked as paid; {@code false} otherwise.
      */
     public boolean getIsPaid() {
-        return isPaid;
+        return isPaid.get();
     }
     /**
      * Sets whether the participant has officially paid for this invoice line item.
@@ -208,7 +296,7 @@ public class LineItem { // Renamed from InvoiceItem to LineItem
      * @param paid {@code true} to mark as paid; {@code false} to mark as unpaid.
      */
     public void setIsPaid(boolean paid) {
-        isPaid = paid;
+        this.isPaid.set(paid);
     }
     /**
      * Retrieves any optional notes or contextual information about the invoice line item.
@@ -217,7 +305,7 @@ public class LineItem { // Renamed from InvoiceItem to LineItem
      * @return A string containing the notes, or {@code null} if no notes are present.
      */
     public String getNotes() {
-        return notes;
+        return notes.get();
     }
     /**
      * Sets additional notes or contextual information for this invoice line item.
@@ -226,7 +314,7 @@ public class LineItem { // Renamed from InvoiceItem to LineItem
      * @param notes The string containing notes to set. Can be {@code null}.
      */
     public void setNotes(String notes) {
-        this.notes = (notes != null) ? notes.strip() : null;
+        this.notes.set((notes != null) ? notes.strip() : null);
     }
 
     // ---------------------
@@ -241,8 +329,10 @@ public class LineItem { // Renamed from InvoiceItem to LineItem
      * @return The combined total amount due for this invoice line item as a {@link BigDecimal},
      * or {@link BigDecimal#ZERO} if {@code amountDue} is null.
      */
-    public BigDecimal getTotalDue() { // Changed return type to BigDecimal
-        return amountDue != null ? amountDue.getTotal() : BigDecimal.ZERO; // Returns BigDecimal
+    public BigDecimal getTotalDue() {
+        // Access amountDue via its getter, as it's now a property
+        Amount currentAmountDue = getAmountDue();
+        return currentAmountDue != null ? currentAmountDue.getTotal() : BigDecimal.ZERO;
     }
 
     // ---------------------
@@ -265,12 +355,12 @@ public class LineItem { // Renamed from InvoiceItem to LineItem
      */
     @Override
     public String toString() {
-        return "LineItem{" + // Renamed from InvoiceItem
-                "invoiceItemID=" + invoiceItemID +
-                ", invoiceID=" + (invoice != null ? invoice.getInvoiceID() : "null") +
-                ", participantID=" + (participant != null ? participant.getParticipantID() : "null") +
-                ", amountDue=" + (amountDue != null ? amountDue.toString() : "null") +
-                ", isPaid=" + isPaid +
+        return "LineItem{" +
+                "invoiceItemID=" + getInvoiceItemID() + // Use getter
+                ", invoiceID=" + (getInvoice() != null ? getInvoice().getInvoiceID() : "null") + // Use getter
+                ", participantID=" + (getParticipant() != null ? getParticipant().getParticipantID() : "null") + // Use getter
+                ", amountDue=" + (getAmountDue() != null ? getAmountDue().toString() : "null") + // Use getter
+                ", isPaid=" + getIsPaid() + // Use getter
                 '}';
     }
     /**
@@ -291,9 +381,9 @@ public class LineItem { // Renamed from InvoiceItem to LineItem
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        LineItem that = (LineItem) o; // Renamed from InvoiceItem
+        LineItem that = (LineItem) o;
         // Equality is based on the primary key (invoiceItemID), safely handling null Integer
-        return Objects.equals(invoiceItemID, that.invoiceItemID); // Updated to handle Integer nulls
+        return Objects.equals(getInvoiceItemID(), that.getInvoiceItemID()); // Use getters
     }
     /**
      * <p>
@@ -310,6 +400,6 @@ public class LineItem { // Renamed from InvoiceItem to LineItem
      */
     @Override
     public int hashCode() {
-        return Objects.hash(invoiceItemID);
+        return Objects.hash(getInvoiceItemID()); // Use getter
     }
 }
