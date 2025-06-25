@@ -1,5 +1,6 @@
 package com.avaruusstudios.vmdb.model;
 
+import javafx.beans.property.*; // Import JavaFX property classes
 import java.util.Objects;
 
 /**
@@ -17,19 +18,19 @@ import java.util.Objects;
  * <p>
  * **Business Rule for Participant Association:**
  * <ul>
- * <li>If {@link #categoryType} is {@link CategoryType#INCOME}, the category MUST be
- * associated with a specific {@link Participant} (i.e., {@link #participant} cannot be {@code null}).
+ * <li>If {@link #categoryTypeProperty()} is {@link CategoryType#INCOME}, the category MUST be
+ * associated with a specific {@link Participant} (i.e., {@link #participantProperty()} cannot be {@code null}).
  * This signifies income received from or on behalf of that participant.</li>
- * <li>If {@link #categoryType} is {@link CategoryType#EXPENSE} or {@link CategoryType#CREDIT},
+ * <li>If {@link #categoryTypeProperty()} is {@link CategoryType#EXPENSE} or {@link CategoryType#CREDIT},
  * the category MUST NOT be associated with a specific {@link Participant}
- * (i.e., {@link #participant} must be {@code null}). These are general vanpool expenses/credits.</li>
+ * (i.e., {@link #participantProperty()} must be {@code null}). These are general vanpool expenses/credits.</li>
  * </ul>
  * </p>
  *
  * @see CategoryType
  * @see Participant
  * @see Transaction
- * @see InvoiceItem
+ * @see LineItem
  */
 public class Category {
     /**
@@ -44,10 +45,10 @@ public class Category {
      * </p>
      * <p>
      * For a newly created category not yet persisted to the database, this value will be {@code null}.
-     * Once assigned by the database, it becomes immutable.
+     * Once assigned by the database, it becomes immutable and is exposed as a {@link ReadOnlyObjectProperty}.
      * </p>
      */
-    private final Integer categoryID; // Remains final Integer
+    private final ReadOnlyObjectProperty<Integer> categoryID;
     /**
      * <p>
      * The {@link Participant} object this category is tied to, if any.
@@ -55,14 +56,15 @@ public class Category {
      * <p>
      * This field represents a **foreign key relationship** to the {@code Participants} table
      * (corresponding to {@code ParticipantID_FK INTEGER} in the database).
-     * Its nullability depends on the {@link #categoryType} as per business rules:
+     * Its nullability depends on the {@link #categoryTypeProperty()} as per business rules:
      * <ul>
-     * <li>**REQUIRED** (non-{@code null}) if {@link #categoryType} is {@link CategoryType#INCOME}.</li>
-     * <li>**MUST BE NULL** if {@link #categoryType} is {@link CategoryType#EXPENSE} or {@link CategoryType#CREDIT}.</li>
+     * <li>**REQUIRED** (non-{@code null}) if {@link #categoryTypeProperty()} is {@link CategoryType#INCOME}.</li>
+     * <li>**MUST BE NULL** if {@link #categoryTypeProperty()} is {@link CategoryType#EXPENSE} or {@link CategoryType#CREDIT}.</li>
      * </ul>
+     * This field is exposed as an {@link ObjectProperty} for data binding.
      * </p>
      */
-    private Participant participant;
+    private final ObjectProperty<Participant> participant;
     /**
      * <p>
      * The type of the category, restricting values to {@link CategoryType#INCOME},
@@ -71,11 +73,11 @@ public class Category {
      * <p>
      * This enum field provides a strong type-safe way to classify the category's nature,
      * directly mapping to a {@code TEXT NOT NULL} column in the database, where the enum's
-     * name (e.g., "INCOME") would be stored. This field is **mutable** and validated via its setter.
+     * name (e.g., "INCOME") would be stored. This field is exposed as an {@link ObjectProperty}.
      * </p>
      * @see CategoryType
      */
-    private CategoryType categoryType; // Changed to mutable (not final)
+    private final ObjectProperty<CategoryType> categoryType;
     /**
      * <p>
      * The user-friendly name of the category (e.g., "Fuel", "Van Rental", "Participant Payment").
@@ -84,39 +86,44 @@ public class Category {
      * This string field provides a concise and human-readable label for the category.
      * It maps directly to the {@code CategoryName TEXT NOT NULL UNIQUE} column in the database.
      * This name should be **unique** across all categories, regardless of type or participant,
-     * to prevent ambiguity when retrieving categories by name. This field is **mutable**.
+     * to prevent ambiguity when retrieving categories by name. This field is exposed as a {@link StringProperty}.
      * </p>
      */
-    private String categoryName; // Remains mutable
+    private final StringProperty categoryName;
     /**
      * <p>
      * A longer, optional description providing more detailed information about the category's purpose or usage.
      * </p>
      * <p>
-     * This field allows for additional context beyond the {@link #categoryName}.
+     * This field allows for additional context beyond the {@link #categoryNameProperty()}.
      * It maps to the {@code Description TEXT} column in the database, which is nullable,
      * meaning it can be {@code null} or an empty string if no further details are needed.
+     * This field is exposed as a {@link StringProperty}.
      * </p>
      */
-    private String description;
+    private final StringProperty description;
 
     /**
      * <p>
      * Default constructor for creating a new {@code Category} object.
      * </p>
      * <p>
-     * This constructor initializes {@code categoryID} to {@code null} and other fields to
-     * their default values ({@code null}). It is useful for frameworks (like ORMs or
+     * This constructor initializes {@code categoryID} to {@code null} and all other fields
+     * to their default JavaFX Property values (e.g., {@code null} for ObjectProperties,
+     * empty string for StringProperties). It is useful for frameworks (like ORMs or
      * deserializers) that instantiate objects via reflection and then populate them
      * using setters. When used in application code, all required fields
-     * ({@link #categoryType} and {@link #categoryName}) and the associated
-     * {@link #participant} (if {@link CategoryType#INCOME}) must be set subsequently
+     * ({@link #categoryTypeProperty()} and {@link #categoryNameProperty()}) and the associated
+     * {@link #participantProperty()} (if {@link CategoryType#INCOME}) must be set subsequently
      * using the appropriate setters.
      * </p>
      */
     public Category() {
-        this.categoryID = null; // Explicitly null for unpersisted entity
-        // Other fields will be null/default and set via setters
+        this.categoryID = new SimpleObjectProperty<>(this, "categoryID", null);
+        this.participant = new SimpleObjectProperty<>(this, "participant");
+        this.categoryType = new SimpleObjectProperty<>(this, "categoryType");
+        this.categoryName = new SimpleStringProperty(this, "categoryName");
+        this.description = new SimpleStringProperty(this, "description");
     }
     /**
      * <p>
@@ -127,6 +134,7 @@ public class Category {
      * aligning with the database schema and object relationships. It's typically used
      * when retrieving an existing category from the database where all values,
      * including the auto-generated {@code categoryID}, are already known.
+     * All parameters are validated via their respective setters.
      * </p>
      *
      * @param categoryID   The unique integer ID for the category. Must not be {@code null} for existing.
@@ -139,11 +147,17 @@ public class Category {
      * or if participant/categoryType business rules are violated.
      */
     public Category(Integer categoryID, Participant participant, CategoryType categoryType, String categoryName, String description) {
-        this.categoryID = Objects.requireNonNull(categoryID, "CategoryID cannot be null for an existing category.");
-        setCategoryType(categoryType); // Use setter for validation
-        setParticipant(participant);   // Use setter for validation (will internally check against this.categoryType)
-        setCategoryName(categoryName); // Use setter for validation
-        this.description = description; // Can be null
+        this.categoryID = new SimpleObjectProperty<>(this, "categoryID", Objects.requireNonNull(categoryID, "CategoryID cannot be null for an existing category."));
+        this.participant = new SimpleObjectProperty<>(this, "participant");
+        this.categoryType = new SimpleObjectProperty<>(this, "categoryType");
+        this.categoryName = new SimpleStringProperty(this, "categoryName");
+        this.description = new SimpleStringProperty(this, "description");
+
+        // Setters enforce validation and business rules
+        setCategoryType(categoryType);
+        setParticipant(participant);   // Will internally check against this.categoryType
+        setCategoryName(categoryName);
+        setDescription(description);
     }
     /**
      * <p>
@@ -152,6 +166,7 @@ public class Category {
      * <p>
      * This constructor is ideal when preparing a new category record for **insertion** into the database.
      * The {@code categoryID} is omitted as it is typically auto-generated by the database.
+     * All parameters are validated via their respective setters.
      * </p>
      *
      * @param participant  The {@link Participant} object this category is tied to, or {@code null}.
@@ -163,11 +178,8 @@ public class Category {
      * or if participant/categoryType business rules are violated.
      */
     public Category(Participant participant, CategoryType categoryType, String categoryName, String description) {
-        this.categoryID = null; // New entity, ID will be assigned by DB, so it's null
-        setCategoryType(categoryType); // Use setter for validation
-        setParticipant(participant);   // Use setter for validation (will internally check against this.categoryType)
-        setCategoryName(categoryName); // Use setter for validation
-        this.description = description; // Can be null
+        // Delegate to the full constructor with null categoryID for a new entity
+        this(null, participant, categoryType, categoryName, description);
     }
     /**
      * Internal helper method to validate the coupling between CategoryType and Participant.
@@ -189,8 +201,82 @@ public class Category {
         }
     }
 
+    // ------------------------------------
+    // JavaFX Property Accessor Methods
+    // ------------------------------------
+
+    /**
+     * <p>
+     * Retrieves the {@link ReadOnlyObjectProperty} for the unique identifier of this category.
+     * </p>
+     * <p>
+     * This property represents the {@code CategoryID} column in the database.
+     * Its value is immutable once set (typically by the database).
+     * </p>
+     *
+     * @return The {@link ReadOnlyObjectProperty} for {@code categoryID}.
+     */
+    public ReadOnlyObjectProperty<Integer> categoryIDProperty() {
+        return categoryID;
+    }
+    /**
+     * <p>
+     * Retrieves the {@link ObjectProperty} for the {@link Participant} object this category is tied to.
+     * </p>
+     * <p>
+     * This property represents the {@code ParticipantID_FK} column in the database.
+     * Its nullability is governed by the {@link #categoryTypeProperty()} business rules.
+     * </p>
+     *
+     * @return The {@link ObjectProperty} for {@code participant}.
+     */
+    public ObjectProperty<Participant> participantProperty() {
+        return participant;
+    }
+    /**
+     * <p>
+     * Retrieves the {@link ObjectProperty} for the type of this category.
+     * </p>
+     * <p>
+     * This property represents the {@code CategoryType} column in the database.
+     * Its value must be one of {@link CategoryType#INCOME}, {@link CategoryType#EXPENSE}, or {@link CategoryType#CREDIT}.
+     * </p>
+     *
+     * @return The {@link ObjectProperty} for {@code categoryType}.
+     */
+    public ObjectProperty<CategoryType> categoryTypeProperty() {
+        return categoryType;
+    }
+    /**
+     * <p>
+     * Retrieves the {@link StringProperty} for the name of this category.
+     * </p>
+     * <p>
+     * This property represents the {@code CategoryName} column in the database.
+     * It holds the user-friendly, unique name of the category.
+     * </p>
+     *
+     * @return The {@link StringProperty} for {@code categoryName}.
+     */
+    public StringProperty categoryNameProperty() {
+        return categoryName;
+    }
+    /**
+     * <p>
+     * Retrieves the {@link StringProperty} for the optional description of this category.
+     * </p>
+     * <p>
+     * This property represents the {@code Description} column in the database.
+     * </p>
+     *
+     * @return The {@link StringProperty} for {@code description}.
+     */
+    public StringProperty descriptionProperty() {
+        return description;
+    }
+
     // ---------------------
-    // Getters and Setters
+    // Value Getters and Setters
     // ---------------------
 
     /**
@@ -205,24 +291,43 @@ public class Category {
      * @return The {@link Integer} primary key used to identify this category record, or {@code null} if not yet assigned.
      */
     public Integer getCategoryID() {
-        return categoryID;
+        return categoryID.get();
     }
-
-    // setCategoryID is not provided as categoryID is final and set via constructors or by DAO (not via public setter)
-
+    /**
+     * Sets the unique ID for this category. This method is designed to be package-private
+     * and is primarily for use by data access objects (DAOs) when an ID is generated
+     * by the database upon insertion.
+     * <p>
+     * It includes a check to prevent the ID from being modified once it has been set,
+     * ensuring the immutability of the primary key.
+     * </p>
+     *
+     * @param id The unique integer ID assigned by the database.
+     * @throws IllegalStateException if the ID has already been assigned to this object.
+     * @throws IllegalArgumentException if the provided ID is {@code null} or non-positive.
+     */
+    void _setCategoryID(Integer id) { // Package-private for DAO use only
+        if (this.categoryID.get() != null) {
+            throw new IllegalStateException("Category ID cannot be changed once set.");
+        }
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("Category ID cannot be null or non-positive.");
+        }
+        ((SimpleObjectProperty<Integer>) this.categoryID).set(id);
+    }
     /**
      * <p>
      * Retrieves the {@link Participant} object this category is tied to.
      * </p>
      * <p>
      * This corresponds to the {@code ParticipantID_FK} column in the database.
-     * Its nullability depends on the {@link #categoryType}.
+     * Its nullability depends on the {@link #getCategoryType()}.
      * </p>
      *
      * @return The associated {@link Participant} object, or {@code null} if the category is not participant-specific.
      */
     public Participant getParticipant() {
-        return participant;
+        return participant.get();
     }
     /**
      * <p>
@@ -243,11 +348,11 @@ public class Category {
      */
     public void setParticipant(Participant participant) {
         // Ensure categoryType is set before attempting to validate participant based on it
-        if (this.categoryType == null) {
+        if (getCategoryType() == null) {
             throw new IllegalStateException("CategoryType must be set before setting a Participant for this category.");
         }
-        validateCategoryTypeAndParticipant(this.categoryType, participant);
-        this.participant = participant;
+        validateCategoryTypeAndParticipant(getCategoryType(), participant); // Validate using current type
+        this.participant.set(participant);
     }
     /**
      * <p>
@@ -260,7 +365,7 @@ public class Category {
      * @return The {@link CategoryType} enum constant (Income, Expense, or Credit).
      */
     public CategoryType getCategoryType() {
-        return categoryType;
+        return categoryType.get();
     }
     /**
      * <p>
@@ -270,19 +375,19 @@ public class Category {
      * This field is mapped as {@code NOT NULL} in the database schema,
      * so it's important to ensure a valid {@link CategoryType} is always provided.
      * If a {@code null} value is attempted, a {@link NullPointerException} will be thrown.
-     * This setter also triggers validation for {@link #participant} association based on the new type.
+     * This setter also triggers validation for {@link #getParticipant()} association based on the new type.
      * </p>
      *
      * @param categoryType The {@link CategoryType} to set. Must not be {@code null}.
      * @throws NullPointerException if {@code categoryType} is {@code null}.
-     * @throws IllegalArgumentException if the current {@link #participant} association
+     * @throws IllegalArgumentException if the current {@link #getParticipant()} association
      * violates business rules for the newly set {@link CategoryType}.
      */
     public void setCategoryType(CategoryType categoryType) {
         Objects.requireNonNull(categoryType, "CategoryType cannot be null.");
-        // Validate participant association against the *new* type being set
-        validateCategoryTypeAndParticipant(categoryType, this.participant);
-        this.categoryType = categoryType;
+        // Validate participant association against the *new* type being set, using current participant value
+        validateCategoryTypeAndParticipant(categoryType, getParticipant());
+        this.categoryType.set(categoryType);
     }
     /**
      * <p>
@@ -295,7 +400,7 @@ public class Category {
      * @return The name of the category.
      */
     public String getCategoryName() {
-        return categoryName;
+        return categoryName.get();
     }
     /**
      * <p>
@@ -316,7 +421,7 @@ public class Category {
         if (trimmedName.isEmpty()) {
             throw new IllegalArgumentException("CategoryName cannot be empty.");
         }
-        this.categoryName = trimmedName;
+        this.categoryName.set(trimmedName);
     }
     /**
      * <p>
@@ -329,7 +434,7 @@ public class Category {
      * @return A string containing the description, or {@code null} if no description is present.
      */
     public String getDescription() {
-        return description;
+        return description.get();
     }
     /**
      * <p>
@@ -338,12 +443,13 @@ public class Category {
      * <p>
      * This field is nullable in the database schema, so it can be set to {@code null}
      * or an empty string if no detailed description is required.
+     * Leading/trailing whitespace will be trimmed if the value is not {@code null}.
      * </p>
      *
      * @param description The string containing the description to set. Can be {@code null}.
      */
     public void setDescription(String description) {
-        this.description = description;
+        this.description.set((description != null) ? description.strip() : null);
     }
 
     // ---------------------
@@ -366,10 +472,10 @@ public class Category {
     @Override
     public String toString() {
         return "Category{" +
-                "categoryID=" + categoryID +
-                ", categoryName='" + categoryName + '\'' +
-                ", categoryType=" + categoryType +
-                ", participantID=" + (participant != null ? participant.getParticipantID() : "null") +
+                "categoryID=" + getCategoryID() +
+                ", categoryName='" + getCategoryName() + '\'' +
+                ", categoryType=" + getCategoryType() +
+                ", participantID=" + (getParticipant() != null ? getParticipant().getParticipantID() : "null") +
                 '}';
     }
     /**
@@ -396,7 +502,7 @@ public class Category {
         if (o == null || getClass() != o.getClass()) return false;
         Category category = (Category) o;
         // Equality is based on the primary key (categoryID), safely handling null Integer
-        return Objects.equals(categoryID, category.categoryID);
+        return Objects.equals(getCategoryID(), category.getCategoryID());
     }
     /**
      * <p>
@@ -418,6 +524,6 @@ public class Category {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(categoryID);
+        return Objects.hash(getCategoryID());
     }
 }
