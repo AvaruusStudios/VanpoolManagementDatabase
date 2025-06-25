@@ -1,5 +1,6 @@
 package com.avaruusstudios.vmdb.model;
 
+import javafx.beans.property.*; // Import JavaFX property classes
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Objects;
@@ -17,6 +18,7 @@ import java.util.Objects;
  * the monetary amount, payment method, and an optional link to an invoice.
  * This class directly maps to the `Transactions` table in the SQLite database,
  * reflecting the updated schema where `ParticipantID_FK` is no longer directly present in this table.
+ * All properties are exposed as JavaFX Properties for UI binding.
  * </p>
  *
  * @see Vehicle
@@ -30,63 +32,75 @@ public class Transaction {
      * in the database for transaction records ({@code TransactionID INTEGER PRIMARY KEY AUTOINCREMENT}).
      * <p>
      * For a newly created transaction not yet persisted to the database, this value will be {@code null}.
-     * Once assigned by the database, it becomes immutable.
+     * Once assigned by the database, it becomes immutable and is exposed as a {@link ReadOnlyObjectProperty}.
      * </p>
      */
-    private final Integer transactionID;
+    private final ReadOnlyObjectProperty<Integer> transactionID;
     /**
      * The date on which the transaction occurred.
-     * This field is **required** (corresponds to {@code TransactionDate TEXT NOT NULL} in the database).
+     * This field is **required** (corresponds to {@code TransactionDate TEXT NOT NULL} in the database)
+     * and is exposed as an {@link ObjectProperty} of {@link LocalDate}.
      */
-    private LocalDate transactionDate;
+    private final ObjectProperty<LocalDate> transactionDate;
     /**
      * The {@link Vehicle} object associated with this transaction.
-     * This field is **required** (corresponds to {@code VehicleID_FK INTEGER NOT NULL} in the database).
+     * This field is **required** (corresponds to {@code VehicleID_FK INTEGER NOT NULL} in the database)
+     * and is exposed as an {@link ObjectProperty} of {@link Vehicle}.
      */
-    private Vehicle vehicle;
+    private final ObjectProperty<Vehicle> vehicle;
     /**
      * The {@link Category} object that classifies this transaction.
      * This link is crucial for determining if the transaction is income, expense, or credit,
      * and indirectly linking to a participant if it's an income category.
-     * This field is **required** (corresponds to {@code CategoryID_FK INTEGER NOT NULL} in the database).
+     * This field is **required** (corresponds to {@code CategoryID_FK INTEGER NOT NULL} in the database)
+     * and is exposed as an {@link ObjectProperty} of {@link Category}.
      */
-    private Category category;
+    private final ObjectProperty<Category> category;
     /**
      * The monetary amount of the transaction.
      * This field is **required** and stored as a {@link BigDecimal} for precision
      * (corresponds to {@code Amount REAL NOT NULL} in the database, but {@code REAL} is problematic for money).
+     * It is exposed as an {@link ObjectProperty} of {@link BigDecimal}.
      */
-    private BigDecimal amount;
+    private final ObjectProperty<BigDecimal> amount;
     /**
      * The method of payment used for this transaction (e.g., {@link PaymentMethod#VISA}).
      * This field is optional (corresponds to {@code PaymentMethod TEXT} in the database, where the enum's `dbValue` would be stored).
+     * It is exposed as an {@link ObjectProperty} of {@link PaymentMethod}.
      */
-    private PaymentMethod paymentMethod; // Changed type to PaymentMethod enum
+    private final ObjectProperty<PaymentMethod> paymentMethod;
     /**
      * The {@link Invoice} object this transaction is associated with, if any.
      * This field is optional (corresponds to {@code InvoiceID_FK INTEGER} in the database),
      * meaning not all transactions are linked to an invoice.
+     * It is exposed as an {@link ObjectProperty} of {@link Invoice}.
      */
-    private Invoice invoice;
+    private final ObjectProperty<Invoice> invoice;
     /**
      * Optional notes or contextual information about the transaction.
-     * This field is optional (corresponds to {@code Notes TEXT} in the database).
+     * This field is optional (corresponds to {@code Notes TEXT} in the database)
+     * and is exposed as a {@link StringProperty}.
      */
-    private String notes;
+    private final StringProperty notes;
 
     /**
      * Default constructor for creating an empty {@code Transaction} object.
      * The {@code transactionID} is set to {@code null} to explicitly indicate that
      * this transaction has not yet been assigned a unique ID by the database.
      * The {@code amount} is initialized to {@link BigDecimal#ZERO}.
-     * The {@code paymentMethod} is initialized to {@code null}.
+     * Other properties are initialized to their default JavaFX Property values.
      * This constructor is primarily used by frameworks that instantiate objects
      * via reflection (e.g., ORMs, JSON deserializers) before populating their fields.
      */
     public Transaction() {
-        this.transactionID = null;
-        this.amount = BigDecimal.ZERO;
-        this.paymentMethod = null; // Initialize to null for optional enum
+        this.transactionID = new SimpleObjectProperty<>(this, "transactionID", null);
+        this.transactionDate = new SimpleObjectProperty<>(this, "transactionDate");
+        this.vehicle = new SimpleObjectProperty<>(this, "vehicle");
+        this.category = new SimpleObjectProperty<>(this, "category");
+        this.amount = new SimpleObjectProperty<>(this, "amount", BigDecimal.ZERO);
+        this.paymentMethod = new SimpleObjectProperty<>(this, "paymentMethod");
+        this.invoice = new SimpleObjectProperty<>(this, "invoice");
+        this.notes = new SimpleStringProperty(this, "notes");
     }
     /**
      * Full constructor to initialize all fields of a {@code Transaction} instance.
@@ -99,14 +113,23 @@ public class Transaction {
      * @param vehicle         The {@link Vehicle} object associated with this transaction. Must not be {@code null}.
      * @param category        The {@link Category} object that classifies this transaction. Must not be {@code null}.
      * @param amount          The monetary amount of the transaction. Must not be {@code null}.
-     * @param paymentMethod   The {@link PaymentMethod} used for payment, e.g., {@link PaymentMethod#VISA}. Can be {@code null}.
+     * @param paymentMethod   The {@link PaymentMethod} used for payment. Can be {@code null}.
      * @param invoice         The {@link Invoice} object linked to this transaction, or {@code null} if none.
      * @param notes           Any optional notes or additional information about the transaction. Can be {@code null}.
      * @throws NullPointerException if `transactionID`, `transactionDate`, `vehicle`, `category`, or `amount` are {@code null}.
      */
     public Transaction(Integer transactionID, LocalDate transactionDate, Vehicle vehicle, Category category,
-                       BigDecimal amount, PaymentMethod paymentMethod, Invoice invoice, String notes) { // Changed PaymentMethodType to PaymentMethod
-        this.transactionID = Objects.requireNonNull(transactionID, "Transaction ID cannot be null for an existing transaction.");
+                       BigDecimal amount, PaymentMethod paymentMethod, Invoice invoice, String notes) {
+        this.transactionID = new SimpleObjectProperty<>(this, "transactionID", Objects.requireNonNull(transactionID, "Transaction ID cannot be null for an existing transaction."));
+        this.transactionDate = new SimpleObjectProperty<>(this, "transactionDate");
+        this.vehicle = new SimpleObjectProperty<>(this, "vehicle");
+        this.category = new SimpleObjectProperty<>(this, "category");
+        this.amount = new SimpleObjectProperty<>(this, "amount");
+        this.paymentMethod = new SimpleObjectProperty<>(this, "paymentMethod");
+        this.invoice = new SimpleObjectProperty<>(this, "invoice");
+        this.notes = new SimpleStringProperty(this, "notes");
+
+        // Use setters to apply validation and business logic
         setTransactionDate(transactionDate);
         setVehicle(vehicle);
         setCategory(category);
@@ -125,25 +148,92 @@ public class Transaction {
      * @param vehicle         The {@link Vehicle} object associated with this transaction. Must not be {@code null}.
      * @param category        The {@link Category} object that classifies this transaction. Must not be {@code null}.
      * @param amount          The monetary amount of the transaction. Must not be {@code null}.
-     * @param paymentMethod   The {@link PaymentMethod} used for payment, e.g., {@link PaymentMethod#MASTER_CARD}. Can be {@code null}.
+     * @param paymentMethod   The {@link PaymentMethod} used for payment. Can be {@code null}.
      * @param invoice         The {@link Invoice} object linked to this transaction, or {@code null} if none.
      * @param notes           Any optional notes or additional information about the transaction. Can be {@code null}.
      * @throws NullPointerException if `transactionDate`, `vehicle`, `category`, or `amount` are {@code null}.
      */
     public Transaction(LocalDate transactionDate, Vehicle vehicle, Category category,
-                       BigDecimal amount, PaymentMethod paymentMethod, Invoice invoice, String notes) { // Changed PaymentMethodType to PaymentMethod
-        this.transactionID = null;
-        setTransactionDate(transactionDate);
-        setVehicle(vehicle);
-        setCategory(category);
-        setAmount(amount);
-        setPaymentMethod(paymentMethod);
-        setInvoice(invoice);
-        setNotes(notes);
+                       BigDecimal amount, PaymentMethod paymentMethod, Invoice invoice, String notes) {
+        // Delegate to the full constructor with null for transactionID for a new entity
+        this(null, transactionDate, vehicle, category, amount, paymentMethod, invoice, notes);
+    }
+
+    // ------------------------------------
+    // JavaFX Property Accessor Methods
+    // ------------------------------------
+
+    /**
+     * Retrieves the {@link ReadOnlyObjectProperty} for the unique identifier of this transaction.
+     * <p>
+     * This property represents the {@code TransactionID} column in the database.
+     * Its value is immutable once set (typically by the database).
+     * </p>
+     *
+     * @return The {@link ReadOnlyObjectProperty} for {@code transactionID}.
+     */
+    public ReadOnlyObjectProperty<Integer> transactionIDProperty() {
+        return transactionID;
+    }
+    /**
+     * Retrieves the {@link ObjectProperty} for the date on which this transaction occurred.
+     *
+     * @return The {@link ObjectProperty} for {@code transactionDate}.
+     */
+    public ObjectProperty<LocalDate> transactionDateProperty() {
+        return transactionDate;
+    }
+    /**
+     * Retrieves the {@link ObjectProperty} for the {@link Vehicle} object associated with this transaction.
+     *
+     * @return The {@link ObjectProperty} for {@code vehicle}.
+     */
+    public ObjectProperty<Vehicle> vehicleProperty() {
+        return vehicle;
+    }
+    /**
+     * Retrieves the {@link ObjectProperty} for the {@link Category} object that classifies this transaction.
+     *
+     * @return The {@link ObjectProperty} for {@code category}.
+     */
+    public ObjectProperty<Category> categoryProperty() {
+        return category;
+    }
+    /**
+     * Retrieves the {@link ObjectProperty} for the monetary amount of this transaction.
+     *
+     * @return The {@link ObjectProperty} for {@code amount}.
+     */
+    public ObjectProperty<BigDecimal> amountProperty() {
+        return amount;
+    }
+    /**
+     * Retrieves the {@link ObjectProperty} for the payment method used for this transaction.
+     *
+     * @return The {@link ObjectProperty} for {@code paymentMethod}.
+     */
+    public ObjectProperty<PaymentMethod> paymentMethodProperty() {
+        return paymentMethod;
+    }
+    /**
+     * Retrieves the {@link ObjectProperty} for the {@link Invoice} object this transaction is associated with.
+     *
+     * @return The {@link ObjectProperty} for {@code invoice}.
+     */
+    public ObjectProperty<Invoice> invoiceProperty() {
+        return invoice;
+    }
+    /**
+     * Retrieves the {@link StringProperty} for any optional notes about the transaction.
+     *
+     * @return The {@link StringProperty} for {@code notes}.
+     */
+    public StringProperty notesProperty() {
+        return notes;
     }
 
     // ---------------------
-    // Getters and Setters
+    // Value Getters and Setters
     // ---------------------
 
     /**
@@ -154,7 +244,29 @@ public class Transaction {
      * @return The {@link Integer} primary key used to identify this transaction record, or {@code null} if not yet assigned.
      */
     public Integer getTransactionID() {
-        return transactionID;
+        return transactionID.get();
+    }
+    /**
+     * Sets the unique ID for this transaction. This method is designed to be package-private
+     * and is primarily for use by data access objects (DAOs) when an ID is generated
+     * by the database upon insertion.
+     * <p>
+     * It includes a check to prevent the ID from being modified once it has been set,
+     * ensuring the immutability of the primary key.
+     * </p>
+     *
+     * @param id The unique integer ID assigned by the database.
+     * @throws IllegalStateException if the ID has already been assigned to this object.
+     * @throws IllegalArgumentException if the provided ID is {@code null} or non-positive.
+     */
+    void _setTransactionID(Integer id) { // Package-private for DAO use only
+        if (this.transactionID.get() != null) {
+            throw new IllegalStateException("Transaction ID cannot be changed once set.");
+        }
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("Transaction ID cannot be null or non-positive.");
+        }
+        ((SimpleObjectProperty<Integer>) this.transactionID).set(id);
     }
     /**
      * Retrieves the date on which this transaction occurred.
@@ -163,7 +275,7 @@ public class Transaction {
      * @return The transaction date.
      */
     public LocalDate getTransactionDate() {
-        return transactionDate;
+        return transactionDate.get();
     }
     /**
      * Sets the date on which this transaction occurred.
@@ -172,7 +284,7 @@ public class Transaction {
      * @throws NullPointerException if {@code transactionDate} is {@code null}.
      */
     public void setTransactionDate(LocalDate transactionDate) {
-        this.transactionDate = Objects.requireNonNull(transactionDate, "Transaction date cannot be null.");
+        this.transactionDate.set(Objects.requireNonNull(transactionDate, "Transaction date cannot be null."));
     }
     /**
      * Retrieves the {@link Vehicle} object associated with this transaction.
@@ -181,7 +293,7 @@ public class Transaction {
      * @return The associated {@link Vehicle} object.
      */
     public Vehicle getVehicle() {
-        return vehicle;
+        return vehicle.get();
     }
     /**
      * Sets the {@link Vehicle} object associated with this transaction.
@@ -190,7 +302,7 @@ public class Transaction {
      * @throws NullPointerException if {@code vehicle} is {@code null}.
      */
     public void setVehicle(Vehicle vehicle) {
-        this.vehicle = Objects.requireNonNull(vehicle, "Vehicle cannot be null.");
+        this.vehicle.set(Objects.requireNonNull(vehicle, "Vehicle cannot be null."));
     }
     /**
      * Retrieves the {@link Category} object that classifies this transaction.
@@ -199,7 +311,7 @@ public class Transaction {
      * @return The associated {@link Category} object.
      */
     public Category getCategory() {
-        return category;
+        return category.get();
     }
     /**
      * Sets the {@link Category} object that classifies this transaction.
@@ -208,7 +320,7 @@ public class Transaction {
      * @throws NullPointerException if {@code category} is {@code null}.
      */
     public void setCategory(Category category) {
-        this.category = Objects.requireNonNull(category, "Category cannot be null.");
+        this.category.set(Objects.requireNonNull(category, "Category cannot be null."));
     }
     /**
      * Retrieves the monetary amount of this transaction.
@@ -217,7 +329,7 @@ public class Transaction {
      * @return The transaction amount as a {@link BigDecimal}.
      */
     public BigDecimal getAmount() {
-        return amount;
+        return amount.get();
     }
     /**
      * Sets the monetary amount of this transaction.
@@ -226,7 +338,7 @@ public class Transaction {
      * @throws NullPointerException if {@code amount} is {@code null}.
      */
     public void setAmount(BigDecimal amount) {
-        this.amount = Objects.requireNonNull(amount, "Amount cannot be null.");
+        this.amount.set(Objects.requireNonNull(amount, "Amount cannot be null."));
     }
     /**
      * Retrieves the payment method used for this transaction.
@@ -234,16 +346,16 @@ public class Transaction {
      *
      * @return The {@link PaymentMethod} representing the payment method, or {@code null} if not specified.
      */
-    public PaymentMethod getPaymentMethod() { // Changed return type to PaymentMethod
-        return paymentMethod;
+    public PaymentMethod getPaymentMethod() {
+        return paymentMethod.get();
     }
     /**
      * Sets the payment method used for this transaction.
      *
      * @param paymentMethod The {@link PaymentMethod} to set. Can be {@code null}.
      */
-    public void setPaymentMethod(PaymentMethod paymentMethod) { // Changed parameter type to PaymentMethod
-        this.paymentMethod = paymentMethod;
+    public void setPaymentMethod(PaymentMethod paymentMethod) {
+        this.paymentMethod.set(paymentMethod);
     }
     /**
      * Retrieves the {@link Invoice} object this transaction is associated with.
@@ -252,7 +364,7 @@ public class Transaction {
      * @return The associated {@link Invoice} object, or {@code null} if no invoice is linked.
      */
     public Invoice getInvoice() {
-        return invoice;
+        return invoice.get();
     }
     /**
      * Sets the {@link Invoice} object this transaction is associated with.
@@ -260,7 +372,7 @@ public class Transaction {
      * @param invoice The {@link Invoice} object to set. Can be {@code null}.
      */
     public void setInvoice(Invoice invoice) {
-        this.invoice = invoice;
+        this.invoice.set(invoice);
     }
     /**
      * Retrieves any optional notes or contextual information about the transaction.
@@ -269,7 +381,7 @@ public class Transaction {
      * @return A string containing the notes, or {@code null} if no notes are present.
      */
     public String getNotes() {
-        return notes;
+        return notes.get();
     }
     /**
      * Sets additional notes or contextual information for this transaction.
@@ -278,7 +390,7 @@ public class Transaction {
      * @param notes The string containing notes to set. Can be {@code null}.
      */
     public void setNotes(String notes) {
-        this.notes = (notes != null) ? notes.strip() : null;
+        this.notes.set((notes != null) ? notes.strip() : null);
     }
 
     // ---------------------
@@ -297,18 +409,18 @@ public class Transaction {
      * </p>
      *
      * @return A string in the format:
-     * "Transaction{ID=..., Date=..., VehicleID=..., CategoryID=..., Amount=..., InvoiceID=...}"
+     * "Transaction{ID=..., Date=..., VehicleID=..., CategoryID=..., Amount=..., PaymentMethod=..., InvoiceID=...}"
      */
     @Override
     public String toString() {
         return "Transaction{" +
-                "transactionID=" + transactionID +
-                ", transactionDate=" + transactionDate +
-                ", vehicleID=" + (vehicle != null ? vehicle.getVehicleID() : "null") +
-                ", categoryID=" + (category != null ? category.getCategoryID() : "null") +
-                ", amount=" + amount +
-                ", paymentMethod=" + (paymentMethod != null ? paymentMethod.toString() : "null") +
-                ", invoiceID=" + (invoice != null ? invoice.getInvoiceID() : "null") +
+                "transactionID=" + getTransactionID() +
+                ", transactionDate=" + getTransactionDate() +
+                ", vehicleID=" + (getVehicle() != null ? getVehicle().getVehicleID() : "null") +
+                ", categoryID=" + (getCategory() != null ? getCategory().getCategoryID() : "null") +
+                ", amount=" + getAmount() +
+                ", paymentMethod=" + (getPaymentMethod() != null ? getPaymentMethod().toString() : "null") +
+                ", invoiceID=" + (getInvoice() != null ? getInvoice().getInvoiceID() : "null") +
                 '}';
     }
     /**
@@ -331,7 +443,7 @@ public class Transaction {
         if (o == null || getClass() != o.getClass()) return false;
         Transaction that = (Transaction) o;
         // Equality is based on the primary key (transactionID), safely handling null Integer
-        return Objects.equals(transactionID, that.transactionID);
+        return Objects.equals(getTransactionID(), that.getTransactionID());
     }
     /**
      * <p>
@@ -349,6 +461,6 @@ public class Transaction {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(transactionID);
+        return Objects.hash(getTransactionID());
     }
 }
