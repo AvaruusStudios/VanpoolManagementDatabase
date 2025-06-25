@@ -1,5 +1,6 @@
 package com.avaruusstudios.vmdb.model;
 
+import javafx.beans.property.*; // Import JavaFX property classes
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -15,6 +16,7 @@ import java.util.Objects;
  * User accounts are identified by a unique ID and a Windows username.
  * Each user has a defined {@link Role} and an active status.
  * Creation timestamp is automatically managed by the database.
+ * All properties are exposed as JavaFX Properties for UI binding.
  * </p>
  *
  * @see Role
@@ -26,71 +28,86 @@ public class User {
      * in the database for user records ({@code UserID INTEGER PRIMARY KEY AUTOINCREMENT}).
      * <p>
      * For a newly created user not yet persisted to the database, this value will be {@code null}.
-     * Once assigned by the database, it becomes immutable.
+     * Once assigned by the database, it becomes immutable and is exposed as a {@link ReadOnlyObjectProperty}.
      * </p>
      */
-    private final Integer userId; // Changed to final Integer
-
+    private final ReadOnlyObjectProperty<Integer> userId;
     /**
      * The Windows username associated with the user account.
      * This field is unique and cannot be null, serving as an important identifier.
      * Corresponds to {@code WindowsUsername VARCHAR(255) UNIQUE NOT NULL} in the database.
+     * It is exposed as a {@link StringProperty}.
      */
-    private String windowsUsername;
+    private final StringProperty windowsUsername;
     /**
      * The first name of the user.
      * Corresponds to {@code FirstName VARCHAR(255)} in the database, which is nullable.
+     * It is exposed as a {@link StringProperty}.
      */
-    private String firstName;
+    private final StringProperty firstName;
     /**
      * The middle name of the user.
      * Corresponds to {@code MiddleName VARCHAR(255)} in the database, which is nullable.
+     * It is exposed as a {@link StringProperty}.
      */
-    private String middleName;
+    private final StringProperty middleName;
     /**
      * The last name of the user.
      * Corresponds to {@code LastName VARCHAR(255)} in the database, which is nullable.
+     * It is exposed as a {@link StringProperty}.
      */
-    private String lastName;
+    private final StringProperty lastName;
     /**
      * The email address of the user.
      * Corresponds to {@code Email VARCHAR(255)} in the database, which is nullable.
+     * It is exposed as a {@link StringProperty}.
      */
-    private String email;
+    private final StringProperty email;
     /**
      * The {@link Role} assigned to the user within the application (e.g., ADMIN, TREASURER, USER, COORDINATOR).
      * This field is mandatory and cannot be null.
      * Corresponds to {@code UserRole VARCHAR(50) NOT NULL} in the database.
+     * It is exposed as an {@link ObjectProperty} of {@link Role}.
      */
-    private Role role;
+    private final ObjectProperty<Role> role;
     /**
      * A boolean flag indicating whether the user account is currently active.
      * Corresponds to {@code IsActive INTEGER NOT NULL DEFAULT 1} in the database (where 1=true, 0=false).
+     * It is exposed as a {@link BooleanProperty}.
      */
-    private boolean isActive;
+    private final BooleanProperty isActive;
     /**
      * The timestamp indicating when the user account was created.
      * This field is often automatically set by the database using `CURRENT_TIMESTAMP`.
      * Corresponds to {@code DateCreated TEXT DEFAULT CURRENT_TIMESTAMP} in the database.
+     * It is exposed as an {@link ObjectProperty} of {@link LocalDateTime}.
      */
-    private LocalDateTime dateCreated;
+    private final ObjectProperty<LocalDateTime> dateCreated;
 
     /**
      * Default constructor for creating an empty {@code User} object.
      * The {@code userId} is set to {@code null} to explicitly indicate that
      * this user entry has not yet been assigned a unique ID by the database.
-     * Initializes other fields to their default or null values.
+     * Initializes other JavaFX properties to their default values (null for ObjectProperties,
+     * empty string for StringProperties, false for BooleanProperties).
      */
     public User() {
-        this.userId = null; // Explicitly null for unpersisted entity
+        this.userId = new SimpleObjectProperty<>(this, "userId", null);
+        this.windowsUsername = new SimpleStringProperty(this, "windowsUsername");
+        this.firstName = new SimpleStringProperty(this, "firstName");
+        this.middleName = new SimpleStringProperty(this, "middleName");
+        this.lastName = new SimpleStringProperty(this, "lastName");
+        this.email = new SimpleStringProperty(this, "email");
+        this.role = new SimpleObjectProperty<>(this, "role");
+        this.isActive = new SimpleBooleanProperty(this, "isActive", true); // Default active to true
+        this.dateCreated = new SimpleObjectProperty<>(this, "dateCreated");
     }
-
     /**
      * Full constructor to initialize all fields of a {@code User} instance.
      * This constructor allows for the comprehensive creation of a user record,
      * aligning with the database schema. It is typically used when loading an
      * *existing* user record from the database, where {@code userId} has already been assigned.
-     * All mandatory parameters are validated.
+     * All mandatory parameters are validated via their respective setters.
      *
      * @param userId          The unique integer ID for the user, typically auto-generated by the database. Must not be {@code null}.
      * @param windowsUsername The unique Windows username of the user. Must not be {@code null}.
@@ -98,56 +115,138 @@ public class User {
      * @param middleName      The middle name of the user. Can be {@code null}.
      * @param lastName        The last name of the user. Can be {@code null}.
      * @param email           The email address of the user. Can be {@code null}.
-     * @param role        The {@link Role} of the user. Must not be {@code null}.
+     * @param role            The {@link Role} of the user. Must not be {@code null}.
      * @param isActive        A boolean indicating whether the user account is active.
      * @param dateCreated     The {@link LocalDateTime} timestamp indicating when the user account was created. Can be {@code null} if database handles default.
      * @throws NullPointerException if `userId`, `windowsUsername`, or `role` are {@code null}.
      */
     public User(Integer userId, String windowsUsername, String firstName, String middleName, String lastName,
                 String email, Role role, boolean isActive, LocalDateTime dateCreated) {
-        this.userId = Objects.requireNonNull(userId, "User ID cannot be null for an existing user."); // Null check for ID
+        this.userId = new SimpleObjectProperty<>(this, "userId", Objects.requireNonNull(userId, "User ID cannot be null for an existing user."));
+        this.windowsUsername = new SimpleStringProperty(this, "windowsUsername");
+        this.firstName = new SimpleStringProperty(this, "firstName");
+        this.middleName = new SimpleStringProperty(this, "middleName");
+        this.lastName = new SimpleStringProperty(this, "lastName");
+        this.email = new SimpleStringProperty(this, "email");
+        this.role = new SimpleObjectProperty<>(this, "role");
+        this.isActive = new SimpleBooleanProperty(this, "isActive");
+        this.dateCreated = new SimpleObjectProperty<>(this, "dateCreated");
+
+        // Use setters to apply validation and business logic
         setWindowsUsername(windowsUsername);
         setFirstName(firstName);
         setMiddleName(middleName);
         setLastName(lastName);
         setEmail(email);
-        setUserRole(role);
+        setRole(role); // Renamed setUserRole to setRole for consistency with JavaFX property
         setActive(isActive);
         setDateCreated(dateCreated);
     }
-
     /**
      * Convenience constructor for creating a new {@code User} object that doesn't yet have a database ID.
      * This constructor is ideal when preparing a new user record for **insertion** into the database.
      * The {@code userId} is omitted as it is typically auto-generated by the database.
-     * All mandatory parameters are validated.
+     * All mandatory parameters are validated via their respective setters.
      *
      * @param windowsUsername The unique Windows username of the user. Must not be {@code null}.
      * @param firstName       The first name of the user. Can be {@code null}.
      * @param middleName      The middle name of the user. Can be {@code null}.
      * @param lastName        The last name of the user. Can be {@code null}.
      * @param email           The email address of the user. Can be {@code null}.
-     * @param role        The {@link Role} of the user. Must not be {@code null}.
+     * @param role            The {@link Role} of the user. Must not be {@code null}.
      * @param isActive        A boolean indicating whether the user account is active.
      * @param dateCreated     The {@link LocalDateTime} timestamp indicating when the user account was created. Can be {@code null} if database handles default.
      * @throws NullPointerException if `windowsUsername` or `role` are {@code null}.
      */
     public User(String windowsUsername, String firstName, String middleName, String lastName,
                 String email, Role role, boolean isActive, LocalDateTime dateCreated) {
-        this.userId = null; // New entity, ID will be assigned by DB
-        setWindowsUsername(windowsUsername);
-        setFirstName(firstName);
-        setMiddleName(middleName);
-        setLastName(lastName);
-        setEmail(email);
-        setUserRole(role);
-        setActive(isActive);
-        setDateCreated(dateCreated);
+        // Delegate to the full constructor with null for userId for a new entity
+        this(null, windowsUsername, firstName, middleName, lastName, email, role, isActive, dateCreated);
     }
 
+    // ------------------------------------
+    // JavaFX Property Accessor Methods
+    // ------------------------------------
+
+    /**
+     * Retrieves the {@link ReadOnlyObjectProperty} for the unique identifier of this user.
+     * <p>
+     * This property represents the {@code UserID} column in the database.
+     * Its value is immutable once set (typically by the database).
+     * </p>
+     *
+     * @return The {@link ReadOnlyObjectProperty} for {@code userId}.
+     */
+    public ReadOnlyObjectProperty<Integer> userIdProperty() {
+        return userId;
+    }
+    /**
+     * Retrieves the {@link StringProperty} for the Windows username of the user.
+     *
+     * @return The {@link StringProperty} for {@code windowsUsername}.
+     */
+    public StringProperty windowsUsernameProperty() {
+        return windowsUsername;
+    }
+    /**
+     * Retrieves the {@link StringProperty} for the first name of the user.
+     *
+     * @return The {@link StringProperty} for {@code firstName}.
+     */
+    public StringProperty firstNameProperty() {
+        return firstName;
+    }
+    /**
+     * Retrieves the {@link StringProperty} for the middle name of the user.
+     *
+     * @return The {@link StringProperty} for {@code middleName}.
+     */
+    public StringProperty middleNameProperty() {
+        return middleName;
+    }
+    /**
+     * Retrieves the {@link StringProperty} for the last name of the user.
+     *
+     * @return The {@link StringProperty} for {@code lastName}.
+     */
+    public StringProperty lastNameProperty() {
+        return lastName;
+    }
+    /**
+     * Retrieves the {@link StringProperty} for the email address of the user.
+     *
+     * @return The {@link StringProperty} for {@code email}.
+     */
+    public StringProperty emailProperty() {
+        return email;
+    }
+    /**
+     * Retrieves the {@link ObjectProperty} for the {@link Role} assigned to the user.
+     *
+     * @return The {@link ObjectProperty} for {@code role}.
+     */
+    public ObjectProperty<Role> roleProperty() {
+        return role;
+    }
+    /**
+     * Retrieves the {@link BooleanProperty} indicating whether the user account is active.
+     *
+     * @return The {@link BooleanProperty} for {@code isActive}.
+     */
+    public BooleanProperty isActiveProperty() {
+        return isActive;
+    }
+    /**
+     * Retrieves the {@link ObjectProperty} for the timestamp indicating when the user account was created.
+     *
+     * @return The {@link ObjectProperty} for {@code dateCreated}.
+     */
+    public ObjectProperty<LocalDateTime> dateCreatedProperty() {
+        return dateCreated;
+    }
 
     // ---------------------
-    // Getters and Setters
+    // Value Getters and Setters
     // ---------------------
 
     /**
@@ -157,12 +256,31 @@ public class User {
      *
      * @return The {@link Integer} primary key used to identify this user record, or {@code null} if not yet assigned.
      */
-    public Integer getUserId() { // Changed return type to Integer
-        return userId;
+    public Integer getUserId() {
+        return userId.get();
     }
-
-    // setUserId method removed as userId is now final and set only via constructors
-
+    /**
+     * Sets the unique ID for this user. This method is designed to be package-private
+     * and is primarily for use by data access objects (DAOs) when an ID is generated
+     * by the database upon insertion.
+     * <p>
+     * It includes a check to prevent the ID from being modified once it has been set,
+     * ensuring the immutability of the primary key.
+     * </p>
+     *
+     * @param id The unique integer ID assigned by the database.
+     * @throws IllegalStateException if the ID has already been assigned to this object.
+     * @throws IllegalArgumentException if the provided ID is {@code null} or non-positive.
+     */
+    void _setUserId(Integer id) { // Package-private for DAO use only
+        if (this.userId.get() != null) {
+            throw new IllegalStateException("User ID cannot be changed once set.");
+        }
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("User ID cannot be null or non-positive.");
+        }
+        ((SimpleObjectProperty<Integer>) this.userId).set(id);
+    }
     /**
      * Retrieves the Windows username of the user.
      * Corresponds to the {@code WindowsUsername} column in the database.
@@ -170,16 +288,24 @@ public class User {
      * @return The Windows username. Will not be {@code null} as per schema.
      */
     public String getWindowsUsername() {
-        return windowsUsername;
+        return windowsUsername.get();
     }
     /**
      * Sets the Windows username of the user.
+     * <p>
+     * Leading and trailing whitespace will be trimmed.
+     * </p>
      *
-     * @param windowsUsername The Windows username to set. Must not be {@code null} as per schema.
+     * @param windowsUsername The Windows username to set. Must not be {@code null} or empty after trimming.
      * @throws NullPointerException if {@code windowsUsername} is {@code null}.
+     * @throws IllegalArgumentException if the trimmed username is empty.
      */
     public void setWindowsUsername(String windowsUsername) {
-        this.windowsUsername = Objects.requireNonNull(windowsUsername, "Windows username cannot be null.").strip(); // Enforce non-null and strip whitespace
+        String trimmedUsername = Objects.requireNonNull(windowsUsername, "Windows username cannot be null.").strip();
+        if (trimmedUsername.isEmpty()) {
+            throw new IllegalArgumentException("Windows username cannot be empty after trimming.");
+        }
+        this.windowsUsername.set(trimmedUsername);
     }
     /**
      * Retrieves the first name of the user.
@@ -188,15 +314,16 @@ public class User {
      * @return The first name, or {@code null} if not specified.
      */
     public String getFirstName() {
-        return firstName;
+        return firstName.get();
     }
     /**
      * Sets the first name of the user.
+     * If the provided first name is not {@code null}, leading and trailing whitespace will be stripped.
      *
      * @param firstName The first name to set. Can be {@code null}.
      */
     public void setFirstName(String firstName) {
-        this.firstName = (firstName != null) ? firstName.strip() : null; // Strip whitespace
+        this.firstName.set((firstName != null) ? firstName.strip() : null);
     }
     /**
      * Retrieves the middle name of the user.
@@ -205,15 +332,16 @@ public class User {
      * @return The middle name, or {@code null} if not present.
      */
     public String getMiddleName() {
-        return middleName;
+        return middleName.get();
     }
     /**
      * Sets the middle name of the user.
+     * If the provided middle name is not {@code null}, leading and trailing whitespace will be stripped.
      *
      * @param middleName The middle name to set. Can be {@code null}.
      */
     public void setMiddleName(String middleName) {
-        this.middleName = (middleName != null) ? middleName.strip() : null; // Strip whitespace
+        this.middleName.set((middleName != null) ? middleName.strip() : null);
     }
     /**
      * Retrieves the last name of the user.
@@ -222,15 +350,16 @@ public class User {
      * @return The last name, or {@code null} if not specified.
      */
     public String getLastName() {
-        return lastName;
+        return lastName.get();
     }
     /**
      * Sets the last name of the user.
+     * If the provided last name is not {@code null}, leading and trailing whitespace will be stripped.
      *
      * @param lastName The last name to set. Can be {@code null}.
      */
     public void setLastName(String lastName) {
-        this.lastName = (lastName != null) ? lastName.strip() : null; // Strip whitespace
+        this.lastName.set((lastName != null) ? lastName.strip() : null);
     }
     /**
      * Retrieves the email address of the user.
@@ -239,15 +368,16 @@ public class User {
      * @return The email address, or {@code null} if not specified.
      */
     public String getEmail() {
-        return email;
+        return email.get();
     }
     /**
      * Sets the email address of the user.
+     * If the provided email is not {@code null}, leading and trailing whitespace will be stripped.
      *
      * @param email The email address to set. Can be {@code null}.
      */
     public void setEmail(String email) {
-        this.email = (email != null) ? email.strip() : null; // Strip whitespace
+        this.email.set((email != null) ? email.strip() : null);
     }
     /**
      * Retrieves the {@link Role} of the user within the application.
@@ -255,8 +385,8 @@ public class User {
      *
      * @return The {@link Role} enum constant. Will not be {@code null} as per schema.
      */
-    public Role getUserRole() {
-        return role;
+    public Role getRole() { // Renamed from getUserRole to getRole for consistency
+        return role.get();
     }
     /**
      * Sets the {@link Role} of the user within the application.
@@ -264,8 +394,8 @@ public class User {
      * @param role The {@link Role} to set. Must not be {@code null} as per schema.
      * @throws NullPointerException if {@code role} is {@code null}.
      */
-    public void setUserRole(Role role) {
-        this.role = Objects.requireNonNull(role, "User role cannot be null."); // Enforce non-null
+    public void setRole(Role role) { // Renamed from setUserRole to setRole for consistency
+        this.role.set(Objects.requireNonNull(role, "User role cannot be null."));
     }
     /**
      * Checks if the user account is currently active.
@@ -274,7 +404,7 @@ public class User {
      * @return {@code true} if the account is active, {@code false} otherwise.
      */
     public boolean isActive() {
-        return isActive;
+        return isActive.get();
     }
     /**
      * Sets the active status of the user account.
@@ -282,7 +412,7 @@ public class User {
      * @param active {@code true} to activate the account, {@code false} to deactivate.
      */
     public void setActive(boolean active) {
-        isActive = active;
+        this.isActive.set(active);
     }
     /**
      * Retrieves the timestamp indicating when the user account was created.
@@ -291,7 +421,7 @@ public class User {
      * @return The creation date and time, or {@code null} if not set (e.g., by DB default).
      */
     public LocalDateTime getDateCreated() {
-        return dateCreated;
+        return dateCreated.get();
     }
     /**
      * Sets the timestamp indicating when the user account was created.
@@ -299,7 +429,7 @@ public class User {
      * @param dateCreated The creation date and time to set. Can be {@code null}.
      */
     public void setDateCreated(LocalDateTime dateCreated) {
-        this.dateCreated = dateCreated;
+        this.dateCreated.set(dateCreated);
     }
 
     // ---------------------
@@ -318,20 +448,20 @@ public class User {
      * </p>
      *
      * @return A string in the format:
-     * "User{ID=..., Username='...', Name='...', Email='...', Role=..., Active=..., DateCreated=...}"
+     * "User{ID=..., Username='...', FirstName='...', MiddleName='...', LastName='...', Email='...', Role=..., Active=..., DateCreated=...}"
      */
     @Override
     public String toString() {
         return "User{" +
-                "userId=" + userId +
-                ", windowsUsername='" + windowsUsername + '\'' +
-                ", firstName='" + firstName + '\'' +
-                ", middleName='" + (middleName != null ? middleName : "null") + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", email='" + (email != null ? email : "null") + '\'' +
-                ", role=" + role + // Changed from userRole to role to match field name
-                ", isActive=" + isActive +
-                ", dateCreated=" + (dateCreated != null ? dateCreated : "null") +
+                "userId=" + getUserId() +
+                ", windowsUsername='" + getWindowsUsername() + '\'' +
+                ", firstName='" + getFirstName() + '\'' +
+                ", middleName='" + (getMiddleName() != null ? getMiddleName() : "null") + '\'' +
+                ", lastName='" + getLastName() + '\'' +
+                ", email='" + (getEmail() != null ? getEmail() : "null") + '\'' +
+                ", role=" + getRole() +
+                ", isActive=" + isActive() +
+                ", dateCreated=" + (getDateCreated() != null ? getDateCreated() : "null") +
                 '}';
     }
     /**
@@ -353,8 +483,8 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        // Equality is based on the primary key (userId), safely handling null Integer
-        return Objects.equals(userId, user.userId);
+        // Equality is based on the primary key (userId), safely handling null Integer via getter
+        return Objects.equals(getUserId(), user.getUserId());
     }
     /**
      * <p>
@@ -372,6 +502,6 @@ public class User {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(userId);
+        return Objects.hash(getUserId());
     }
 }
