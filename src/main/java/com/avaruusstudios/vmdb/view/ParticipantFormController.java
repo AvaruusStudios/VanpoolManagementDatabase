@@ -165,9 +165,9 @@ public class ParticipantFormController {
     private void populateComboBoxes() {
         // --- Dummy Location Data ---
         allLocations.addAll(
-                new Location(1, "Main Office", "123 Main St", "Suite 100", "Anytown", "CA", "90210", "12.345", "-12.345", "Headquarters"),
-                new Location(2, "North Depot", "456 Oak Ave", "Warehouse A", "Northville", "CA", "90211", "13.456", "-13.456", "North side depot"),
-                new Location(3, "South Hub", "789 Pine Ln", "Unit B", "South City", "CA", "90212", "14.567", "-14.567", "South region hub")
+                new Location(1, "Main Office", "123 Main St, Suite 100", "Anytown", "CA", "90210", 12.345, -12.345, "Headquarters"),
+                new Location(2, "North Depot", "456 Oak Ave, Warehouse A", "Northville", "CA", "90211", 13.456, -13.456, "North side depot"),
+                new Location(3, "South Hub", "789 Pine Ln, Unit B", "South City", "CA", "90212", 14.567, -14.567, "South region hub")
         );
         cmbPickUpLocation.setItems(allLocations);
         cmbDropOffLocation.setItems(allLocations);
