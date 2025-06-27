@@ -4,4 +4,6 @@ SELECT
     Participants.Program,
     Participants.IsActive
 FROM
-    Participants;
+    Participants
+ORDER BY
+    Participants.LastName || Participants.FirstName;
