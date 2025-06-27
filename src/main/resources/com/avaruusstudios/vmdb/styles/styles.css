@@ -188,7 +188,8 @@
     -fx-padding: 8px 10px; /* Padding inside cells */
 }
 
-/* --- Status Bar Styling (Bottom HBox) --- */
+/* --- Status Bar Styling (Bottom HBox - for Main.fxml) --- */
+/* Kept this one as it's for the main application's status bar */
 .status-bar {
     -fx-background-color: -bs-light; /* Light grey background */
     -fx-border-color: -bs-border-color;
@@ -202,7 +203,7 @@
     -fx-font-size: 11px; /* Slightly smaller font for status */
 }
 
-/* --- New styles for ParticipantContent.fxml and similar content views --- */
+/* --- New styles for dashboardParticipants.fxml and similar content views --- */
 /* Base style for content views loaded into the StackPane */
 .content-view {
     -fx-background-color: -bs-white;
@@ -267,4 +268,98 @@
     -fx-font-size: 16px;
     -fx-text-fill: -bs-secondary;
     -fx-font-style: italic;
+}
+
+/* --- NEW FORM-SPECIFIC STYLES --- */
+/* Root container for the form (GridPane in participantForm.fxml) */
+.form-grid {
+    -fx-background-color: -bs-white; /* White background for the form area */
+    -fx-border-color: -bs-border-color;
+    -fx-border-width: 1px;
+    -fx-background-radius: -bs-border-radius; /* Rounded corners for the form panel */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 5, 0.0, 0, 2); /* Subtle shadow */
+    /* Padding is already set in FXML, so no need to duplicate here unless you want to override */
+}
+
+/* Labels for form fields */
+.form-label {
+    -fx-font-weight: bold;
+    -fx-text-fill: -bs-dark;
+    -fx-font-size: 13px; /* Consistent with base font size */
+    -fx-padding: 0 10px 0 0; /* Padding to separate from input on its right */
+}
+
+/* Text fields, combo boxes, date pickers, text areas */
+.form-control {
+    -fx-background-color: -bs-white;
+    -fx-border-color: -bs-border-color;
+    -fx-border-width: 1px;
+    -fx-border-radius: -bs-border-radius;
+    -fx-padding: -bs-padding-y -bs-padding-x; /* Internal padding */
+    -fx-font-size: 13px;
+    -fx-text-fill: -bs-dark;
+}
+
+.form-control:focused {
+    -fx-border-color: derive(-bs-primary, 20%); /* Lighter blue border on focus */
+    -fx-effect: innershadow(gaussian, rgba(13, 110, 253, 0.25), 5, 0.0, 0, 0); /* Subtle blue glow */
+}
+
+/* Checkbox specific styling (if needed for the box itself, otherwise the label gets form-label) */
+.form-check {
+    /* Styles for the checkbox itself, e.g., if you want a custom background */
+    /* .check-box .box { ... } */
+}
+
+
+/* --- Button Styling (Bootstrap-like) --- */
+.btn {
+    -fx-font-size: 13px;
+    -fx-padding: 8px 16px; /* Slightly more padding for buttons */
+    -fx-background-radius: -bs-border-radius;
+    -fx-cursor: hand;
+    -fx-font-weight: bold;
+    -fx-border-width: 1px;
+    -fx-border-radius: -bs-border-radius; /* Ensure border radius is applied */
+}
+
+.btn:hover {
+    -fx-opacity: 0.9; /* Subtle hover effect */
+}
+
+.btn:pressed {
+    -fx-opacity: 0.8; /* Subtle pressed effect */
+    -fx-translate-y: 1px; /* Slight push effect */
+}
+
+.btn:focused {
+    -fx-focus-color: derive(-bs-primary, 50%); /* A blue focus ring */
+    -fx-faint-focus-color: derive(-bs-primary, 80%);
+    -fx-border-color: derive(-bs-primary, 50%);
+    -fx-border-width: 1px; /* Ensure a visible border on focus */
+    -fx-background-color: transparent; /* Don't change background unless needed */
+}
+
+/* Primary Button (Blue) */
+.btn-primary {
+    -fx-background-color: -bs-primary;
+    -fx-text-fill: -bs-white;
+    -fx-border-color: -bs-primary;
+}
+
+.btn-primary:hover {
+    -fx-background-color: derive(-bs-primary, -10%); /* Darker blue on hover */
+    -fx-border-color: derive(-bs-primary, -10%);
+}
+
+/* Secondary Button (Grey) */
+.btn-secondary {
+    -fx-background-color: -bs-secondary;
+    -fx-text-fill: -bs-white;
+    -fx-border-color: -bs-secondary;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: derive(-bs-secondary, -10%); /* Darker grey on hover */
+    -fx-border-color: derive(-bs-secondary, -10%);
 }
