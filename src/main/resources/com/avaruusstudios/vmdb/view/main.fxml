@@ -104,6 +104,15 @@
                     </HBox>
                   </graphic>
                 </Button>
+                <Button fx:id="vehicleDashboardButton" maxWidth="Infinity" alignment="CENTER_LEFT" styleClass="nav-button">
+                  <graphic>
+                    <HBox alignment="CENTER_LEFT" spacing="5.0">
+                      <Label text="Vehicles" />
+                      <Region HBox.hgrow="ALWAYS" />
+<!--                      <Label fx:id="vanpoolDashboardCountLabel" text="0" style="-fx-font-weight: bold;" />-->
+                    </HBox>
+                  </graphic>
+                </Button>
                 <Button fx:id="routesButton" maxWidth="Infinity" alignment="CENTER_LEFT" styleClass="nav-button">
                   <graphic>
                     <HBox alignment="CENTER_LEFT" spacing="5.0">
