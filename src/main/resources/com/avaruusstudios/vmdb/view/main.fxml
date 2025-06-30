@@ -113,7 +113,7 @@
                     </HBox>
                   </graphic>
                 </Button>
-                <Button fx:id="routesButton" maxWidth="Infinity" alignment="CENTER_LEFT" styleClass="nav-button">
+                <Button fx:id="routesDashboardButton" maxWidth="Infinity" alignment="CENTER_LEFT" styleClass="nav-button">
                   <graphic>
                     <HBox alignment="CENTER_LEFT" spacing="5.0">
                       <Label text="Routes" />
@@ -122,7 +122,7 @@
                     </HBox>
                   </graphic>
                 </Button>
-                <Button fx:id="rosterButton" maxWidth="Infinity" alignment="CENTER_LEFT" styleClass="nav-button">
+                <Button fx:id="rosterDashboardButton" maxWidth="Infinity" alignment="CENTER_LEFT" styleClass="nav-button">
                   <graphic>
                     <HBox alignment="CENTER_LEFT" spacing="5.0">
                       <Label text="Roster" />
@@ -144,7 +144,7 @@
                     </HBox>
                   </graphic>
                 </Button>
-                <Button fx:id="transactionLogButton" maxWidth="Infinity" alignment="CENTER_LEFT" styleClass="nav-button">
+                <Button fx:id="transactionLogDashboardButton" maxWidth="Infinity" alignment="CENTER_LEFT" styleClass="nav-button">
                   <graphic>
                     <HBox alignment="CENTER_LEFT" spacing="5.0">
                       <Label text="Transaction Log" />
@@ -153,7 +153,7 @@
                     </HBox>
                   </graphic>
                 </Button>
-                <Button fx:id="invoicesButton" maxWidth="Infinity" alignment="CENTER_LEFT" styleClass="nav-button">
+                <Button fx:id="invoicesDashboardButton" maxWidth="Infinity" alignment="CENTER_LEFT" styleClass="nav-button">
                   <graphic>
                     <HBox alignment="CENTER_LEFT" spacing="5.0">
                       <Label text="Invoices" />
@@ -162,66 +162,6 @@
                     </HBox>
                   </graphic>
                 </Button>
-              </VBox>
-            </TitledPane>
-            <TitledPane fx:id="participantTitledPane" animated="false" text="Participants">
-              <VBox spacing="5.0" style="-fx-padding: 10px;">
-                <Button fx:id="createParticipant" text="All Participants" maxWidth="Infinity" alignment="CENTER_LEFT"
-                        styleClass="nav-button"/>
-                <Button fx:id="updateParticipant" text="Active Participants" maxWidth="Infinity" alignment="CENTER_LEFT"
-                        styleClass="nav-button"/>
-                <Button fx:id="deleteParticipant" text="Delete Participant" maxWidth="Infinity" alignment="CENTER_LEFT"
-                        styleClass="nav-button"/>
-              </VBox>
-            </TitledPane>
-            <TitledPane fx:id="transactionTitledPane" animated="false" text="Transactions">
-              <VBox spacing="5.0" style="-fx-padding: 10px;">
-                <Button fx:id="createTransaction" text="Create Transaction" maxWidth="Infinity" alignment="CENTER_LEFT"
-                        styleClass="nav-button"/>
-                <Button fx:id="updateTransaction" text="Update Transaction" maxWidth="Infinity" alignment="CENTER_LEFT"
-                        styleClass="nav-button"/>
-                <Button fx:id="deleteTransaction" text="Delete Transaction" maxWidth="Infinity" alignment="CENTER_LEFT"
-                        styleClass="nav-button"/>
-              </VBox>
-            </TitledPane>
-            <TitledPane fx:id="locationTitledPane" animated="false" text="Locations">
-              <VBox spacing="5.0" style="-fx-padding: 10px;">
-                <Button fx:id="createLocation" text="Create Location" maxWidth="Infinity" alignment="CENTER_LEFT"
-                        styleClass="nav-button"/>
-                <Button fx:id="updateLocation" text="Update Location" maxWidth="Infinity" alignment="CENTER_LEFT"
-                        styleClass="nav-button"/>
-                <Button fx:id="deleteLocation" text="Delete Location" maxWidth="Infinity" alignment="CENTER_LEFT"
-                        styleClass="nav-button"/>
-              </VBox>
-            </TitledPane>
-            <TitledPane fx:id="vehicleTitledPane" animated="false" text="Vehicles">
-              <VBox spacing="5.0" style="-fx-padding: 10px;">
-                <Button fx:id="createVehicle" text="Create Vehicle" maxWidth="Infinity" alignment="CENTER_LEFT"
-                        styleClass="nav-button"/>
-                <Button fx:id="updateVehicle" text="Update Vehicle" maxWidth="Infinity" alignment="CENTER_LEFT"
-                        styleClass="nav-button"/>
-                <Button fx:id="deleteVehicle" text="Delete Vehicle" maxWidth="Infinity" alignment="CENTER_LEFT"
-                        styleClass="nav-button"/>
-              </VBox>
-            </TitledPane>
-            <TitledPane fx:id="invoiceTitledPane" animated="false" text="Invoices">
-              <VBox spacing="5.0" style="-fx-padding: 10px;">
-                <Button fx:id="createInvoice" text="Create Invoice" maxWidth="Infinity" alignment="CENTER_LEFT"
-                        styleClass="nav-button"/>
-                <Button fx:id="updateInvoice" text="Update Invoice" maxWidth="Infinity" alignment="CENTER_LEFT"
-                        styleClass="nav-button"/>
-                <Button fx:id="deleteInvoice" text="Delete Invoice" maxWidth="Infinity" alignment="CENTER_LEFT"
-                        styleClass="nav-button"/>
-              </VBox>
-            </TitledPane>
-            <TitledPane fx:id="categoryTitledPane" animated="false" text="Categories">
-              <VBox spacing="5.0" style="-fx-padding: 10px;">
-                <Button fx:id="createCategory" text="Create Category" maxWidth="Infinity" alignment="CENTER_LEFT"
-                        styleClass="nav-button"/>
-                <Button fx:id="updateCategory" text="Update Category" maxWidth="Infinity" alignment="CENTER_LEFT"
-                        styleClass="nav-button"/>
-                <Button fx:id="deleteCategory" text="Delete Category" maxWidth="Infinity" alignment="CENTER_LEFT"
-                        styleClass="nav-button"/>
               </VBox>
             </TitledPane>
           </panes>
