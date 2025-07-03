@@ -13,6 +13,8 @@
  * </p>
  */
 module com.avaruusstudios.vmdb {
+
+    // --- Module Dependencies (requires) ---
     /**
      * Declares a dependency on the {@code javafx.controls} module.
      * This module provides all the standard user interface controls for JavaFX applications,
@@ -31,9 +33,8 @@ module com.avaruusstudios.vmdb {
      * Declares a dependency on the {@code javafx.base} module.
      * This module provides fundamental non-visual classes for JavaFX, including
      * core utilities, property APIs (like {@link javafx.beans.property.Property}),
-     * and the reflection mechanisms used by components like {@link javafx.scene.control.cell.PropertyValueFactory}.
-     * It is explicitly required here because `PropertyValueFactory` needs reflective access
-     * to the `DashboardParticipantView` class.
+     * and mechanisms for reflective access, which are essential for components
+     * like {@link javafx.scene.control.cell.PropertyValueFactory}.
      */
     requires javafx.base;
     /**
@@ -49,6 +50,43 @@ module com.avaruusstudios.vmdb {
      */
     requires org.slf4j;
 
+    // --- Module Exports (exports) ---
+    /**
+     * <p>
+     * Exports the root package {@code com.avaruusstudios.vmdb}.
+     * </p>
+     * <p>
+     * This makes all public types (classes, interfaces) within this package
+     * accessible to *other modules that explicitly {@code require} this module*.
+     * This is typically needed for the application's entry point (e.g., a {@code Main} class)
+     * so that the Java runtime launcher can find and execute it.
+     * </p>
+     */
+    exports com.avaruusstudios.vmdb;
+    /**
+     * <p>
+     * Exports the {@code com.avaruusstudios.vmdb.view.main} package.
+     * </p>
+     * <p>
+     * This allows public types within the `main` view package (e.g., {@code MainController}
+     * if it were needed by other modules) to be accessible to other modules that
+     * {@code require} {@code com.avaruusstudios.vmdb}.
+     * </p>
+     */
+    exports com.avaruusstudios.vmdb.view.main;
+    /**
+     * <p>
+     * Exports the {@code com.avaruusstudios.vmdb.view.vanpool.roster} package.
+     * </p>
+     * <p>
+     * This allows public types within the `roster` view package (e.g., view models
+     * or utility classes that other modules might depend on) to be accessible to
+     * other modules that {@code require} {@code com.avaruusstudios.vmdb}.
+     * </p>
+     */
+    exports com.avaruusstudios.vmdb.view.vanpool.roster;
+
+    // --- Module Opens (opens) ---
     /**
      * <p>
      * Opens the root package {@code com.avaruusstudios.vmdb} for reflective access
@@ -63,53 +101,43 @@ module com.avaruusstudios.vmdb {
     opens com.avaruusstudios.vmdb to javafx.fxml;
     /**
      * <p>
-     * Opens the {@code com.avaruusstudios.vmdb.view} package for reflective access
+     * Opens the general {@code com.avaruusstudios.vmdb.view} package for reflective access
      * specifically to the {@code javafx.fxml} module.
      * </p>
      * <p>
-     * This is crucial for FXML controllers located directly in this package (e.g.,
-     * {@code MainController} or other view controllers) to allow FXML to instantiate
-     * them and inject their {@code @FXML} annotated fields and methods.
+     * This is crucial if any FXML controllers or their related components are located
+     * directly within this `view` package (not in sub-packages) and FXML needs to
+     * instantiate them or inject their {@code @FXML} annotated fields and methods.
      * </p>
      */
     opens com.avaruusstudios.vmdb.view to javafx.fxml;
     /**
      * <p>
-     * Opens the {@code com.avaruusstudios.vmdb.view.model} package for reflective access
-     * specifically to the {@code javafx.base} module.
+     * Opens the {@code com.avaruusstudios.vmdb.view.main} package for reflective access
+     * specifically to the {@code javafx.fxml} module.
      * </p>
      * <p>
-     * This is the critical directive that resolves {@code IllegalAccessException} errors
+     * This is crucial for FXML controllers (like {@code MainController}) located
+     * in this package to allow FXML to instantiate them and inject their
+     * {@code @FXML} annotated fields and methods.
+     * </p>
+     */
+    opens com.avaruusstudios.vmdb.view.main to javafx.fxml;
+    /**
+     * <p>
+     * Opens the {@code com.avaruusstudios.vmdb.view.vanpool.roster} package for reflective access
+     * specifically to the {@code javafx.base} and {@code javafx.fxml} modules.
+     * </p>
+     * <p>
+     * Opening to {@code javafx.fxml} is crucial for FXML controllers (like {@code ContentParticipantController})
+     * to allow FXML to instantiate them and inject {@code @FXML} annotated fields and methods.
+     * </p>
+     * <p>
+     * Opening to {@code javafx.base} is critical for resolving {@code IllegalAccessException} errors
      * when using {@link javafx.scene.control.cell.PropertyValueFactory}. {@code PropertyValueFactory}
      * uses reflection to access getter methods (e.g., `getId()`, `getParticipantDisplayName()`)
-     * on your data model classes (like {@link com.avaruusstudios.vmdb.views.models.DashboardParticipantView}).
-     * Without this `opens` directive, the Java Module System's strong encapsulation would prevent
-     * {@code javafx.base} from accessing these methods.
+     * on data model classes (like {@code DashboardParticipantView}) that are used in TableView columns.
      * </p>
      */
-    opens com.avaruusstudios.vmdb.view.model to javafx.base;
-
-    /**
-     * <p>
-     * Exports the root package {@code com.avaruusstudios.vmdb}.
-     * </p>
-     * <p>
-     * This makes all public types (classes, interfaces) within this package
-     * accessible to *other modules that explicitly {@code require} this module*.
-     * This is typically needed for the application's entry point (e.g., a `Main` class)
-     * so that the Java runtime launcher can find and execute it.
-     * </p>
-     */
-    exports com.avaruusstudios.vmdb;
-    /**
-     * <p>
-     * Exports the {@code com.avaruusstudios.vmdb.view} package.
-     * </p>
-     * <p>
-     * This allows public types within the `view` package (e.g., abstract view classes
-     * or interfaces that other modules might depend on) to be accessible to other
-     * modules that {@code require} {@code com.avaruusstudios.vmdb}.
-     * </p>
-     */
-    exports com.avaruusstudios.vmdb.view;
+    opens com.avaruusstudios.vmdb.view.vanpool.roster to javafx.base, javafx.fxml;
 }
