@@ -23,7 +23,7 @@ public class QueryLoader {
      * Retrieves an SQL query by reading the content of a .sql file from the classpath.
      * The file is expected to be in the `SQL_BASE_PATH`.
      *
-     * @param fileName The name of the SQL file (e.g., "qrySelectParticipantsByActive.sql").
+     * @param fileName The name of the SQL file (e.g., "SelectParticipantsByActive.sql").
      * @return The content of the SQL file as a single string.
      * @throws IllegalArgumentException if the file is not found or cannot be read, or its content is empty.
      */

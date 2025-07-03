@@ -30,7 +30,7 @@ public class DatabaseManager {
         // Use Database.getConnection() to get a connection
         try (Connection conn = Database.getConnection()) { // Reverted call to getConnection()
             // Get Active Participants count
-            String activeParticipantsSql = QueryLoader.getQuery("qrySelectParticipantsByActive.sql");
+            String activeParticipantsSql = QueryLoader.getQuery("SelectParticipantsByActive.sql");
             try (PreparedStatement pstmt = conn.prepareStatement(activeParticipantsSql);
                  ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -39,7 +39,7 @@ public class DatabaseManager {
             }
 
             // Get Capacity of the SINGLE Active Vehicle
-            String capacitySql = QueryLoader.getQuery("qrySelectVehicleByActive.sql");
+            String capacitySql = QueryLoader.getQuery("SelectVehicleByActive.sql");
             try (PreparedStatement pstmt = conn.prepareStatement(capacitySql);
                  ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -50,7 +50,7 @@ public class DatabaseManager {
                 }
             }
         }
-        return activeParticipants + "/" + maxVehicleCapacity;
+        return activeParticipants + " / " + maxVehicleCapacity;
     }
 
     // You would add more methods here for other data operations, e.g.:
