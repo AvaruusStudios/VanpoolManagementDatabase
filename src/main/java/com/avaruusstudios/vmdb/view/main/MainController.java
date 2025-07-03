@@ -1,7 +1,7 @@
 package com.avaruusstudios.vmdb.view.main;
 
 import com.avaruusstudios.vmdb.db.DatabaseManager;
-import com.avaruusstudios.vmdb.view.vanpool.roster.ContentParticipantController;
+import com.avaruusstudios.vmdb.view.vanpool.participant.ContentParticipantController;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -193,7 +193,7 @@ public class MainController {
         });
 
         rosterDashboardButton.setOnAction(event -> {
-            loadView("/com/avaruusstudios/vmdb/view/vanpool/roster/contentParticipants.fxml"); // Load Participants view
+            loadView("/com/avaruusstudios/vmdb/view/vanpool/participant/contentParticipants.fxml"); // Load Participants view
         });
 
         billingDashboardButton.setOnAction(event -> {

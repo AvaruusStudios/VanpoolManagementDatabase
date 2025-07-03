@@ -76,7 +76,7 @@ module com.avaruusstudios.vmdb {
     exports com.avaruusstudios.vmdb.view.main;
     /**
      * <p>
-     * Exports the {@code com.avaruusstudios.vmdb.view.vanpool.roster} package.
+     * Exports the {@code com.avaruusstudios.vmdb.view.vanpool.participant} package.
      * </p>
      * <p>
      * This allows public types within the `roster` view package (e.g., view models
@@ -84,7 +84,7 @@ module com.avaruusstudios.vmdb {
      * other modules that {@code require} {@code com.avaruusstudios.vmdb}.
      * </p>
      */
-    exports com.avaruusstudios.vmdb.view.vanpool.roster;
+    exports com.avaruusstudios.vmdb.view.vanpool.participant;
 
     // --- Module Opens (opens) ---
     /**
@@ -125,7 +125,7 @@ module com.avaruusstudios.vmdb {
     opens com.avaruusstudios.vmdb.view.main to javafx.fxml;
     /**
      * <p>
-     * Opens the {@code com.avaruusstudios.vmdb.view.vanpool.roster} package for reflective access
+     * Opens the {@code com.avaruusstudios.vmdb.view.vanpool.participant} package for reflective access
      * specifically to the {@code javafx.base} and {@code javafx.fxml} modules.
      * </p>
      * <p>
@@ -139,5 +139,5 @@ module com.avaruusstudios.vmdb {
      * on data model classes (like {@code DashboardParticipantView}) that are used in TableView columns.
      * </p>
      */
-    opens com.avaruusstudios.vmdb.view.vanpool.roster to javafx.base, javafx.fxml;
+    opens com.avaruusstudios.vmdb.view.vanpool.participant to javafx.base, javafx.fxml;
 }

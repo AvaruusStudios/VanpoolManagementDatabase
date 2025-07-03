@@ -1,4 +1,4 @@
-package com.avaruusstudios.vmdb.view.vanpool.roster;
+package com.avaruusstudios.vmdb.view.vanpool.participant;
 
 import com.avaruusstudios.vmdb.model.Location;
 import com.avaruusstudios.vmdb.model.Participant;
