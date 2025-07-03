@@ -57,7 +57,7 @@ public class Main extends Application {
     public void start(Stage stage) throws IOException {
         logger.info("Starting Vanpool Management Database application...");
         // Use absolute paths for FXML and CSS resources for robustness
-        FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getResource("/com/avaruusstudios/vmdb/view/main.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getResource("/com/avaruusstudios/vmdb/view/main/main.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 1366, 768);
 
         // Load CSS stylesheet
