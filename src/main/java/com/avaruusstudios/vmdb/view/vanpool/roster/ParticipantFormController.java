@@ -1,10 +1,11 @@
-package com.avaruusstudios.vmdb.view;
+package com.avaruusstudios.vmdb.view.vanpool.roster;
 
 import com.avaruusstudios.vmdb.model.Location;
 import com.avaruusstudios.vmdb.model.Participant;
 import com.avaruusstudios.vmdb.model.Program;
 import com.avaruusstudios.vmdb.model.Role;
 
+import com.avaruusstudios.vmdb.view.main.MainController;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -12,7 +13,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors; // Import for stream operations

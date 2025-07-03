@@ -7,7 +7,7 @@
 
 <GridPane fx:id="mainGrid" prefHeight="700.0" prefWidth="600.0"
           xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
-          fx:controller="com.avaruusstudios.vmdb.view.ParticipantFormController"
+          fx:controller="com.avaruusstudios.vmdb.view.vanpool.roster.ParticipantFormController"
           stylesheets="@/styles.css" styleClass="form-grid"> <columnConstraints>
     <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" maxWidth="150.0" minWidth="100.0" prefWidth="120.0" />
     <ColumnConstraints hgrow="SOMETIMES" maxWidth="Infinity" minWidth="200.0" prefWidth="300.0" />

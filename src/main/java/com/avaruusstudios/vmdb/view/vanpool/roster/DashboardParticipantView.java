@@ -1,7 +1,6 @@
-package com.avaruusstudios.vmdb.view.model;
+package com.avaruusstudios.vmdb.view.vanpool.roster;
 
 import com.avaruusstudios.vmdb.model.Program; // Make sure this import is correct
-import com.avaruusstudios.vmdb.view.ContentParticipantController;
 import javafx.scene.control.TableColumn;
 
 /**
