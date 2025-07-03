@@ -9,7 +9,7 @@ CREATE TABLE Vehicles (
     LeaseStartDate TEXT NOT NULL,                       -- Lease Start Date in ISO format recommended
     LeaseEndDate TEXT,                                  -- Lease End Date in ISO format recommended
     IsActive INTEGER NOT NULL DEFAULT 1,                -- 1=True, 0=False
-    Discount NUMERIC DEFAULT 0,                            -- Discount amount
+    Discount NUMERIC DEFAULT 0,                         -- Discount amount
     Notes TEXT                                          -- Contextual Notes about the Vehicle
 );
 
@@ -36,11 +36,11 @@ CREATE TABLE Participants (
     LastName TEXT NOT NULL,                                                                             -- Participant Last Name
     Email TEXT NOT NULL,                                                                                -- Participant Email Address
     Phone TEXT,                                                                                         -- Participant Phone Number
-    DistanceMiles NUMERIC NOT NULL,                                                                        -- Distance in Miles from Pickup Location to Drop-Off Location
+    DistanceMiles NUMERIC NOT NULL,                                                                     -- Distance in Miles from Pickup Location to Drop-Off Location
     JoinDate TEXT NOT NULL,                                                                             -- Date Participant Joined the Vanpoool
     IsActive INTEGER NOT NULL DEFAULT 1,                                                                -- 1=True, 0=False
     Program TEXT NOT NULL CHECK (Program IN ('TRANSPORTATION_INCENTIVE_PROGRAM', 'DAILY', 'NONE')),     -- Program the Participant is associated with
-    BenefitAmount NUMERIC DEFAULT 0,                                                                       -- Benefit Amount the Participant receives each month
+    BenefitAmount NUMERIC DEFAULT 0,                                                                    -- Benefit Amount the Participant receives each month
     Role TEXT DEFAULT 'PARTICIPANT' CHECK (Role IN ('PARTICIPANT', 'COORDINATOR')),                     -- The role withing the vanpool
     Notes TEXT,                                                                                         -- Contextual Notes about the Participant
     FOREIGN KEY (PickUpLocationID_FK) REFERENCES Locations(LocationID),
@@ -64,8 +64,8 @@ CREATE TABLE LineItems (
     LineItemID INTEGER PRIMARY KEY AUTOINCREMENT,                           -- Invoice Item Identifier
     InvoiceID_FK INTEGER NOT NULL,                                          -- Invoice the Invoice Item belongs to
     ParticipantID_FK INTEGER NOT NULL,                                      -- Every Invoice Item is for a specific Participant
-    BenefitPayment NUMERIC NOT NULL,                                           -- The amount the Participant is required to pay to their Benefit Card
-    PersonalPayment NUMERIC NOT NULL,                                          -- The amount the Participant is required to pay to their personal credit card
+    BenefitPayment NUMERIC NOT NULL,                                        -- The amount the Participant is required to pay to their Benefit Card
+    PersonalPayment NUMERIC NOT NULL,                                       -- The amount the Participant is required to pay to their personal credit card
     IsPaid INTEGER NOT NULL DEFAULT 0,                                      -- Did the Participant make their payment?
     Notes TEXT,                                                             -- Contextual Notes about the Invoice Item
     FOREIGN KEY (InvoiceID_FK) REFERENCES Invoices(InvoiceID),
@@ -89,7 +89,7 @@ CREATE TABLE Transactions (
     CategoryID_FK INTEGER NOT NULL,                                         -- Category Identifier (Foreign Key)
     InvoiceID_FK INTEGER,                                                   -- Invoice Identifier (Foreign Key)
     TransactionDate TEXT NOT NULL,                                          -- Date of the Transaction
-    Amount NUMERIC NOT NULL,                                                   -- Transaction Amount
+    Amount NUMERIC NOT NULL,                                                -- Transaction Amount
     PaymentMethod TEXT,                                                     -- Method of Payment for the Transaction
     Notes TEXT,                                                             -- Contextual Notes about the Transaction
     FOREIGN KEY (VehicleID_FK) REFERENCES Vehicles(VehicleID),
