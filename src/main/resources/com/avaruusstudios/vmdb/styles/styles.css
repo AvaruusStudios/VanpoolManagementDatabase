@@ -203,7 +203,7 @@
     -fx-font-size: 11px; /* Slightly smaller font for status */
 }
 
-/* --- New styles for contentParticipants.fxml and similar content views --- */
+/* --- New styles for dashboardParticipants.fxml and similar content views --- */
 /* Base style for content views loaded into the StackPane */
 .content-view {
     -fx-background-color: -bs-white;

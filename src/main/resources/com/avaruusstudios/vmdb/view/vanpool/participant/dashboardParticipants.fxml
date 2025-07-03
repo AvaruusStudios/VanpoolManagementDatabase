@@ -37,7 +37,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
 
-<VBox xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.avaruusstudios.vmdb.view.vanpool.participant.ContentParticipantController" styleClass="content-view">
+<VBox xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.avaruusstudios.vmdb.view.vanpool.participant.DashboardParticipantController" styleClass="content-view">
     <padding>
         <Insets top="20" right="20" bottom="20" left="20"/>
     </padding>

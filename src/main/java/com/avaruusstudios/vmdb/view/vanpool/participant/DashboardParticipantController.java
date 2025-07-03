@@ -41,7 +41,7 @@ import java.util.Scanner;
  * @see DashboardParticipantView
  * @see Participant
  */
-public class ContentParticipantController {
+public class DashboardParticipantController {
     /**
      * The {@link TableView} displaying a summary list of participants.
      * It is typed to {@link DashboardParticipantView} to match the data structure

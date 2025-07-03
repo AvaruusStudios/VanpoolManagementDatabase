@@ -1,7 +1,7 @@
 package com.avaruusstudios.vmdb.view.main;
 
 import com.avaruusstudios.vmdb.db.DatabaseManager;
-import com.avaruusstudios.vmdb.view.vanpool.participant.ContentParticipantController;
+import com.avaruusstudios.vmdb.view.vanpool.participant.DashboardParticipantController;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -193,7 +193,7 @@ public class MainController {
         });
 
         rosterDashboardButton.setOnAction(event -> {
-            loadView("/com/avaruusstudios/vmdb/view/vanpool/participant/contentParticipants.fxml"); // Load Participants view
+            loadView("/com/avaruusstudios/vmdb/view/vanpool/participant/dashboardParticipants.fxml"); // Load Participants view
         });
 
         billingDashboardButton.setOnAction(event -> {
@@ -280,7 +280,7 @@ public class MainController {
      * The loaded view's controller will be passed a reference to this MainController if it
      * implements a specific interface (e.g., {@code ContentParticipantController}).
      *
-     * @param fxmlPath The classpath path to the FXML file to load (e.g., "/com/avaruusstudios/vmdb/view/contentParticipants.fxml").
+     * @param fxmlPath The classpath path to the FXML file to load (e.g., "/com/avaruusstudios/vmdb/view/dashboardParticipants.fxml").
      */
     private void loadView(String fxmlPath) {
         try {
@@ -292,8 +292,8 @@ public class MainController {
 
             // Pass the MainController instance to the child controller if it needs it.
             // This is a common pattern for child controllers to communicate back to the parent.
-            if (controller instanceof ContentParticipantController) {
-                ((ContentParticipantController) controller).setMainController(this);
+            if (controller instanceof DashboardParticipantController) {
+                ((DashboardParticipantController) controller).setMainController(this);
                 logger.debug("Passed MainController to ContentParticipantController.");
             }
             // Add similar 'if' blocks for other specific content controllers as you create them:

@@ -21,7 +21,7 @@ import javafx.scene.control.TableColumn;
  * a clean and reliable data source for JavaFX {@link javafx.scene.control.TableView} bindings.
  * </p>
  *
- * @see ContentParticipantController
+ * @see DashboardParticipantController
  * @see com.avaruusstudios.vmdb.model.Participant
  */
 public class DashboardParticipantView {
