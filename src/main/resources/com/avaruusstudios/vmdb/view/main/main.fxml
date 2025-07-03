@@ -116,7 +116,7 @@
                 <Button fx:id="routesDashboardButton" maxWidth="Infinity" alignment="CENTER_LEFT" styleClass="nav-button">
                   <graphic>
                     <HBox alignment="CENTER_LEFT" spacing="5.0">
-                      <Label text="Routes" />
+                      <Label text="Locations" />
                       <Region HBox.hgrow="ALWAYS" />
                       <Label fx:id="routesLabel" text="0" style="-fx-font-weight: bold;" />
                     </HBox>
@@ -125,7 +125,7 @@
                 <Button fx:id="rosterDashboardButton" maxWidth="Infinity" alignment="CENTER_LEFT" styleClass="nav-button">
                   <graphic>
                     <HBox alignment="CENTER_LEFT" spacing="5.0">
-                      <Label text="Roster" />
+                      <Label text="Participants" />
                       <Region HBox.hgrow="ALWAYS" />
                       <Label fx:id="rosterLabel" text="0" style="-fx-font-weight: bold;" />
                     </HBox>
