@@ -36,7 +36,6 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<?import javafx.geometry.Insets?>
 <VBox xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.avaruusstudios.vmdb.view.main.MainController">
 
   <MenuBar VBox.vgrow="NEVER">
@@ -67,7 +66,7 @@
   <BorderPane VBox.vgrow="ALWAYS">
 
     <top>
-      <HBox styleClass="header-bar" alignment="CENTER_LEFT" spacing="20.0" style="-fx-padding: 15px;">
+      <HBox styleClass="header-bar" alignment="CENTER_LEFT" spacing="20.0">
         <Label text="Vanpool Management Database">
           <font>
             <Font name="System Bold" size="24.0" />
@@ -75,15 +74,15 @@
         </Label>
         <Region HBox.hgrow="ALWAYS" />
         <VBox>
-          <Label style="-fx-font-weight: bold;" text="Current Date" />
+          <Label styleClass="header-summary-label-key" text="Current Date" />
           <Label fx:id="txtCurrentDate" />
         </VBox>
         <VBox>
-          <Label style="-fx-font-weight: bold;" text="Recent Transaction Date" />
+          <Label styleClass="header-summary-label-key" text="Recent Transaction Date" />
           <Label fx:id="txtRecentTransaction" />
         </VBox>
         <VBox>
-          <Label style="-fx-font-weight: bold;" text="Current Balance" />
+          <Label styleClass="header-summary-label-key" text="Current Balance" />
           <Label fx:id="txtBalance" />
         </VBox>
       </HBox>
@@ -94,13 +93,12 @@
         <Accordion styleClass="left-sidebar" fx:id="mainAccordion" maxWidth="250.0" minWidth="200.0">
           <panes>
             <TitledPane fx:id="vanpoolTitledPane" animated="false" text="Vanpool">
-              <VBox spacing="5.0" style="-fx-padding: 10px;">
+              <VBox spacing="5.0" styleClass="accordion-button-group">
                 <Button fx:id="vanpoolDashboardButton" maxWidth="Infinity" alignment="CENTER_LEFT" styleClass="nav-button">
                   <graphic>
                     <HBox alignment="CENTER_LEFT" spacing="5.0">
                       <Label text="Dashboard" />
                       <Region HBox.hgrow="ALWAYS" />
-<!--                      <Label fx:id="vanpoolDashboardCountLabel" text="0" style="-fx-font-weight: bold;" />-->
                     </HBox>
                   </graphic>
                 </Button>
@@ -109,7 +107,6 @@
                     <HBox alignment="CENTER_LEFT" spacing="5.0">
                       <Label text="Vehicles" />
                       <Region HBox.hgrow="ALWAYS" />
-<!--                      <Label fx:id="vanpoolDashboardCountLabel" text="0" style="-fx-font-weight: bold;" />-->
                     </HBox>
                   </graphic>
                 </Button>
@@ -118,7 +115,7 @@
                     <HBox alignment="CENTER_LEFT" spacing="5.0">
                       <Label text="Locations" />
                       <Region HBox.hgrow="ALWAYS" />
-                      <Label fx:id="routesLabel" text="0" style="-fx-font-weight: bold;" />
+                      <Label fx:id="routesLabel" text="0" styleClass="nav-button-count-label" />
                     </HBox>
                   </graphic>
                 </Button>
@@ -127,20 +124,19 @@
                     <HBox alignment="CENTER_LEFT" spacing="5.0">
                       <Label text="Participants" />
                       <Region HBox.hgrow="ALWAYS" />
-                      <Label fx:id="rosterLabel" text="0" style="-fx-font-weight: bold;" />
+                      <Label fx:id="rosterLabel" text="0" styleClass="nav-button-count-label" />
                     </HBox>
                   </graphic>
                 </Button>
               </VBox>
             </TitledPane>
             <TitledPane fx:id="billingTitledPane" animated="false" text="Billing">
-              <VBox spacing="5.0" style="-fx-padding: 10px;">
+              <VBox spacing="5.0" styleClass="accordion-button-group">
                 <Button fx:id="billingDashboardButton" maxWidth="Infinity" alignment="CENTER_LEFT" styleClass="nav-button">
                   <graphic>
                     <HBox alignment="CENTER_LEFT" spacing="5.0">
                       <Label text="Dashboard" />
                       <Region HBox.hgrow="ALWAYS" />
-<!--                      <Label fx:id="billingDashboardCountLabel" text="0" style="-fx-font-weight: bold;" />-->
                     </HBox>
                   </graphic>
                 </Button>
@@ -149,7 +145,7 @@
                     <HBox alignment="CENTER_LEFT" spacing="5.0">
                       <Label text="Transaction Log" />
                       <Region HBox.hgrow="ALWAYS" />
-                      <Label fx:id="transactionLogLabel" text="0" style="-fx-font-weight: bold;" />
+                      <Label fx:id="transactionLogLabel" text="0" styleClass="nav-button-count-label" />
                     </HBox>
                   </graphic>
                 </Button>
@@ -158,7 +154,7 @@
                     <HBox alignment="CENTER_LEFT" spacing="5.0">
                       <Label text="Invoices" />
                       <Region HBox.hgrow="ALWAYS" />
-                      <Label fx:id="invoicesLabel" text="0" style="-fx-font-weight: bold;" />
+                      <Label fx:id="invoicesLabel" text="0" styleClass="nav-button-count-label" />
                     </HBox>
                   </graphic>
                 </Button>
@@ -174,7 +170,7 @@
     </center>
 
     <bottom>
-      <HBox styleClass="status-bar" alignment="CENTER_LEFT" style="-fx-padding: 5px; -fx-background-color: #f0f0f0; -fx-border-color: #cccccc; -fx-border-width: 1px 0 0 0;">
+      <HBox styleClass="status-bar" alignment="CENTER_LEFT">
         <Label fx:id="statusBarLabel" text="Status: Ready" />
       </HBox>
     </bottom>

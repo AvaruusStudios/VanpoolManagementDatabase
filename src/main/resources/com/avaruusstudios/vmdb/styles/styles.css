@@ -1,5 +1,3 @@
-/* style.css */
-
 /* --- Define Bootstrap-like colors and common values as root variables --- */
 /* These are custom properties (variables) for easier management */
 :root {
@@ -40,10 +38,16 @@
     -fx-border-color: -bs-border-color;
     -fx-border-width: 0 0 1px 0; /* Bottom border for separation */
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 5, 0.0, 0, 2); /* Subtle shadow for depth */
+    -fx-padding: 15px; /* MOVED FROM FXML main.fxml */
 }
 
 .header-bar .label {
     -fx-text-fill: -bs-dark; /* Dark text for header labels */
+}
+
+/* NEW: Style for bold labels in the header summary section (Current Date, Balance, etc.) */
+.header-summary-label-key {
+    -fx-font-weight: bold; /* MOVED FROM FXML main.fxml */
 }
 
 /* --- Left Sidebar Styling (Accordion) --- */
@@ -60,7 +64,6 @@
     -fx-border-width: 0 0 1px 0; /* Subtle bottom border */
     -fx-padding: 10px 12px;
 }
-
 
 .titled-pane:focused > .title { /* This is the key change: ':focused > .title' */
     /* Apply the same blue halo/tint effect as the nav-buttons */
@@ -111,6 +114,10 @@
     -fx-background-radius: 4px 4px 0 0;
 }
 
+/* NEW: Style for VBoxes containing navigation buttons within TitledPanes */
+.accordion-button-group {
+    -fx-padding: 10px; /* MOVED FROM FXML main.fxml */
+}
 
 /* --- Navigation Buttons (within TitledPanes) --- */
 .nav-button {
@@ -144,6 +151,12 @@
     -fx-border-radius: 4px;
     -fx-background-color: transparent; /* Keep background clean if not hovered */
 }
+
+/* NEW: Style for the count labels within navigation buttons (e.g., '0' for Participants, Locations) */
+.nav-button-count-label {
+    -fx-font-weight: bold; /* MOVED FROM FXML main.fxml */
+}
+
 
 /* --- TableView Styling (RENAMED to .data-table) --- */
 .data-table { /* RENAMED FROM .table-view */
@@ -189,13 +202,12 @@
 }
 
 /* --- Status Bar Styling (Bottom HBox - for Main.fxml) --- */
-/* Kept this one as it's for the main application's status bar */
 .status-bar {
-    -fx-background-color: -bs-light; /* Light grey background */
-    -fx-border-color: -bs-border-color;
-    -fx-border-width: 1px 0 0 0; /* Top border */
-    -fx-padding: 5px;
-    -fx-effect: innershadow(gaussian, rgba(0,0,0,0.05), 5, 0.0, 0, -2); /* Subtle shadow from top */
+    -fx-background-color: #f0f0f0; /* MOVED FROM FXML */
+    -fx-border-color: #cccccc; /* MOVED FROM FXML */
+    -fx-border-width: 1px 0 0 0; /* MOVED FROM FXML */
+    -fx-padding: 5px; /* MOVED FROM FXML */
+    -fx-effect: innershadow(gaussian, rgba(0,0,0,0.05), 5, 0.0, 0, -2);
 }
 
 .status-bar .label {
@@ -203,7 +215,9 @@
     -fx-font-size: 11px; /* Slightly smaller font for status */
 }
 
-/* --- New styles for dashboardParticipants.fxml and similar content views --- */
+/* --- New styles for content views loaded into the StackPane --- */
+/* The comment below was updated in a previous step as well */
+/* --- New styles for contentParticipants.fxml and similar content views --- */
 /* Base style for content views loaded into the StackPane */
 .content-view {
     -fx-background-color: -bs-white;
