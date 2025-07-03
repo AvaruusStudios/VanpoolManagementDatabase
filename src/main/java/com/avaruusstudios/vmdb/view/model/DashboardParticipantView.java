@@ -1,6 +1,7 @@
 package com.avaruusstudios.vmdb.view.model;
 
 import com.avaruusstudios.vmdb.model.Program; // Make sure this import is correct
+import com.avaruusstudios.vmdb.view.ContentParticipantController;
 import javafx.scene.control.TableColumn;
 
 /**
@@ -21,7 +22,7 @@ import javafx.scene.control.TableColumn;
  * a clean and reliable data source for JavaFX {@link javafx.scene.control.TableView} bindings.
  * </p>
  *
- * @see com.avaruusstudios.vmdb.view.DashboardParticipantController
+ * @see ContentParticipantController
  * @see com.avaruusstudios.vmdb.model.Participant
  */
 public class DashboardParticipantView {
