@@ -188,6 +188,10 @@ public class MainController {
             loadView("/com/avaruusstudios/vmdb/view/contentVanpoolDashboard.fxml"); // Placeholder FXML
         });
 
+        vehicleDashboardButton.setOnAction(event -> {
+            loadView("/com/avaruusstudios/vmdb/view/contentVehicle.fxml"); // Placeholder FXML
+        });
+
         routesDashboardButton.setOnAction(event -> {
             loadView("/com/avaruusstudios/vmdb/view/contentRoutes.fxml"); // Placeholder FXML
         });
