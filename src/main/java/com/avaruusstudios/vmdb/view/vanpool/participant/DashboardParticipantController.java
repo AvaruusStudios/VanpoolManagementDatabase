@@ -215,7 +215,7 @@ public class DashboardParticipantController {
 
             // --- Update Summary Labels ---
             // Total participants is simply the size of the list
-            lblTotalParticipants.setText(String.valueOf(dashboardParticipants.size()));
+//            lblTotalParticipants.setText(String.valueOf(dashboardParticipants.size()));
             // Count active participants using Java 8 Stream API
             long activeParticipantsCount = dashboardParticipants.stream()
                     .filter(DashboardParticipantView::isActive) // Filters where isActive() returns true
