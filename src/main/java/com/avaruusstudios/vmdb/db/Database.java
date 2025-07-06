@@ -3,7 +3,7 @@ package com.avaruusstudios.vmdb.db;
 import com.avaruusstudios.vmdb.model.ErrorCode;
 import com.avaruusstudios.vmdb.model.EventLog;
 import com.avaruusstudios.vmdb.model.EventType;
-import com.avaruusstudios.vmdb.model.User;
+import com.avaruusstudios.vmdb.model.User; // Assuming User model for EventLog
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
@@ -21,22 +21,20 @@ import java.util.stream.Collectors;
 
 /**
  * <p>
- * Manages the SQLite database file and provides active connections for the Vanpool Management System.
+ * Manages the initial creation and schema application for the SQLite database file
+ * for the Vanpool Management System.
  * This class is solely responsible for:
  * </p>
  * <ul>
- * <li>Verifying database existence and creating the database file if it doesn't exist.</li>
+ * <li>Verifying database file existence.</li>
+ * <li>Creating the database file if it doesn't exist.</li>
  * <li>Executing the initial schema script upon database creation.</li>
- * <li>Providing {@link Connection} objects to other parts of the application,
- * particularly to {@link DatabaseManager} for data manipulation.</li>
  * <li>Ensuring the necessary JDBC driver is loaded.</li>
  * </ul>
  *
  * <p>
- * This class fulfills the role of the database setup handler and connection provider.
- * Data manipulation operations (like SELECT, INSERT, UPDATE, DELETE) are handled
- * by {@link DatabaseManager}, which obtains connections from this class. SQL query
- * strings are loaded externally via {@link com.avaruusstudios.vmdb.util.QueryLoader}.
+ * This class fulfills the role of the database setup handler.
+ * Database connections and transaction management are now handled by {@link DatabaseManager}.
  * </p>
  *
  * <p>
@@ -48,52 +46,11 @@ import java.util.stream.Collectors;
  * @see EventLog
  * @see com.avaruusstudios.vmdb.db.DatabaseInitializationException
  * @see DatabaseManager
- * @see com.avaruusstudios.vmdb.util.QueryLoader
  */
 public class Database {
-    /**
-     * <p>
-     * An instance of {@link Logger} from the SLF4J API.
-     * This logger is used for capturing and outputting diagnostic messages,
-     * such as informational messages about database operations, debugging details,
-     * warnings, and errors.
-     * </p>
-     *
-     * <p>
-     * It allows for flexible logging configuration (e.g., to console, file)
-     * via an underlying logging implementation (like Logback or Log4j2),
-     * independent of the application code.
-     * </p>
-     */
     private static final Logger logger = LoggerFactory.getLogger(Database.class);
-    /**
-     * <p>
-     * The file name for the SQLite database.
-     * This constant defines the local file where all the application's data
-     * will be persistently stored. The database file will be created in the
-     * application's working directory if it does not already exist.
-     * </p>
-     */
     private static final String DATABASE_FILE = "vanpool.db";
-    /**
-     * <p>
-     * The full JDBC (Java Database Connectivity) URL used to establish a connection
-     * to the SQLite database. This URL specifies the protocol (`jdbc:sqlite:`)
-     * and the path to the database file defined by {@link #DATABASE_FILE}.
-     * It's crucial for {@link DriverManager#getConnection(String)} to locate and connect
-     * to the correct database instance.
-     * </p>
-     */
-    private static final String JDBC_URL = "jdbc:sqlite:" + DATABASE_FILE;
-    /**
-     * <p>
-     * The classpath resource path to the SQL schema definition file.
-     * This file, named `schema.sql`, is expected to contain all the
-     * `CREATE TABLE` and `CREATE INDEX` statements necessary to
-     * initialize the database structure from scratch. It is loaded
-     * as a resource from within the application's JAR file.
-     * </p>
-     */
+    private static final String JDBC_URL = "jdbc:sqlite:" + DATABASE_FILE; // Still needed for initial connection in createDatabase
     private static final String SCHEMA_FILEPATH = "/com/avaruusstudios/vmdb/db/schema.sql";
 
     /**
@@ -106,46 +63,17 @@ public class Database {
             Class.forName("org.sqlite.JDBC");
             logger.info("SQLite JDBC driver loaded successfully.");
         } catch (ClassNotFoundException e) {
-            // Log to EventLog and throw a critical error as database operations are impossible without the driver
             logDatabaseError(
-                    null, // No user context during driver load
+                    null,
                     ErrorCode.DB_CONNECTION_FAILED,
                     "Failed to load SQLite JDBC driver: " + e.getMessage(),
-                    "Database.static block",
+                    "Database.static block (driver load)",
                     e
             );
-            // Re-throw as a runtime exception since the application cannot proceed without the driver
-            throw new DatabaseInitializationException("SQLite JDBC driver not found.", e);
+            throw new DatabaseInitializationException("SQLite JDBC driver not found. Cannot initialize database.", e);
         }
     }
-    /**
-     * Establishes a new connection to the SQLite database and returns the active {@link Connection} object.
-     * This method is the primary way for other classes (e.g., {@link DatabaseManager})
-     * to obtain a database connection. Each call to this method will attempt to establish a new physical connection.
-     * <p>
-     * It is the caller's responsibility to close this connection properly
-     * using a try-with-resources statement or a finally block to prevent resource leaks.
-     * </p>
-     *
-     * @return An active {@link Connection} to the database.
-     * @throws SQLException If a database access error occurs during connection establishment.
-     */
-    public static Connection getConnection() throws SQLException { // Reverted to getConnection()
-        try {
-            Connection connection = DriverManager.getConnection(JDBC_URL); // This is where the actual connection happens
-            logger.debug("Database connection established.");
-            return connection;
-        } catch (SQLException e) {
-            logDatabaseError(
-                    null, // No specific user context for connection failure
-                    ErrorCode.DB_CONNECTION_FAILED,
-                    "Failed to establish database connection to " + JDBC_URL + ": " + e.getMessage(),
-                    "Database.getConnection()", // Updated context name
-                    e
-            );
-            throw e; // Re-throw the original SQLException
-        }
-    }
+
     /**
      * Checks if the SQLite database file already exists on the file system.
      *
@@ -154,6 +82,7 @@ public class Database {
     private static boolean databaseExists() {
         return Files.exists(Paths.get(DATABASE_FILE));
     }
+
     /**
      * <p>
      * Initializes the database. If the database file does not exist, it creates the file
@@ -170,16 +99,17 @@ public class Database {
     public static void createDatabase() {
         if (!databaseExists()) {
             logger.info("Database file '{}' not found. Attempting to create...", DATABASE_FILE);
-            try (Connection connection = DriverManager.getConnection(JDBC_URL)) { // This remains DriverManager.getConnection for initial creation flow
+            // Temporarily get a connection just for the creation and schema execution
+            try (Connection connection = DriverManager.getConnection(JDBC_URL)) {
                 if (connection != null) {
                     logger.info("Database '{}' created successfully.", DATABASE_FILE);
                     executeSchema(connection);
                 }
             } catch (SQLException e) {
                 logDatabaseError(
-                        null, // User context might be null during app init
+                        null,
                         ErrorCode.DB_CONNECTION_FAILED,
-                        "Error creating database connection for '" + DATABASE_FILE + "': " + e.getMessage(),
+                        "Error creating database file and connection for '" + DATABASE_FILE + "': " + e.getMessage(),
                         "Database.createDatabase()",
                         e
                 );
@@ -189,19 +119,14 @@ public class Database {
             logger.info("Database '{}' already exists. Skipping creation.", DATABASE_FILE);
         }
     }
+
     /**
      * <p>
      * Executes the SQL statements contained in the `schema.sql` classpath resource.
      * This method is typically called only when the database is first created.
      * </p>
      *
-     * <p>
-     * The SQL script is split by semicolons. While generally effective for DDL statements,
-     * this simple parsing mechanism may be insufficient for complex SQL scripts containing
-     * semicolons within string literals, comments, or procedural blocks.
-     * </p>
-     *
-     * @param connection The active {@link Connection} to the database.
+     * @param connection The active {@link Connection} to the database for schema execution.
      * @throws DatabaseInitializationException If an error occurs while reading the schema file or executing SQL.
      */
     private static void executeSchema(Connection connection) {
@@ -222,8 +147,6 @@ public class Database {
             }
 
             String sqlStatements = reader.lines().collect(Collectors.joining("\n"));
-            // Split by semicolon, optionally followed by whitespace and a newline,
-            // to handle statements separated by just ';' or ';<newline>'
             String[] individualStatements = sqlStatements.split(";\\s*\\n?");
 
             try (Statement statement = connection.createStatement()) {
@@ -259,36 +182,17 @@ public class Database {
             throw new DatabaseInitializationException(errorMsg, e);
         }
     }
+
     /**
-     * <p>
      * Logs database-related errors to the application's logger and creates an {@link EventLog} entry.
      * This method centralizes error logging during critical database initialization steps.
-     * </p>
-     *
-     * <p>
-     * Note: For simplicity in a static `Database` utility, a `null` {@link User} is passed
-     * if no user context is available (e.g., during application startup). In other parts of the application,
-     * a specific {@link User} object would be provided.
-     * </p>
-     *
-     * @param user        The {@link User} associated with the error, or {@code null} if no specific user context.
-     * @param errorCode   The {@link ErrorCode} enum value representing the specific error. Can be {@code null} if no specific internal code applies.
-     * @param description A descriptive message for the error.
-     * @param context     A string indicating where the error occurred (e.g., "Database.getConnection()").
-     * @param cause       The underlying {@link Throwable} cause of the error, or {@code null} if no specific cause.
      */
     private static void logDatabaseError(User user, ErrorCode errorCode, String description, String context, Throwable cause) {
-        // Log to standard logger (e.g., console/file via Logback/Log4j2)
         if (cause != null) {
             logger.error("[{}]: {}", context, description, cause);
         } else {
             logger.error("[{}]: {}", context, description);
         }
-
-        // Create and log to EventLog (assuming a mechanism to save EventLog exists,
-        // or a simple static method to directly create an EventLog instance).
-        // For actual persistence, this would ideally go through an EventLogDAO.
-        // For now, we'll just instantiate it; actual saving would happen later.
         EventLog eventLog = new EventLog(
                 user,
                 LocalDateTime.now(),
