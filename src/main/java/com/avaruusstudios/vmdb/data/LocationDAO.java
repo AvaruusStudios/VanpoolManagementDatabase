@@ -33,8 +33,10 @@ public interface LocationDAO extends GenericDAO<Location, Integer> {
      * @param city The city (e.g., "Anytown").
      * @param state The state (e.g., "CA").
      * @param zipCode The zip code (e.g., "90210").
+     *
      * @return An {@link Optional} containing the {@link Location} if a match is found,
      * or an empty {@link Optional} if no location exists with the given address details.
+     *
      * @throws DatabaseAccessObjectException If a database access error occurs during the lookup.
      */
     Optional<Location> findByAddress(String address, String city, String state, String zipCode) throws DatabaseAccessObjectException;
