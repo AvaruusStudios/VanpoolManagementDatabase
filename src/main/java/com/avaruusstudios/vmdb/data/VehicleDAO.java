@@ -22,6 +22,7 @@ import java.util.Optional;
  * @author [Your Name/AvaruusStudios]
  * @version 1.2 // Updated version due to method removal based on business rule clarification
  * @since 2025-07-05
+ *
  * @see GenericDAO
  * @see Vehicle
  * @see DatabaseAccessObjectException
