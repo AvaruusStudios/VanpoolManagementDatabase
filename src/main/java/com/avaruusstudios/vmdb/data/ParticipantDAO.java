@@ -21,7 +21,7 @@ import java.util.Optional;
  *
  * @see GenericDAO
  * @see Participant
- * @see DAOException
+ * @see DatabaseAccessObjectException
  */
 public interface ParticipantDAO extends GenericDAO<Participant, Integer> {
 
@@ -34,9 +34,9 @@ public interface ParticipantDAO extends GenericDAO<Participant, Integer> {
      * @param email The email address of the participant to find.
      * @return An {@link Optional} containing the {@link Participant} if found, or an
      * empty {@link Optional} if no participant exists with the given email.
-     * @throws DAOException If a database access error occurs during the lookup.
+     * @throws DatabaseAccessObjectException If a database access error occurs during the lookup.
      */
-    Optional<Participant> findByEmail(String email) throws DAOException;
+    Optional<Participant> findByEmail(String email) throws DatabaseAccessObjectException;
 
     /**
      * <p>
@@ -45,9 +45,9 @@ public interface ParticipantDAO extends GenericDAO<Participant, Integer> {
      *
      * @return A {@link List} of active {@link Participant} objects. Returns an empty list
      * if no active participants are found.
-     * @throws DAOException If a database access error occurs during retrieval.
+     * @throws DatabaseAccessObjectException If a database access error occurs during retrieval.
      */
-    List<Participant> findActiveParticipants() throws DAOException;
+    List<Participant> findActiveParticipants() throws DatabaseAccessObjectException;
 
     /**
      * <p>
@@ -55,9 +55,9 @@ public interface ParticipantDAO extends GenericDAO<Participant, Integer> {
      * </p>
      *
      * @return The count of active participants.
-     * @throws DAOException If a database access error occurs during counting.
+     * @throws DatabaseAccessObjectException If a database access error occurs during counting.
      */
-    long countActiveParticipants() throws DAOException;
+    long countActiveParticipants() throws DatabaseAccessObjectException;
 
     // You would add any other Participant-specific queries here, for example:
     // List<Participant> findParticipantsByLastName(String lastName) throws DAOException;

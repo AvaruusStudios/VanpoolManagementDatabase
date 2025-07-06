@@ -54,12 +54,12 @@ public interface GenericDAO<T, K> {
      * Its non-primary key fields should contain the data to be stored.
      * @return The created entity object, which may include a database-generated primary key
      * if applicable. This object represents the state of the entity as stored.
-     * @throws DAOException if a database access error occurs during the insertion process,
+     * @throws DatabaseAccessObjectException if a database access error occurs during the insertion process,
      * if constraints are violated (e.g., unique key violation),
      * or if the creation operation otherwise fails. The underlying
      * {@code SQLException} will be wrapped within this custom exception.
      */
-    T createRecord(T entity) throws DAOException;
+    T createRecord(T entity) throws DatabaseAccessObjectException;
     /**
      * <p>
      * Retrieves a single record of the entity from the database based on its primary key.
@@ -76,10 +76,10 @@ public interface GenericDAO<T, K> {
      * entity record to retrieve. This uniquely identifies the record in the database.
      * @return An {@code Optional<T>} containing the entity object if a record with the
      * specified ID is found in the database; otherwise, an empty {@code Optional}.
-     * @throws DAOException if a database access error occurs during the retrieval process.
+     * @throws DatabaseAccessObjectException if a database access error occurs during the retrieval process.
      * The underlying {@code SQLException} will be wrapped.
      */
-    Optional<T> readRecord(K id) throws DAOException;
+    Optional<T> readRecord(K id) throws DatabaseAccessObjectException;
     /**
      * <p>
      * Retrieves all records of the entity from the database.
@@ -95,10 +95,10 @@ public interface GenericDAO<T, K> {
      * @return A {@code List<T>} containing all entity objects found in the corresponding
      * database table. Returns an empty list if no records are present.
      * The list will not be {@code null}.
-     * @throws DAOException if a database access error occurs during the retrieval process.
+     * @throws DatabaseAccessObjectException if a database access error occurs during the retrieval process.
      * The underlying {@code SQLException} will be wrapped.
      */
-    List<T> readRecordAll() throws DAOException;
+    List<T> readRecordAll() throws DatabaseAccessObjectException;
     /**
      * <p>
      * Updates an existing record of the entity in the database.
@@ -114,12 +114,12 @@ public interface GenericDAO<T, K> {
      *
      * @param entity The entity object (instance of type {@code T}) with its primary key
      * set and updated values for other fields.
-     * @throws DAOException if a database access error occurs during the update process,
+     * @throws DatabaseAccessObjectException if a database access error occurs during the update process,
      * if no record with the given primary key is found to update,
      * or if the update operation otherwise fails (e.g., due to constraints).
      * The underlying {@code SQLException} will be wrapped.
      */
-    void updateRecord(T entity) throws DAOException;
+    void updateRecord(T entity) throws DatabaseAccessObjectException;
     /**
      * <p>
      * Deletes a record of the entity from the database based on its primary key.
@@ -134,10 +134,10 @@ public interface GenericDAO<T, K> {
      *
      * @param id The primary key (of type {@code K}, typically {@code Integer}) of the
      * entity record to delete. This uniquely identifies the record to be removed.
-     * @throws DAOException if a database access error occurs during the deletion process.
+     * @throws DatabaseAccessObjectException if a database access error occurs during the deletion process.
      * The underlying {@code SQLException} will be wrapped.
      */
-    void deleteRecord(K id) throws DAOException;
+    void deleteRecord(K id) throws DatabaseAccessObjectException;
     /**
      * <p>
      * Counts the total number of records for the specific entity type in the database.
@@ -147,8 +147,8 @@ public interface GenericDAO<T, K> {
      * @return The total count of records (rows) present in the database table
      * corresponding to the entity type {@code T}. Returns {@code 0} if no
      * records are found.
-     * @throws DAOException if a database access error occurs during the counting process.
+     * @throws DatabaseAccessObjectException if a database access error occurs during the counting process.
      * The underlying {@code SQLException} will be wrapped.
      */
-    long countRecord() throws DAOException;
+    long countRecord() throws DatabaseAccessObjectException;
 }
