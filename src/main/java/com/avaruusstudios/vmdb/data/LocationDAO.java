@@ -1,7 +1,8 @@
 package com.avaruusstudios.vmdb.data;
 
-import com.avaruusstudios.vmdb.model.Location; // Assuming your Location POJO is here
+import com.avaruusstudios.vmdb.model.Location;
 import java.util.Optional;
+
 
 /**
  * <p>
@@ -15,8 +16,8 @@ import java.util.Optional;
  * </p>
  *
  * @author [Your Name/AvaruusStudios]
- * @version 1.1 // Updated version due to method removal
- * @since 2025-07-06
+ * @version 1.2 // Updated version due to method addition based on schema review
+ * @since 2025-07-06 // Original creation date
  *
  * @see GenericDAO
  * @see Location
@@ -29,15 +30,24 @@ public interface LocationDAO extends GenericDAO<Location, Integer> {
      * This could be used for verifying if a specific address already exists in the system.
      * </p>
      *
-     * @param address The street address (e.g., "123 Main St").
+     * @param streetAddress The street address (e.g., "123 Main St").
      * @param city The city (e.g., "Anytown").
      * @param state The state (e.g., "CA").
      * @param zipCode The zip code (e.g., "90210").
-     *
      * @return An {@link Optional} containing the {@link Location} if a match is found,
      * or an empty {@link Optional} if no location exists with the given address details.
-     *
      * @throws DatabaseAccessObjectException If a database access error occurs during the lookup.
      */
-    Optional<Location> findByAddress(String address, String city, String state, String zipCode) throws DatabaseAccessObjectException;
+    Optional<Location> findByAddress(String streetAddress, String city, String state, String zipCode) throws DatabaseAccessObjectException;
+    /**
+     * <p>
+     * Finds a {@link Location} record by its unique name.
+     * </p>
+     *
+     * @param locationName The name of the location to find (e.g., "Main Office", "South Parking Lot").
+     * @return An {@link Optional} containing the {@link Location} if found, or an
+     * empty {@link Optional} if no location exists with the given name.
+     * @throws DatabaseAccessObjectException If a database access error occurs during the lookup.
+     */
+    Optional<Location> findByLocationName(String locationName) throws DatabaseAccessObjectException;
 }
