@@ -1,6 +1,13 @@
 package com.avaruusstudios.vmdb.model;
 
-import javafx.beans.property.*; // Import JavaFX property classes
+import javafx.beans.property.BooleanProperty; // Import JavaFX property classes
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty; // New import for SimpleBooleanProperty
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+
 import java.math.BigDecimal;
 import java.util.Objects;
 
@@ -14,7 +21,7 @@ import java.util.Objects;
  * <p>
  * This class encapsulates the unique identifier for the item, references to its parent invoice
  * and the involved participant, the composite {@link Amount} representing benefit and personal payments,
- * a flag indicating the official payment status, and any relevant notes.
+ * a flag indicating the official payment status, an active status for soft deletion, and any relevant notes.
  * The payment status (`isPaid`) is determined by external transaction matching logic,
  * rather than a stored `paidAmount` field.
  * </p>
@@ -59,6 +66,12 @@ public class LineItem {
      */
     private final BooleanProperty isPaid;
     /**
+     * Indicates whether the line item is currently active or has been logically deleted/deactivated.
+     * (corresponds to {@code IsActive INTEGER NOT NULL DEFAULT 1} in the database).
+     * `true` (1) for active, `false` (0) for inactive.
+     */
+    private final BooleanProperty isActive;
+    /**
      * Optional notes or contextual information about the invoice line item.
      * Corresponds to {@code Notes TEXT} in the database.
      */
@@ -69,6 +82,8 @@ public class LineItem {
      * The {@code invoiceItemID} is set to {@code null} to explicitly indicate that
      * this invoice line item has not yet been assigned a unique ID by the database.
      * This constructor initializes the {@code amountDue} field with a default {@link Amount} object.
+     * Initializes other properties to default/null values to ensure a stable state,
+     * including setting `isPaid` to `false` and `isActive` to `true` by default.
      * This constructor is primarily used by frameworks that instantiate objects
      * via reflection (e.g., ORMs, JSON deserializers) before populating their fields.
      */
@@ -78,8 +93,10 @@ public class LineItem {
         this.participant = new SimpleObjectProperty<>(this, "participant");
         this.amountDue = new SimpleObjectProperty<>(this, "amountDue", new Amount()); // Ensure Amount is always initialized
         this.isPaid = new SimpleBooleanProperty(this, "isPaid", false); // Default to unpaid
+        this.isActive = new SimpleBooleanProperty(this, "isActive", true); // Default to active
         this.notes = new SimpleStringProperty(this, "notes");
     }
+
     /**
      * Full constructor to initialize all fields of an {@code LineItem} instance.
      * This constructor is typically used when loading an *existing* invoice line item
@@ -91,24 +108,28 @@ public class LineItem {
      * @param participant       The {@link Participant} object for whom this item is generated. Must not be {@code null}.
      * @param amountDue         The {@link Amount} object representing the required benefit and personal payments. Must not be {@code null}.
      * @param isPaid            A boolean indicating if the full amount due for this item has been officially paid.
+     * @param isActive          The active status of the line item (true for active, false for inactive/deleted).
      * @param notes             Any optional notes or additional information about the invoice item. Can be {@code null}.
      * @throws NullPointerException if `invoiceItemID`, `invoice`, `participant`, or `amountDue` are {@code null}.
      */
     public LineItem(Integer invoiceItemID, Invoice invoice, Participant participant,
-                    Amount amountDue, boolean isPaid, String notes) {
+                    Amount amountDue, boolean isPaid, boolean isActive, String notes) {
         this.invoiceItemID = new SimpleObjectProperty<>(this, "invoiceItemID", Objects.requireNonNull(invoiceItemID, "Invoice item ID cannot be null for an existing item."));
         this.invoice = new SimpleObjectProperty<>(this, "invoice");
         this.participant = new SimpleObjectProperty<>(this, "participant");
         this.amountDue = new SimpleObjectProperty<>(this, "amountDue");
         this.isPaid = new SimpleBooleanProperty(this, "isPaid");
+        this.isActive = new SimpleBooleanProperty(this, "isActive"); // Initialize new property
         this.notes = new SimpleStringProperty(this, "notes");
 
         setInvoice(invoice);
         setParticipant(participant);
         setAmountDue(amountDue);
         setIsPaid(isPaid); // Use setter for consistency
+        setIsActive(isActive); // Set the new property
         setNotes(notes);
     }
+
     /**
      * Convenience constructor for creating a new {@code LineItem} object that doesn't yet have a database ID.
      * This constructor is ideal when preparing a new invoice line item record for **insertion** into the database.
@@ -124,8 +145,8 @@ public class LineItem {
      */
     public LineItem(Invoice invoice, Participant participant,
                     Amount amountDue, boolean isPaid, String notes) {
-        // Call the full constructor with null for invoiceItemID
-        this(null, invoice, participant, amountDue, isPaid, notes);
+        // Call the full constructor with null for invoiceItemID and isActive defaulting to true
+        this(null, invoice, participant, amountDue, isPaid, true, notes);
     }
 
     // ---------------------
@@ -146,6 +167,7 @@ public class LineItem {
     public ReadOnlyObjectProperty<Integer> invoiceItemIDProperty() {
         return invoiceItemID;
     }
+
     /**
      * Retrieves the {@link ObjectProperty} for the {@link Invoice} object
      * to which this line item belongs.
@@ -155,6 +177,7 @@ public class LineItem {
     public ObjectProperty<Invoice> invoiceProperty() {
         return invoice;
     }
+
     /**
      * Retrieves the {@link ObjectProperty} for the {@link Participant} object
      * for whom this line item is generated.
@@ -164,6 +187,7 @@ public class LineItem {
     public ObjectProperty<Participant> participantProperty() {
         return participant;
     }
+
     /**
      * Retrieves the {@link ObjectProperty} for the {@link Amount} object
      * representing the required benefit and personal payments.
@@ -173,6 +197,7 @@ public class LineItem {
     public ObjectProperty<Amount> amountDueProperty() {
         return amountDue;
     }
+
     /**
      * Retrieves the {@link BooleanProperty} indicating whether the line item is paid.
      *
@@ -181,6 +206,17 @@ public class LineItem {
     public BooleanProperty isPaidProperty() {
         return isPaid;
     }
+
+    /**
+     * Retrieves the {@link BooleanProperty} for the active status of the line item.
+     * This property corresponds to the {@code IsActive} column in the database.
+     *
+     * @return The {@link BooleanProperty} for {@code isActive}.
+     */
+    public BooleanProperty isActiveProperty() {
+        return isActive;
+    }
+
     /**
      * Retrieves the {@link StringProperty} for any optional notes.
      *
@@ -204,6 +240,7 @@ public class LineItem {
     public Integer getInvoiceItemID() {
         return invoiceItemID.get();
     }
+
     /**
      * Sets the unique ID for this invoice line item. This method is designed to be package-private
      * and is primarily for use by data access objects (DAOs) when an ID is generated
@@ -214,7 +251,7 @@ public class LineItem {
      * </p>
      *
      * @param id The unique integer ID assigned by the database.
-     * @throws IllegalStateException if the ID has already been assigned to this object.
+     * @throws IllegalStateException    if the ID has already been assigned to this object.
      * @throws IllegalArgumentException if the provided ID is {@code null} or non-positive.
      */
     void _setInvoiceItemID(Integer id) { // Package-private for DAO use only
@@ -226,6 +263,7 @@ public class LineItem {
         }
         ((SimpleObjectProperty<Integer>) this.invoiceItemID).set(id);
     }
+
     /**
      * Retrieves the {@link Invoice} object to which this invoice line item belongs.
      * Corresponds to the {@code InvoiceID_FK} column in the database.
@@ -235,6 +273,7 @@ public class LineItem {
     public Invoice getInvoice() {
         return invoice.get();
     }
+
     /**
      * Sets the {@link Invoice} object to which this invoice line item belongs.
      *
@@ -244,6 +283,7 @@ public class LineItem {
     public void setInvoice(Invoice invoice) {
         this.invoice.set(Objects.requireNonNull(invoice, "Invoice cannot be null."));
     }
+
     /**
      * Retrieves the {@link Participant} object for whom this invoice line item is generated.
      * Corresponds to the {@code ParticipantID_FK} column in the database.
@@ -253,6 +293,7 @@ public class LineItem {
     public Participant getParticipant() {
         return participant.get();
     }
+
     /**
      * Sets the {@link Participant} object for whom this invoice line item is generated.
      *
@@ -262,6 +303,7 @@ public class LineItem {
     public void setParticipant(Participant participant) {
         this.participant.set(Objects.requireNonNull(participant, "Participant cannot be null."));
     }
+
     /**
      * Retrieves the {@link Amount} object representing the required benefit and personal payments.
      * Corresponds to {@code BenefitPayment} and {@code PersonalPayment} columns in the database.
@@ -271,6 +313,7 @@ public class LineItem {
     public Amount getAmountDue() {
         return amountDue.get();
     }
+
     /**
      * Sets the {@link Amount} object representing the required benefit and personal payments.
      *
@@ -280,6 +323,7 @@ public class LineItem {
     public void setAmountDue(Amount amountDue) {
         this.amountDue.set(Objects.requireNonNull(amountDue, "Amount due cannot be null."));
     }
+
     /**
      * Checks if the participant has officially paid for this invoice line item based on the stored flag.
      * Corresponds to the {@code IsPaid} column in the database.
@@ -289,6 +333,7 @@ public class LineItem {
     public boolean getIsPaid() {
         return isPaid.get();
     }
+
     /**
      * Sets whether the participant has officially paid for this invoice line item.
      * Corresponds to the {@code IsPaid} column in the database.
@@ -298,6 +343,25 @@ public class LineItem {
     public void setIsPaid(boolean paid) {
         this.isPaid.set(paid);
     }
+
+    /**
+     * Retrieves the active status of the line item.
+     *
+     * @return {@code true} if the line item is active, {@code false} if it's inactive/logically deleted.
+     */
+    public boolean getIsActive() {
+        return isActive.get();
+    }
+
+    /**
+     * Sets the active status of the line item.
+     *
+     * @param isActive {@code true} to mark the line item as active, {@code false} for inactive/logically deleted.
+     */
+    public void setIsActive(boolean isActive) {
+        this.isActive.set(isActive);
+    }
+
     /**
      * Retrieves any optional notes or contextual information about the invoice line item.
      * Corresponds to the {@code Notes} column in the database.
@@ -307,6 +371,7 @@ public class LineItem {
     public String getNotes() {
         return notes.get();
     }
+
     /**
      * Sets additional notes or contextual information for this invoice line item.
      * If the provided notes are not {@code null}, leading and trailing whitespace will be stripped.
@@ -347,11 +412,12 @@ public class LineItem {
      * </p>
      * <p>
      * The format includes the invoice item ID, the parent invoice's ID,
-     * the associated participant's ID, the total amount due, and the official paid status.
+     * the associated participant's ID, the total amount due, the official paid status,
+     * and the active status.
      * </p>
      *
      * @return A string in the format:
-     * "LineItem{ID=..., InvoiceID=..., ParticipantID=..., AmountDue=..., IsPaid=...}"
+     * "LineItem{ID=..., InvoiceID=..., ParticipantID=..., AmountDue=..., IsPaid=..., IsActive=...}"
      */
     @Override
     public String toString() {
@@ -361,8 +427,11 @@ public class LineItem {
                 ", participantID=" + (getParticipant() != null ? getParticipant().getParticipantID() : "null") + // Use getter
                 ", amountDue=" + (getAmountDue() != null ? getAmountDue().toString() : "null") + // Use getter
                 ", isPaid=" + getIsPaid() + // Use getter
+                ", isActive=" + getIsActive() + // Added isActive to toString
+                ", notes='" + getNotes() + '\'' + // Added notes to toString
                 '}';
     }
+
     /**
      * <p>
      * Indicates whether some other object is "equal to" this one.
@@ -385,6 +454,7 @@ public class LineItem {
         // Equality is based on the primary key (invoiceItemID), safely handling null Integer
         return Objects.equals(getInvoiceItemID(), that.getInvoiceItemID()); // Use getters
     }
+
     /**
      * <p>
      * Returns a hash code value for the object. This method is supported for the benefit of
