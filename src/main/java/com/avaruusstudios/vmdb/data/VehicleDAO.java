@@ -1,6 +1,7 @@
 package com.avaruusstudios.vmdb.data;
 
 import com.avaruusstudios.vmdb.model.Vehicle;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -20,7 +21,7 @@ import java.util.Optional;
  * </p>
  *
  * @author [Your Name/AvaruusStudios]
- * @version 1.2 // Updated version due to method removal based on business rule clarification
+ * @version 1.5 // Updated version due to method removal
  * @since 2025-07-05
  *
  * @see GenericDAO
@@ -28,7 +29,6 @@ import java.util.Optional;
  * @see DatabaseAccessObjectException
  */
 public interface VehicleDAO extends GenericDAO<Vehicle, Integer> {
-
     /**
      * <p>
      * Finds a {@link Vehicle} record by its unique vehicle number.
@@ -40,7 +40,6 @@ public interface VehicleDAO extends GenericDAO<Vehicle, Integer> {
      * @throws DatabaseAccessObjectException If a database access error occurs during the lookup.
      */
     Optional<Vehicle> findByVehicleNumber(String vehicleNumber) throws DatabaseAccessObjectException;
-
     /**
      * <p>
      * Retrieves the single active {@link Vehicle} record from the database.
@@ -52,4 +51,37 @@ public interface VehicleDAO extends GenericDAO<Vehicle, Integer> {
      * @throws DatabaseAccessObjectException If a database access error occurs during retrieval.
      */
     Optional<Vehicle> findActiveVehicle() throws DatabaseAccessObjectException;
+    /**
+     * <p>
+     * Retrieves a list of {@link Vehicle} records that match the specified make.
+     * </p>
+     *
+     * @param make The make of the vehicle (e.g., "Toyota").
+     * @return A {@link List} of {@link Vehicle} objects matching the specified make.
+     * Returns an empty list if no matching vehicles are found.
+     * @throws DatabaseAccessObjectException If a database access error occurs during retrieval.
+     */
+    List<Vehicle> findByMake(String make) throws DatabaseAccessObjectException;
+    /**
+     * <p>
+     * Retrieves a list of {@link Vehicle} records that match the specified model.
+     * </p>
+     *
+     * @param model The model of the vehicle (e.g., "Sienna").
+     * @return A {@link List} of {@link Vehicle} objects matching the specified model.
+     * Returns an empty list if no matching vehicles are found.
+     * @throws DatabaseAccessObjectException If a database access error occurs during retrieval.
+     */
+    List<Vehicle> findByModel(String model) throws DatabaseAccessObjectException;
+    /**
+     * <p>
+     * Retrieves a list of {@link Vehicle} records that match the specified year.
+     * </p>
+     *
+     * @param year The year of the vehicle (e.g., 2020).
+     * @return A {@link List} of {@link Vehicle} objects matching the specified year.
+     * Returns an empty list if no matching vehicles are found.
+     * @throws DatabaseAccessObjectException If a database access error occurs during retrieval.
+     */
+    List<Vehicle> findByYear(int year) throws DatabaseAccessObjectException;
 }
