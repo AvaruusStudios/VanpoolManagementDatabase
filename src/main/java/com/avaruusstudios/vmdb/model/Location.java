@@ -1,7 +1,6 @@
 package com.avaruusstudios.vmdb.model;
 
 import javafx.beans.property.*; // Essential JavaFX property classes for reactive data binding
-
 import java.util.Objects;
 
 /**
@@ -72,6 +71,12 @@ public class Location {
      */
     private final ObjectProperty<Double> longitude;
     /**
+     * Indicates whether the location is currently active or has been logically deleted/deactivated.
+     * (corresponds to {@code IsActive INTEGER NOT NULL DEFAULT 1} in the database).
+     * `true` (1) for active, `false` (0) for inactive.
+     */
+    private final BooleanProperty isActive;
+    /**
      * Optional free-form text for additional notes or administrative comments specific to this location.
      * (corresponds to {@code Notes TEXT} in the database).
      */
@@ -86,7 +91,7 @@ public class Location {
      * via reflection (e.g., ORMs, JSON deserializers) before populating their fields.
      */
     public Location() {
-        this(null, "", "", "", "", "", null, null, "");
+        this(null, "", "", "", "", "", null, null, true, ""); // Default to active
     }
     /**
      * Full constructor to initialize all fields of a {@code Location} instance.
@@ -103,11 +108,12 @@ public class Location {
      * @param latitude      The geographical latitude coordinate. Can be {@code null}.
      * @param longitude     The geographical longitude coordinate. Can be {@code null}.
      * @param notes         Optional notes or a detailed description. Can be {@code null}.
+     * @param isActive      The active status of the location (true for active, false for inactive/deleted).
      *
      * @throws IllegalArgumentException if any mandatory string fields are empty/null or coordinates are out of valid range.
      * @throws IllegalStateException    if `locationID` is attempted to be changed once set.
      */
-    public Location(Integer locationID, String locationName, String address, String city, String state, String zipCode, Double latitude, Double longitude, String notes) {
+    public Location(Integer locationID, String locationName, String address, String city, String state, String zipCode, Double latitude, Double longitude, Boolean isActive, String notes) {
         this.locationID = new SimpleObjectProperty<>(this, "locationID", locationID);
         this.locationName = new SimpleStringProperty(this, "locationName");
         this.address = new SimpleStringProperty(this, "address");
@@ -116,6 +122,7 @@ public class Location {
         this.zipCode = new SimpleStringProperty(this, "zipCode");
         this.latitude = new SimpleObjectProperty<>(this, "latitude");
         this.longitude = new SimpleObjectProperty<>(this, "longitude");
+        this.isActive = new SimpleBooleanProperty(this, "isActive");
         this.notes = new SimpleStringProperty(this, "notes");
 
         setLocationName(locationName);
@@ -126,6 +133,7 @@ public class Location {
         setLatitude(latitude);
         setLongitude(longitude);
         setNotes(notes);
+        setIsActive(isActive); // Set the new property
     }
     /**
      * Convenience constructor for creating a new {@code Location} object that doesn't yet have a database ID.
@@ -145,7 +153,7 @@ public class Location {
      * @throws IllegalArgumentException if any mandatory string fields are empty/null or coordinates are out of valid range.
      */
     public Location(String locationName, String address, String city, String state, String zipCode, Double latitude, Double longitude, String notes) {
-        this(null, locationName, address, city, state, zipCode, latitude, longitude, notes);
+        this(null, locationName, address, city, state, zipCode, latitude, longitude, true, notes); // Default to active for new instances
     }
 
     // --- JavaFX Property Accessors ---
@@ -226,6 +234,15 @@ public class Location {
      */
     public ObjectProperty<Double> longitudeProperty() {
         return longitude;
+    }
+    /**
+     * Retrieves the {@link BooleanProperty} for the active status of the location.
+     * This property corresponds to the {@code IsActive} column in the database.
+     *
+     * @return The {@link BooleanProperty} for {@code isActive}.
+     */
+    public BooleanProperty isActiveProperty() {
+        return isActive;
     }
     /**
      * Retrieves the {@link StringProperty} for any additional notes pertaining to the location.
@@ -455,6 +472,22 @@ public class Location {
             throw new IllegalArgumentException("Longitude must be between -180 and +180 degrees.");
         }
         this.longitude.set(longitude);
+    }
+    /**
+     * Retrieves the active status of the location.
+     *
+     * @return {@code true} if the location is active, {@code false} if it's inactive/logically deleted.
+     */
+    public boolean getIsActive() {
+        return isActive.get();
+    }
+    /**
+     * Sets the active status of the location.
+     *
+     * @param isActive {@code true} to mark the location as active, {@code false} for inactive/logically deleted.
+     */
+    public void setIsActive(boolean isActive) {
+        this.isActive.set(isActive);
     }
     /**
      * Retrieves any additional notes or administrative comments for the location.
