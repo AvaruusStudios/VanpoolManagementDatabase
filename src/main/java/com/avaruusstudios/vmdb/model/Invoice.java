@@ -1,6 +1,13 @@
 package com.avaruusstudios.vmdb.model;
 
-import javafx.beans.property.*; // Import JavaFX property classes
+import javafx.beans.property.BooleanProperty; // New import for boolean property
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty; // New import for simple boolean property
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+
 import java.math.BigDecimal; // Keep if LineItem uses it, though not directly in Invoice properties
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -17,8 +24,8 @@ import java.time.temporal.ChronoUnit; // Import for calculating days difference
  * <p>
  * A singular invoice contains metadata such as its unique identifier, the date it was prepared,
  * its due date, the billing period it covers, the associated {@link Vehicle} object, its
- * {@link InvoiceType}, and any relevant notes. This object structure directly reflects the schema
- * used for the {@code Invoices} table in the SQLite database to track billing records, where
+ * {@link InvoiceType}, any relevant notes, and its active status for soft deletion.
+ * This object structure directly reflects the schema used for the {@code Invoices} table in the SQLite database to track billing records, where
  * {@code VehicleID_FK} and {@code InvoiceType} are now represented by embedded objects.
  * </p>
  *
@@ -70,11 +77,17 @@ public class Invoice {
      */
     private final ObjectProperty<Vehicle> vehicle;
     /**
-     * Optional notes or comments regarding the invoice.
-     * This field can contain administrative remarks, specific payment instructions,
-     * or a summary of the invoice's purpose (corresponds to {@code Notes TEXT} in the database).
+     * Optional free-form text for additional notes or administrative comments specific to this location.
+     * (corresponds to {@code Notes TEXT} in the database).
      */
     private final StringProperty notes;
+    /**
+     * Indicates whether the invoice is currently active or has been logically deleted/deactivated.
+     * (corresponds to {@code IsActive INTEGER NOT NULL DEFAULT 1} in the database).
+     * `true` (1) for active, `false` (0) for inactive.
+     */
+    private final BooleanProperty isActive;
+
 
     /**
      * Default constructor for creating an empty {@code Invoice} object.
@@ -85,20 +98,10 @@ public class Invoice {
      * via reflection (e.g., ORMs, JSON deserializers) before populating their fields.
      */
     public Invoice() {
-        this.invoiceID = new SimpleObjectProperty<>(this, "invoiceID", null);
-        this.invoiceType = new SimpleObjectProperty<>(this, "invoiceType");
-        this.invoiceDate = new SimpleObjectProperty<>(this, "invoiceDate");
-        this.dueDate = new SimpleObjectProperty<>(this, "dueDate");
-        this.periodLabel = new SimpleObjectProperty<>(this, "periodLabel");
-        this.vehicle = new SimpleObjectProperty<>(this, "vehicle");
-        this.notes = new SimpleStringProperty(this, "notes");
-
-        // Set sensible defaults for required fields, consistent with validation rules
-        setInvoiceDate(LocalDate.now()); // Sets invoiceDate to current date by default
-        setDueDate(LocalDate.now().plusDays(7)); // Sets a default due date 7 days from now
-        // invoiceType, periodLabel, and vehicle need to be set separately after default construction
-        // because periodLabel depends on invoiceType and invoiceDate.
+        // Default to active, notes as empty string
+        this(null, null, LocalDate.now(), LocalDate.now().plusDays(7), null, null, true, "");
     }
+
     /**
      * Full constructor to initialize all fields of an {@code Invoice} instance.
      * This constructor is typically used when loading an *existing* invoice
@@ -111,12 +114,13 @@ public class Invoice {
      * @param dueDate       The {@link LocalDate} by which the invoice is to be paid (e.g., {@code 2024-05-31}). Must not be {@code null}, must be in the future, and within 14 days.
      * @param periodLabel   The {@link YearMonth} representing the billing period of the invoice (e.g., {@code YearMonth.of(2024, 5)} for May 2024). Must not be {@code null} and must match derived value based on type/date.
      * @param vehicle       The {@link Vehicle} object associated with this invoice. Must not be {@code null}.
+     * @param isActive      The active status of the invoice (true for active, false for inactive/deleted).
      * @param notes         Any optional notes or additional information about the invoice. Can be {@code null}.
      * @throws NullPointerException     if `invoiceID` (for existing invoices), `invoiceType`, `invoiceDate`, `dueDate`, `periodLabel`, or `vehicle` are {@code null}.
      * @throws IllegalArgumentException if date or period label validations fail (e.g., invoice date in future, due date out of range, period label mismatch).
      * @throws IllegalStateException    if dependencies for `periodLabel` validation (like `invoiceType` or `invoiceDate`) are not set when `setPeriodLabel` is called.
      */
-    public Invoice(Integer invoiceID, InvoiceType invoiceType, LocalDate invoiceDate, LocalDate dueDate, YearMonth periodLabel, Vehicle vehicle, String notes) {
+    public Invoice(Integer invoiceID, InvoiceType invoiceType, LocalDate invoiceDate, LocalDate dueDate, YearMonth periodLabel, Vehicle vehicle, Boolean isActive, String notes) {
         // Initialize immutable ID property first
         this.invoiceID = new SimpleObjectProperty<>(this, "invoiceID", Objects.requireNonNull(invoiceID, "Invoice ID cannot be null for an existing invoice."));
 
@@ -127,6 +131,7 @@ public class Invoice {
         this.periodLabel = new SimpleObjectProperty<>(this, "periodLabel");
         this.vehicle = new SimpleObjectProperty<>(this, "vehicle");
         this.notes = new SimpleStringProperty(this, "notes");
+        this.isActive = new SimpleBooleanProperty(this, "isActive");
 
         // Set dependencies first using their setters with validation
         setInvoiceType(invoiceType);
@@ -135,8 +140,10 @@ public class Invoice {
         setVehicle(vehicle);
         // PeriodLabel depends on invoiceType and invoiceDate, so set after them
         setPeriodLabel(periodLabel);
-        setNotes(notes);
+        setIsActive(isActive); // Set the new property
+        setNotes(notes); // Set notes last
     }
+
     /**
      * Convenience constructor for creating a new {@code Invoice} object that doesn't yet have a database ID.
      * This constructor is ideal when preparing a new invoice record for **insertion** into the database.
@@ -154,8 +161,9 @@ public class Invoice {
      * @throws IllegalStateException    if dependencies for `periodLabel` validation (like `invoiceType` or `invoiceDate`) are not set when `setPeriodLabel` is called.
      */
     public Invoice(InvoiceType invoiceType, LocalDate invoiceDate, LocalDate dueDate, YearMonth periodLabel, Vehicle vehicle, String notes) {
-        // Calls the full constructor with invoiceID as null
-        this(null, invoiceType, invoiceDate, dueDate, periodLabel, vehicle, notes);
+        // Calls the full constructor with invoiceID as null and isActive as true (default for new invoices)
+        // notes is now the last parameter in the full constructor.
+        this(null, invoiceType, invoiceDate, dueDate, periodLabel, vehicle, true, notes);
 
         // Additional Rule for convenience constructor: InvoiceDate MUST BE == CURRENT DATE at time of creation for new invoices.
         Objects.requireNonNull(invoiceDate, "Invoice date cannot be null for new invoice."); // Redundant but for clarity
@@ -182,6 +190,7 @@ public class Invoice {
     public ReadOnlyObjectProperty<Integer> invoiceIDProperty() {
         return invoiceID;
     }
+
     /**
      * Retrieves the {@link ObjectProperty} for the invoice's type.
      * This property represents the {@code InvoiceType} column in the database.
@@ -191,6 +200,7 @@ public class Invoice {
     public ObjectProperty<InvoiceType> invoiceTypeProperty() {
         return invoiceType;
     }
+
     /**
      * Retrieves the {@link ObjectProperty} for the invoice's generation date.
      * This property holds a {@link LocalDate} value and corresponds to the {@code InvoiceDate} column in the database.
@@ -200,6 +210,7 @@ public class Invoice {
     public ObjectProperty<LocalDate> invoiceDateProperty() {
         return invoiceDate;
     }
+
     /**
      * Retrieves the {@link ObjectProperty} for the invoice's due date.
      * This property holds a {@link LocalDate} value and corresponds to the {@code DueDate} column in the database.
@@ -209,6 +220,7 @@ public class Invoice {
     public ObjectProperty<LocalDate> dueDateProperty() {
         return dueDate;
     }
+
     /**
      * Retrieves the {@link ObjectProperty} for the invoice's billing period.
      * This property holds a {@link YearMonth} value and corresponds to the {@code PeriodLabel} column in the database.
@@ -218,6 +230,7 @@ public class Invoice {
     public ObjectProperty<YearMonth> periodLabelProperty() {
         return periodLabel;
     }
+
     /**
      * Retrieves the {@link ObjectProperty} for the {@link Vehicle} associated with this invoice.
      * This property represents the foreign key relationship to the {@code Vehicles} table.
@@ -227,6 +240,7 @@ public class Invoice {
     public ObjectProperty<Vehicle> vehicleProperty() {
         return vehicle;
     }
+
     /**
      * Retrieves the {@link StringProperty} for any optional notes associated with this invoice.
      * This property corresponds to the {@code Notes} column in the database.
@@ -236,6 +250,17 @@ public class Invoice {
     public StringProperty notesProperty() {
         return notes;
     }
+
+    /**
+     * Retrieves the {@link BooleanProperty} for the active status of the invoice.
+     * This property corresponds to the {@code IsActive} column in the database.
+     *
+     * @return The {@link BooleanProperty} for {@code isActive}.
+     */
+    public BooleanProperty isActiveProperty() {
+        return isActive;
+    }
+
 
     // ---------------------
     // Value Getters and Setters
@@ -251,6 +276,7 @@ public class Invoice {
     public Integer getInvoiceID() {
         return invoiceID.get();
     }
+
     /**
      * Sets the unique ID for this invoice. This method is designed to be package-private
      * and is primarily for use by data access objects (DAOs) when an ID is generated
@@ -261,7 +287,7 @@ public class Invoice {
      * </p>
      *
      * @param id The unique integer ID assigned by the database.
-     * @throws IllegalStateException if the ID has already been assigned to this object.
+     * @throws IllegalStateException    if the ID has already been assigned to this object.
      * @throws IllegalArgumentException if the provided ID is {@code null} or non-positive.
      */
     void _setInvoiceID(Integer id) { // Package-private for DAO use only
@@ -273,6 +299,7 @@ public class Invoice {
         }
         ((SimpleObjectProperty<Integer>) this.invoiceID).set(id);
     }
+
     /**
      * Retrieves the type of the invoice.
      * Corresponds to the {@code InvoiceType} column in the database.
@@ -282,6 +309,7 @@ public class Invoice {
     public InvoiceType getInvoiceType() {
         return invoiceType.get();
     }
+
     /**
      * Sets the type of the invoice. This field is required and influences the
      * calculation/validation of the {@link #getPeriodLabel()}.
@@ -292,6 +320,7 @@ public class Invoice {
     public void setInvoiceType(InvoiceType invoiceType) {
         this.invoiceType.set(Objects.requireNonNull(invoiceType, "Invoice type cannot be null."));
     }
+
     /**
      * Retrieves the {@link LocalDate} when the invoice was generated.
      * Corresponds to the {@code InvoiceDate} column in the database.
@@ -301,13 +330,14 @@ public class Invoice {
     public LocalDate getInvoiceDate() {
         return invoiceDate.get();
     }
+
     /**
      * Sets the {@link LocalDate} when the invoice was generated.
      * This date CANNOT be in the FUTURE.
      * For new invoices created via the convenience constructor, it must explicitly be the current date.
      *
      * @param invoiceDate The {@link LocalDate} to set as the invoice generation date. Must not be {@code null} and must not be in the future.
-     * @throws NullPointerException if {@code invoiceDate} is {@code null}.
+     * @throws NullPointerException     if {@code invoiceDate} is {@code null}.
      * @throws IllegalArgumentException if {@code invoiceDate} is in the future.
      */
     public void setInvoiceDate(LocalDate invoiceDate) {
@@ -318,6 +348,7 @@ public class Invoice {
         }
         this.invoiceDate.set(invoiceDate);
     }
+
     /**
      * Retrieves the {@link LocalDate} representing the due date of the invoice.
      * Corresponds to the {@code DueDate} column in the database.
@@ -327,6 +358,7 @@ public class Invoice {
     public LocalDate getDueDate() {
         return dueDate.get();
     }
+
     /**
      * Sets the {@link LocalDate} for the invoice's due date.
      * This indicates the date by which payment is expected.
@@ -336,7 +368,7 @@ public class Invoice {
      * Corresponds to the {@code DueDate} column in the database.
      *
      * @param dueDate The {@link LocalDate} to set as the invoice due date. Must not be {@code null}.
-     * @throws NullPointerException if {@code dueDate} is {@code null}.
+     * @throws NullPointerException     if {@code dueDate} is {@code null}.
      * @throws IllegalArgumentException if {@code dueDate} is not in the future, or is more than 14 days in the future.
      */
     public void setDueDate(LocalDate dueDate) {
@@ -354,6 +386,7 @@ public class Invoice {
         }
         this.dueDate.set(dueDate);
     }
+
     /**
      * Retrieves the billing period of the invoice as a {@link YearMonth} object.
      * Corresponds to the {@code PeriodLabel} column in the database.
@@ -363,6 +396,7 @@ public class Invoice {
     public YearMonth getPeriodLabel() {
         return periodLabel.get();
     }
+
     /**
      * Sets the billing period of the invoice.
      * This {@link YearMonth} must conform to the rules based on {@link #getInvoiceType()} and {@link #getInvoiceDate()}:
@@ -372,9 +406,8 @@ public class Invoice {
      * </ul>
      *
      * @param periodLabel The {@link YearMonth} to set as the billing period. Must not be {@code null}.
-     *
-     * @throws NullPointerException if {@code periodLabel} is {@code null}.
-     * @throws IllegalStateException if {@code invoiceType} or {@code invoiceDate} are not set (i.e., are {@code null})
+     * @throws NullPointerException     if {@code periodLabel} is {@code null}.
+     * @throws IllegalStateException    if {@code invoiceType} or {@code invoiceDate} are not set (i.e., are {@code null})
      * before calling this setter, as they are required for validation.
      * @throws IllegalArgumentException if {@code periodLabel} does not match the expected period based on
      * the current {@code invoiceType} and {@code invoiceDate}.
@@ -411,6 +444,7 @@ public class Invoice {
         }
         this.periodLabel.set(periodLabel);
     }
+
     /**
      * Retrieves the {@link Vehicle} object associated with this invoice.
      * This represents the foreign key relationship to the {@code Vehicles} table.
@@ -420,6 +454,7 @@ public class Invoice {
     public Vehicle getVehicle() {
         return vehicle.get();
     }
+
     /**
      * Sets the {@link Vehicle} object associated with this invoice.
      * This links the invoice to a specific vehicle.
@@ -430,6 +465,7 @@ public class Invoice {
     public void setVehicle(Vehicle vehicle) {
         this.vehicle.set(Objects.requireNonNull(vehicle, "Vehicle cannot be null."));
     }
+
     /**
      * Retrieves any optional notes or remarks associated with this invoice.
      * This might include details about special charges, payment instructions, or administrative comments.
@@ -440,6 +476,7 @@ public class Invoice {
     public String getNotes() {
         return notes.get();
     }
+
     /**
      * Sets additional notes or internal comments for this invoice.
      * If the provided notes are not {@code null}, leading and trailing whitespace will be stripped.
@@ -449,6 +486,24 @@ public class Invoice {
      */
     public void setNotes(String notes) {
         this.notes.set((notes != null) ? notes.strip() : null);
+    }
+
+    /**
+     * Retrieves the active status of the invoice.
+     *
+     * @return {@code true} if the invoice is active, {@code false} if it's inactive/logically deleted.
+     */
+    public boolean getIsActive() {
+        return isActive.get();
+    }
+
+    /**
+     * Sets the active status of the invoice.
+     *
+     * @param isActive {@code true} to mark the invoice as active, {@code false} for inactive/logically deleted.
+     */
+    public void setIsActive(boolean isActive) {
+        this.isActive.set(isActive);
     }
 
     // ---------------------
@@ -474,6 +529,7 @@ public class Invoice {
         }
         return currentPeriodLabel.format(DateTimeFormatter.ofPattern("MMM-yyyy"));
     }
+
     /**
      * <p>
      * Returns a string representation of the {@code Invoice} object.
@@ -482,11 +538,11 @@ public class Invoice {
      * </p>
      * <p>
      * The format includes the invoice ID, invoice date, due date,
-     * formatted billing period, associated vehicle's ID (if available), and invoice type.
+     * formatted billing period, associated vehicle's ID (if available), invoice type, and active status.
      * </p>
      *
      * @return A string in the format:
-     * "Invoice{invoiceID=..., invoiceDate=..., dueDate=..., periodLabel=..., vehicleID=..., invoiceType=...}"
+     * "Invoice{invoiceID=..., invoiceDate=..., dueDate=..., periodLabel=..., vehicleID=..., invoiceType=..., isActive=..., notes=...}"
      */
     @Override
     public String toString() {
@@ -497,8 +553,11 @@ public class Invoice {
                 ", periodLabel=" + getFormattedPeriodLabel() +
                 ", vehicleID=" + (getVehicle() != null ? getVehicle().getVehicleID() : "null") +
                 ", invoiceType=" + getInvoiceType() +
+                ", isActive=" + getIsActive() +
+                ", notes='" + getNotes() + '\'' + // Added notes to toString
                 '}';
     }
+
     /**
      * <p>
      * Indicates whether some other object is "equal to" this one.
@@ -521,6 +580,7 @@ public class Invoice {
         // Equality is based on the primary key (invoiceID), safely handling null Integer
         return Objects.equals(getInvoiceID(), invoice.getInvoiceID());
     }
+
     /**
      * <p>
      * Returns a hash code value for the object. This method is supported for the benefit of
