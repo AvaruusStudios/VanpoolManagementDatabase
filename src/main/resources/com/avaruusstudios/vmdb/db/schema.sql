@@ -23,7 +23,7 @@ CREATE TABLE Locations (
     ZipCode TEXT NOT NULL,                              -- Location Zip-Code
     Latitude REAL,                                      -- Location Latitude
     Longitude REAL,                                     -- Location Longitude
-    IsActive INTEGER NOT NULL DEFAULT 1,
+    IsActive INTEGER NOT NULL DEFAULT 1,                -- 1=True, 0=False
     Notes TEXT                                          -- Contextual Notes about the Location
 );
 
@@ -56,7 +56,7 @@ CREATE TABLE Invoices (
     InvoiceDate TEXT NOT NULL,                                                                   -- Date the Invoice was created
     DueDate TEXT NOT NULL,                                                                       -- Date the Participants are required to pay their share of the Invoice
     PeriodLabel TEXT NOT NULL,                                                                   -- Coverage period of the Invoice (eg. MMM YYYY)
-    IsActive INTEGER NOT NULL DEFAULT 1,
+    IsActive INTEGER NOT NULL DEFAULT 1,                                                         -- 1=True, 0=False
     Notes TEXT,                                                                                  -- Contextual Notes about the Invoice
     FOREIGN KEY (VehicleID_FK) REFERENCES Vehicles(VehicleID)
 );
@@ -69,7 +69,7 @@ CREATE TABLE LineItems (
     BenefitPayment NUMERIC NOT NULL,                                        -- The amount the Participant is required to pay to their Benefit Card
     PersonalPayment NUMERIC NOT NULL,                                       -- The amount the Participant is required to pay to their personal credit card
     IsPaid INTEGER NOT NULL DEFAULT 0,                                      -- Did the Participant make their payment?
-    IsActive INTEGER NOT NULL DEFAULT 1,
+    IsActive INTEGER NOT NULL DEFAULT 1,                                    -- 1=True, 0=False
     Notes TEXT,                                                             -- Contextual Notes about the Invoice Item
     FOREIGN KEY (InvoiceID_FK) REFERENCES Invoices(InvoiceID),
     FOREIGN KEY (ParticipantID_FK) REFERENCES Participants(ParticipantID)
