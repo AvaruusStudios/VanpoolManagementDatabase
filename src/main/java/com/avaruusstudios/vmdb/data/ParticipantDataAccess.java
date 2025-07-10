@@ -11,7 +11,7 @@ import java.util.Optional;
  * </p>
  *
  * <p>
- * It extends {@link GenericDAO} to inherit standard CRUD operations for Participant,
+ * It extends {@link GenericDataAccess} to inherit standard CRUD operations for Participant,
  * and adds specialized methods relevant to participant data retrieval and management.
  * </p>
  *
@@ -19,11 +19,11 @@ import java.util.Optional;
  * @version 1.1 // Updated version due to method additions based on schema review
  * @since 2025-07-06 // Original creation date
  *
- * @see GenericDAO
+ * @see GenericDataAccess
  * @see Participant
- * @see DatabaseAccessObjectException
+ * @see DatabaseAccessException
  */
-public interface ParticipantDAO extends GenericDAO<Participant, Integer> {
+public interface ParticipantDataAccess extends GenericDataAccess<Participant, Integer> {
     /**
      * <p>
      * Finds a {@link Participant} record by their unique email address.
@@ -32,18 +32,18 @@ public interface ParticipantDAO extends GenericDAO<Participant, Integer> {
      * @param email The email address of the participant to find.
      * @return An {@link Optional} containing the {@link Participant} if found, or an
      * empty {@link Optional} if no participant exists with the given email.
-     * @throws DatabaseAccessObjectException If a database access error occurs during the lookup.
+     * @throws DatabaseAccessException If a database access error occurs during the lookup.
      */
-    Optional<Participant> findByEmail(String email) throws DatabaseAccessObjectException;
+    Optional<Participant> findByEmail(String email) throws DatabaseAccessException;
     /**
      * <p>
      * Counts the total number of participants who are currently marked as active.
      * </p>
      *
      * @return The count of active participants.
-     * @throws DatabaseAccessObjectException If a database access error occurs during counting.
+     * @throws DatabaseAccessException If a database access error occurs during counting.
      */
-    long countActiveParticipants() throws DatabaseAccessObjectException;
+    long countActiveParticipants() throws DatabaseAccessException;
     /**
      * <p>
      * Retrieves a list of all participants who are currently marked as active.
@@ -51,9 +51,9 @@ public interface ParticipantDAO extends GenericDAO<Participant, Integer> {
      *
      * @return A {@link List} of active {@link Participant} objects. Returns an empty list
      * if no active participants are found.
-     * @throws DatabaseAccessObjectException If a database access error occurs during retrieval.
+     * @throws DatabaseAccessException If a database access error occurs during retrieval.
      */
-    List<Participant> findActiveParticipants() throws DatabaseAccessObjectException;
+    List<Participant> findActiveParticipants() throws DatabaseAccessException;
     /**
      * <p>
      * Retrieves a list of participants associated with a specific program.
@@ -61,9 +61,9 @@ public interface ParticipantDAO extends GenericDAO<Participant, Integer> {
      *
      * @param program The program name to filter by (e.g., "TRANSPORTATION_INCENTIVE_PROGRAM", "DAILY", "NONE").
      * @return A {@link List} of {@link Participant} objects in the specified program.
-     * @throws DatabaseAccessObjectException If a database access error occurs during retrieval.
+     * @throws DatabaseAccessException If a database access error occurs during retrieval.
      */
-    List<Participant> findByProgram(String program) throws DatabaseAccessObjectException;
+    List<Participant> findByProgram(String program) throws DatabaseAccessException;
     /**
      * <p>
      * Retrieves a list of participants based on their role within the vanpool.
@@ -71,7 +71,7 @@ public interface ParticipantDAO extends GenericDAO<Participant, Integer> {
      *
      * @param role The role to filter by (e.g., "PARTICIPANT", "COORDINATOR").
      * @return A {@link List} of {@link Participant} objects with the specified role.
-     * @throws DatabaseAccessObjectException If a database access error occurs during retrieval.
+     * @throws DatabaseAccessException If a database access error occurs during retrieval.
      */
-    List<Participant> findByRole(String role) throws DatabaseAccessObjectException;
+    List<Participant> findByRole(String role) throws DatabaseAccessException;
 }

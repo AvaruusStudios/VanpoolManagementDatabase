@@ -11,7 +11,7 @@ import java.util.Optional;
  * </p>
  *
  * <p>
- * It extends {@link GenericDAO} to inherit standard CRUD operations for Vehicle,
+ * It extends {@link GenericDataAccess} to inherit standard CRUD operations for Vehicle,
  * and adds specialized methods relevant to vehicle data retrieval and management.
  * </p>
  *
@@ -24,11 +24,11 @@ import java.util.Optional;
  * @version 1.5 // Updated version due to method removal
  * @since 2025-07-05
  *
- * @see GenericDAO
+ * @see GenericDataAccess
  * @see Vehicle
- * @see DatabaseAccessObjectException
+ * @see DatabaseAccessException
  */
-public interface VehicleDAO extends GenericDAO<Vehicle, Integer> {
+public interface VehicleDataAccess extends GenericDataAccess<Vehicle, Integer> {
     /**
      * <p>
      * Finds a {@link Vehicle} record by its unique vehicle number.
@@ -37,9 +37,9 @@ public interface VehicleDAO extends GenericDAO<Vehicle, Integer> {
      * @param vehicleNumber The unique identifier number for the vehicle to find.
      * @return An {@link Optional} containing the {@link Vehicle} if found, or an
      * empty {@link Optional} if no vehicle exists with the given vehicle number.
-     * @throws DatabaseAccessObjectException If a database access error occurs during the lookup.
+     * @throws DatabaseAccessException If a database access error occurs during the lookup.
      */
-    Optional<Vehicle> findByVehicleNumber(String vehicleNumber) throws DatabaseAccessObjectException;
+    Optional<Vehicle> findByVehicleNumber(String vehicleNumber) throws DatabaseAccessException;
     /**
      * <p>
      * Retrieves the single active {@link Vehicle} record from the database.
@@ -48,9 +48,9 @@ public interface VehicleDAO extends GenericDAO<Vehicle, Integer> {
      *
      * @return An {@link Optional} containing the active {@link Vehicle} object if one exists,
      * or an empty {@link Optional} if no active vehicle is found.
-     * @throws DatabaseAccessObjectException If a database access error occurs during retrieval.
+     * @throws DatabaseAccessException If a database access error occurs during retrieval.
      */
-    Optional<Vehicle> findActiveVehicle() throws DatabaseAccessObjectException;
+    Optional<Vehicle> findActiveVehicle() throws DatabaseAccessException;
     /**
      * <p>
      * Retrieves a list of {@link Vehicle} records that match the specified make.
@@ -59,9 +59,9 @@ public interface VehicleDAO extends GenericDAO<Vehicle, Integer> {
      * @param make The make of the vehicle (e.g., "Toyota").
      * @return A {@link List} of {@link Vehicle} objects matching the specified make.
      * Returns an empty list if no matching vehicles are found.
-     * @throws DatabaseAccessObjectException If a database access error occurs during retrieval.
+     * @throws DatabaseAccessException If a database access error occurs during retrieval.
      */
-    List<Vehicle> findByMake(String make) throws DatabaseAccessObjectException;
+    List<Vehicle> findByMake(String make) throws DatabaseAccessException;
     /**
      * <p>
      * Retrieves a list of {@link Vehicle} records that match the specified model.
@@ -70,9 +70,9 @@ public interface VehicleDAO extends GenericDAO<Vehicle, Integer> {
      * @param model The model of the vehicle (e.g., "Sienna").
      * @return A {@link List} of {@link Vehicle} objects matching the specified model.
      * Returns an empty list if no matching vehicles are found.
-     * @throws DatabaseAccessObjectException If a database access error occurs during retrieval.
+     * @throws DatabaseAccessException If a database access error occurs during retrieval.
      */
-    List<Vehicle> findByModel(String model) throws DatabaseAccessObjectException;
+    List<Vehicle> findByModel(String model) throws DatabaseAccessException;
     /**
      * <p>
      * Retrieves a list of {@link Vehicle} records that match the specified year.
@@ -81,7 +81,7 @@ public interface VehicleDAO extends GenericDAO<Vehicle, Integer> {
      * @param year The year of the vehicle (e.g., 2020).
      * @return A {@link List} of {@link Vehicle} objects matching the specified year.
      * Returns an empty list if no matching vehicles are found.
-     * @throws DatabaseAccessObjectException If a database access error occurs during retrieval.
+     * @throws DatabaseAccessException If a database access error occurs during retrieval.
      */
-    List<Vehicle> findByYear(int year) throws DatabaseAccessObjectException;
+    List<Vehicle> findByYear(int year) throws DatabaseAccessException;
 }

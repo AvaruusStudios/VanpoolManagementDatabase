@@ -37,11 +37,11 @@ package com.avaruusstudios.vmdb.data; // Changed package to 'data'
  * @version 1.0
  * @since 2025-07-04
  *
- * @see GenericDAO
+ * @see GenericDataAccess
  * @see java.sql.SQLException
  * @see java.lang.RuntimeException
  */
-public class DatabaseAccessObjectException extends RuntimeException {
+public class DatabaseAccessException extends RuntimeException {
   /**
    * <p>
    * Constructs a new {@code DaoException} with the specified detail message.
@@ -53,7 +53,7 @@ public class DatabaseAccessObjectException extends RuntimeException {
    * This message is intended for logging and debugging purposes,
    * providing immediate context about the failure.
    */
-  public DatabaseAccessObjectException(String message) {
+  public DatabaseAccessException(String message) {
     super(message);
   }
   /**
@@ -76,7 +76,7 @@ public class DatabaseAccessObjectException extends RuntimeException {
    * if the cause is nonexistent or unknown, though providing a cause
    * is highly recommended for robust error handling.
    */
-  public DatabaseAccessObjectException(String message, Throwable cause) {
+  public DatabaseAccessException(String message, Throwable cause) {
     super(message, cause);
   }
 }

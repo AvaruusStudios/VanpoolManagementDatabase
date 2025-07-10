@@ -11,7 +11,7 @@ import java.util.List;
  * </p>
  *
  * <p>
- * It extends {@link GenericDAO} to inherit standard CRUD operations for Invoice,
+ * It extends {@link GenericDataAccess} to inherit standard CRUD operations for Invoice,
  * and adds specialized methods relevant to invoice data retrieval and management.
  * </p>
  *
@@ -19,11 +19,11 @@ import java.util.List;
  * @version 1.2 // Updated version due to method renaming
  * @since 2025-07-08
  *
- * @see GenericDAO
+ * @see GenericDataAccess
  * @see Invoice
- * @see DatabaseAccessObjectException
+ * @see DatabaseAccessException
  */
-public interface InvoiceDAO extends GenericDAO<Invoice, Integer> {
+public interface InvoiceDataAccess extends GenericDataAccess<Invoice, Integer> {
     /**
      * <p>
      * Retrieves a list of {@link Invoice} records that fall within a specified date range
@@ -34,9 +34,9 @@ public interface InvoiceDAO extends GenericDAO<Invoice, Integer> {
      * @param endDate The end date of the range.
      * @return A {@link List} of {@link Invoice} objects found within the date range.
      * Returns an empty list if no invoices are found in the specified range.
-     * @throws DatabaseAccessObjectException If a database access error occurs during retrieval.
+     * @throws DatabaseAccessException If a database access error occurs during retrieval.
      */
-    List<Invoice> findByDateRange(LocalDate startDate, LocalDate endDate) throws DatabaseAccessObjectException;
+    List<Invoice> findByDateRange(LocalDate startDate, LocalDate endDate) throws DatabaseAccessException;
     /**
      * <p>
      * Retrieves a list of {@link Invoice} records that are of a specific invoice type
@@ -46,9 +46,9 @@ public interface InvoiceDAO extends GenericDAO<Invoice, Integer> {
      * @param invoiceType The type of invoice to filter by (e.g., "LEASE", "FUEL").
      * @return A {@link List} of {@link Invoice} objects matching the specified type.
      * Returns an empty list if no invoices are found with that type.
-     * @throws DatabaseAccessObjectException If a database access error occurs during retrieval.
+     * @throws DatabaseAccessException If a database access error occurs during retrieval.
      */
-    List<Invoice> findByInvoiceType(String invoiceType) throws DatabaseAccessObjectException;
+    List<Invoice> findByInvoiceType(String invoiceType) throws DatabaseAccessException;
 
     // Removed: List<Invoice> findByStatus(String status) - renamed to findByInvoiceType
     // Removed previously: List<Invoice> findByParticipantId(Integer participantId)

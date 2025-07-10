@@ -11,7 +11,7 @@ import java.util.Optional;
  * </p>
  *
  * <p>
- * It extends {@link GenericDAO} to inherit standard CRUD operations for Location,
+ * It extends {@link GenericDataAccess} to inherit standard CRUD operations for Location,
  * and adds specialized methods relevant to location data retrieval and management.
  * </p>
  *
@@ -19,11 +19,11 @@ import java.util.Optional;
  * @version 1.2 // Updated version due to method addition based on schema review
  * @since 2025-07-06 // Original creation date
  *
- * @see GenericDAO
+ * @see GenericDataAccess
  * @see Location
- * @see DatabaseAccessObjectException
+ * @see DatabaseAccessException
  */
-public interface LocationDAO extends GenericDAO<Location, Integer> {
+public interface LocationDataAccess extends GenericDataAccess<Location, Integer> {
     /**
      * <p>
      * Finds a {@link Location} record by a unique combination of its address components.
@@ -36,9 +36,9 @@ public interface LocationDAO extends GenericDAO<Location, Integer> {
      * @param zipCode The zip code (e.g., "90210").
      * @return An {@link Optional} containing the {@link Location} if a match is found,
      * or an empty {@link Optional} if no location exists with the given address details.
-     * @throws DatabaseAccessObjectException If a database access error occurs during the lookup.
+     * @throws DatabaseAccessException If a database access error occurs during the lookup.
      */
-    Optional<Location> findByAddress(String streetAddress, String city, String state, String zipCode) throws DatabaseAccessObjectException;
+    Optional<Location> findByAddress(String streetAddress, String city, String state, String zipCode) throws DatabaseAccessException;
     /**
      * <p>
      * Finds a {@link Location} record by its unique name.
@@ -47,7 +47,7 @@ public interface LocationDAO extends GenericDAO<Location, Integer> {
      * @param locationName The name of the location to find (e.g., "Main Office", "South Parking Lot").
      * @return An {@link Optional} containing the {@link Location} if found, or an
      * empty {@link Optional} if no location exists with the given name.
-     * @throws DatabaseAccessObjectException If a database access error occurs during the lookup.
+     * @throws DatabaseAccessException If a database access error occurs during the lookup.
      */
-    Optional<Location> findByLocationName(String locationName) throws DatabaseAccessObjectException;
+    Optional<Location> findByLocationName(String locationName) throws DatabaseAccessException;
 }
