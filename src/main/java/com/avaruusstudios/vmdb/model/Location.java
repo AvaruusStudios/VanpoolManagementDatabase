@@ -1,6 +1,13 @@
 package com.avaruusstudios.vmdb.model;
 
-import javafx.beans.property.*; // Essential JavaFX property classes for reactive data binding
+import javafx.beans.property.BooleanProperty; // New import for boolean property
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty; // New import for simple boolean property
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+
 import java.util.Objects;
 
 /**
@@ -71,16 +78,17 @@ public class Location {
      */
     private final ObjectProperty<Double> longitude;
     /**
+     * Optional free-form text for additional notes or administrative comments specific to this location.
+     * (corresponds to {@code Notes TEXT} in the database).
+     */
+    private final StringProperty notes;
+    /**
      * Indicates whether the location is currently active or has been logically deleted/deactivated.
      * (corresponds to {@code IsActive INTEGER NOT NULL DEFAULT 1} in the database).
      * `true` (1) for active, `false` (0) for inactive.
      */
     private final BooleanProperty isActive;
-    /**
-     * Optional free-form text for additional notes or administrative comments specific to this location.
-     * (corresponds to {@code Notes TEXT} in the database).
-     */
-    private final StringProperty notes;
+
 
     /**
      * Default constructor for creating a new, unpersisted {@code Location} object.
@@ -93,6 +101,7 @@ public class Location {
     public Location() {
         this(null, "", "", "", "", "", null, null, true, ""); // Default to active
     }
+
     /**
      * Full constructor to initialize all fields of a {@code Location} instance.
      * This constructor is typically used when loading an *existing* location
@@ -122,8 +131,8 @@ public class Location {
         this.zipCode = new SimpleStringProperty(this, "zipCode");
         this.latitude = new SimpleObjectProperty<>(this, "latitude");
         this.longitude = new SimpleObjectProperty<>(this, "longitude");
-        this.isActive = new SimpleBooleanProperty(this, "isActive");
         this.notes = new SimpleStringProperty(this, "notes");
+        this.isActive = new SimpleBooleanProperty(this, "isActive"); // Initialize new property
 
         setLocationName(locationName);
         setAddress(address);
@@ -135,6 +144,7 @@ public class Location {
         setNotes(notes);
         setIsActive(isActive); // Set the new property
     }
+
     /**
      * Convenience constructor for creating a new {@code Location} object that doesn't yet have a database ID.
      * This constructor is ideal when preparing a new location record for **insertion** into the database.
@@ -172,6 +182,7 @@ public class Location {
     public ReadOnlyObjectProperty<Integer> locationIDProperty() {
         return locationID;
     }
+
     /**
      * Retrieves the {@link StringProperty} for the location's human-readable name.
      * This property corresponds to the {@code LocationName} column in the database.
@@ -181,6 +192,7 @@ public class Location {
     public StringProperty locationNameProperty() {
         return locationName;
     }
+
     /**
      * Retrieves the {@link StringProperty} for the location's street address.
      * This property corresponds to the {@code Address} column in the database.
@@ -190,6 +202,7 @@ public class Location {
     public StringProperty addressProperty() {
         return address;
     }
+
     /**
      * Retrieves the {@link StringProperty} for the location's city.
      * This property corresponds to the {@code City} column in the database.
@@ -199,6 +212,7 @@ public class Location {
     public StringProperty cityProperty() {
         return city;
     }
+
     /**
      * Retrieves the {@link StringProperty} for the location's state or province abbreviation.
      * This property corresponds to the {@code State} column in the database.
@@ -208,6 +222,7 @@ public class Location {
     public StringProperty stateProperty() {
         return state;
     }
+
     /**
      * Retrieves the {@link StringProperty} for the location's postal zip code.
      * This property corresponds to the {@code ZipCode} column in the database.
@@ -217,6 +232,7 @@ public class Location {
     public StringProperty zipCodeProperty() {
         return zipCode;
     }
+
     /**
      * Retrieves the {@link ObjectProperty} for the location's geographical latitude.
      * This property holds a {@link Double} value and corresponds to the {@code Latitude} column in the database.
@@ -226,6 +242,7 @@ public class Location {
     public ObjectProperty<Double> latitudeProperty() {
         return latitude;
     }
+
     /**
      * Retrieves the {@link ObjectProperty} for the location's geographical longitude.
      * This property holds a {@link Double} value and corresponds to the {@code Longitude} column in the database.
@@ -235,15 +252,7 @@ public class Location {
     public ObjectProperty<Double> longitudeProperty() {
         return longitude;
     }
-    /**
-     * Retrieves the {@link BooleanProperty} for the active status of the location.
-     * This property corresponds to the {@code IsActive} column in the database.
-     *
-     * @return The {@link BooleanProperty} for {@code isActive}.
-     */
-    public BooleanProperty isActiveProperty() {
-        return isActive;
-    }
+
     /**
      * Retrieves the {@link StringProperty} for any additional notes pertaining to the location.
      * This property corresponds to the {@code Notes} column in the database.
@@ -252,6 +261,16 @@ public class Location {
      */
     public StringProperty notesProperty() {
         return notes;
+    }
+
+    /**
+     * Retrieves the {@link BooleanProperty} for the active status of the location.
+     * This property corresponds to the {@code IsActive} column in the database.
+     *
+     * @return The {@link BooleanProperty} for {@code isActive}.
+     */
+    public BooleanProperty isActiveProperty() {
+        return isActive;
     }
 
     // --- Value Getters and Setters ---
@@ -268,6 +287,7 @@ public class Location {
     public Integer getLocationID() {
         return locationID.get();
     }
+
     /**
      * Sets the unique ID for this location. This method is designed to be package-private
      * and is primarily for use by data access objects (DAOs) when an ID is generated
@@ -278,8 +298,7 @@ public class Location {
      * </p>
      *
      * @param id The unique integer ID assigned by the database.
-     *
-     * @throws IllegalStateException if the ID has already been assigned to this object.
+     * @throws IllegalStateException    if the ID has already been assigned to this object.
      * @throws IllegalArgumentException if the provided ID is {@code null} or non-positive.
      */
     void _setLocationID(Integer id) { // Package-private for DAO use only
@@ -291,6 +310,7 @@ public class Location {
         }
         ((SimpleObjectProperty<Integer>) this.locationID).set(id);
     }
+
     /**
      * Retrieves the human-readable name of the location.
      *
@@ -299,6 +319,7 @@ public class Location {
     public String getLocationName() {
         return locationName.get();
     }
+
     /**
      * Sets the human-readable name of the location.
      * <p>
@@ -307,7 +328,6 @@ public class Location {
      * </p>
      *
      * @param locationName The name to set.
-     *
      * @throws IllegalArgumentException if the provided name is {@code null} or empty after trimming.
      */
     public void setLocationName(String locationName) {
@@ -317,6 +337,7 @@ public class Location {
         }
         this.locationName.set(trimmedName);
     }
+
     /**
      * Retrieves the street address of the location.
      *
@@ -325,6 +346,7 @@ public class Location {
     public String getAddress() {
         return address.get();
     }
+
     /**
      * Sets the street address of the location.
      * <p>
@@ -333,7 +355,6 @@ public class Location {
      * </p>
      *
      * @param address The address to set.
-     *
      * @throws IllegalArgumentException if the provided address is {@code null} or empty after trimming.
      */
     public void setAddress(String address) {
@@ -343,6 +364,7 @@ public class Location {
         }
         this.address.set(trimmedAddress);
     }
+
     /**
      * Retrieves the city of the location.
      *
@@ -351,6 +373,7 @@ public class Location {
     public String getCity() {
         return city.get();
     }
+
     /**
      * Sets the city of the location.
      * <p>
@@ -359,7 +382,6 @@ public class Location {
      * </p>
      *
      * @param city The city to set.
-     *
      * @throws IllegalArgumentException if the provided city is {@code null} or empty after trimming.
      */
     public void setCity(String city) {
@@ -369,6 +391,7 @@ public class Location {
         }
         this.city.set(trimmedCity);
     }
+
     /**
      * Retrieves the state or province abbreviation of the location.
      *
@@ -377,6 +400,7 @@ public class Location {
     public String getState() {
         return state.get();
     }
+
     /**
      * Sets the state or province abbreviation of the location.
      * <p>
@@ -385,7 +409,6 @@ public class Location {
      * </p>
      *
      * @param state The state abbreviation to set.
-     *
      * @throws IllegalArgumentException if the provided state is {@code null} or empty after trimming.
      */
     public void setState(String state) {
@@ -395,6 +418,7 @@ public class Location {
         }
         this.state.set(trimmedState);
     }
+
     /**
      * Retrieves the postal zip code of the location.
      *
@@ -403,6 +427,7 @@ public class Location {
     public String getZipCode() {
         return zipCode.get();
     }
+
     /**
      * Sets the postal zip code of the location.
      * <p>
@@ -413,7 +438,6 @@ public class Location {
      * </p>
      *
      * @param zipCode The zip code to set.
-     *
      * @throws IllegalArgumentException if the provided zip code is {@code null} or empty after trimming.
      */
     public void setZipCode(String zipCode) {
@@ -423,6 +447,7 @@ public class Location {
         }
         this.zipCode.set(trimmedZipCode);
     }
+
     /**
      * Retrieves the geographical latitude of the location.
      *
@@ -431,6 +456,7 @@ public class Location {
     public Double getLatitude() {
         return latitude.get();
     }
+
     /**
      * Sets the geographical latitude of the location.
      * <p>
@@ -439,7 +465,6 @@ public class Location {
      * </p>
      *
      * @param latitude The latitude to set. Can be {@code null}.
-     *
      * @throws IllegalArgumentException if the latitude is out of the valid range [-90.0, 90.0].
      */
     public void setLatitude(Double latitude) {
@@ -448,6 +473,7 @@ public class Location {
         }
         this.latitude.set(latitude);
     }
+
     /**
      * Retrieves the geographical longitude of the location.
      *
@@ -456,6 +482,7 @@ public class Location {
     public Double getLongitude() {
         return longitude.get();
     }
+
     /**
      * Sets the geographical longitude of the location.
      * <p>
@@ -464,7 +491,6 @@ public class Location {
      * </p>
      *
      * @param longitude The longitude to set. Can be {@code null}.
-     *
      * @throws IllegalArgumentException if the longitude is out of the valid range [-180.0, 180.0].
      */
     public void setLongitude(Double longitude) {
@@ -473,22 +499,7 @@ public class Location {
         }
         this.longitude.set(longitude);
     }
-    /**
-     * Retrieves the active status of the location.
-     *
-     * @return {@code true} if the location is active, {@code false} if it's inactive/logically deleted.
-     */
-    public boolean getIsActive() {
-        return isActive.get();
-    }
-    /**
-     * Sets the active status of the location.
-     *
-     * @param isActive {@code true} to mark the location as active, {@code false} for inactive/logically deleted.
-     */
-    public void setIsActive(boolean isActive) {
-        this.isActive.set(isActive);
-    }
+
     /**
      * Retrieves any additional notes or administrative comments for the location.
      *
@@ -497,6 +508,7 @@ public class Location {
     public String getNotes() {
         return notes.get();
     }
+
     /**
      * Sets additional notes or administrative comments for the location.
      * <p>
@@ -509,6 +521,24 @@ public class Location {
         this.notes.set((notes == null) ? null : notes.trim());
     }
 
+    /**
+     * Retrieves the active status of the location.
+     *
+     * @return {@code true} if the location is active, {@code false} if it's inactive/logically deleted.
+     */
+    public boolean getIsActive() {
+        return isActive.get();
+    }
+
+    /**
+     * Sets the active status of the location.
+     *
+     * @param isActive {@code true} to mark the location as active, {@code false} for inactive/logically deleted.
+     */
+    public void setIsActive(boolean isActive) {
+        this.isActive.set(isActive);
+    }
+
     // --- Utility Methods ---
 
     /**
@@ -518,11 +548,11 @@ public class Location {
      * a concise summary of the location's key attributes.
      * </p>
      * <p>
-     * The format includes the location ID, name, city, and state.
+     * The format includes the location ID, name, city, state, and active status.
      * </p>
      *
      * @return A string in the format:
-     * "Location{ID=..., Name=..., City=..., State=...}"
+     * "Location{ID=..., Name=..., City=..., State=..., isActive=...}"
      */
     @Override
     public String toString() {
@@ -531,8 +561,10 @@ public class Location {
                 ", locationName='" + getLocationName() + '\'' +
                 ", city='" + getCity() + '\'' +
                 ", state='" + getState() + '\'' +
+                ", isActive=" + getIsActive() + // Added isActive to toString
                 '}';
     }
+
     /**
      * <p>
      * Indicates whether some other object is "equal to" this one.
@@ -559,6 +591,7 @@ public class Location {
         }
         return Objects.equals(getLocationID(), that.getLocationID());
     }
+
     /**
      * <p>
      * Returns a hash code value for the object. This method is supported for the benefit of
