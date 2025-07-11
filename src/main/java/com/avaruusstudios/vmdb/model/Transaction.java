@@ -21,7 +21,6 @@ import java.util.Objects;
  * All properties are exposed as JavaFX Properties for UI binding.
  * </p>
  *
- * @see Vehicle
  * @see Category
  * @see Invoice
  * @see PaymentMethod
@@ -42,12 +41,6 @@ public class Transaction {
      * and is exposed as an {@link ObjectProperty} of {@link LocalDate}.
      */
     private final ObjectProperty<LocalDate> transactionDate;
-    /**
-     * The {@link Vehicle} object associated with this transaction.
-     * This field is **required** (corresponds to {@code VehicleID_FK INTEGER NOT NULL} in the database)
-     * and is exposed as an {@link ObjectProperty} of {@link Vehicle}.
-     */
-    private final ObjectProperty<Vehicle> vehicle;
     /**
      * The {@link Category} object that classifies this transaction.
      * This link is crucial for determining if the transaction is income, expense, or credit,
@@ -95,7 +88,6 @@ public class Transaction {
     public Transaction() {
         this.transactionID = new SimpleObjectProperty<>(this, "transactionID", null);
         this.transactionDate = new SimpleObjectProperty<>(this, "transactionDate");
-        this.vehicle = new SimpleObjectProperty<>(this, "vehicle");
         this.category = new SimpleObjectProperty<>(this, "category");
         this.amount = new SimpleObjectProperty<>(this, "amount", BigDecimal.ZERO);
         this.paymentMethod = new SimpleObjectProperty<>(this, "paymentMethod");
@@ -110,7 +102,6 @@ public class Transaction {
      *
      * @param transactionID   The unique integer ID for the transaction, typically assigned by the database. Must not be {@code null}.
      * @param transactionDate The date of the transaction. Must not be {@code null}.
-     * @param vehicle         The {@link Vehicle} object associated with this transaction. Must not be {@code null}.
      * @param category        The {@link Category} object that classifies this transaction. Must not be {@code null}.
      * @param amount          The monetary amount of the transaction. Must not be {@code null}.
      * @param paymentMethod   The {@link PaymentMethod} used for payment. Can be {@code null}.
@@ -118,11 +109,10 @@ public class Transaction {
      * @param notes           Any optional notes or additional information about the transaction. Can be {@code null}.
      * @throws NullPointerException if `transactionID`, `transactionDate`, `vehicle`, `category`, or `amount` are {@code null}.
      */
-    public Transaction(Integer transactionID, LocalDate transactionDate, Vehicle vehicle, Category category,
+    public Transaction(Integer transactionID, LocalDate transactionDate, Category category,
                        BigDecimal amount, PaymentMethod paymentMethod, Invoice invoice, String notes) {
         this.transactionID = new SimpleObjectProperty<>(this, "transactionID", Objects.requireNonNull(transactionID, "Transaction ID cannot be null for an existing transaction."));
         this.transactionDate = new SimpleObjectProperty<>(this, "transactionDate");
-        this.vehicle = new SimpleObjectProperty<>(this, "vehicle");
         this.category = new SimpleObjectProperty<>(this, "category");
         this.amount = new SimpleObjectProperty<>(this, "amount");
         this.paymentMethod = new SimpleObjectProperty<>(this, "paymentMethod");
@@ -131,7 +121,6 @@ public class Transaction {
 
         // Use setters to apply validation and business logic
         setTransactionDate(transactionDate);
-        setVehicle(vehicle);
         setCategory(category);
         setAmount(amount);
         setPaymentMethod(paymentMethod);
@@ -156,7 +145,7 @@ public class Transaction {
     public Transaction(LocalDate transactionDate, Vehicle vehicle, Category category,
                        BigDecimal amount, PaymentMethod paymentMethod, Invoice invoice, String notes) {
         // Delegate to the full constructor with null for transactionID for a new entity
-        this(null, transactionDate, vehicle, category, amount, paymentMethod, invoice, notes);
+        this(null, transactionDate, category, amount, paymentMethod, invoice, notes);
     }
 
     // ------------------------------------
@@ -182,14 +171,6 @@ public class Transaction {
      */
     public ObjectProperty<LocalDate> transactionDateProperty() {
         return transactionDate;
-    }
-    /**
-     * Retrieves the {@link ObjectProperty} for the {@link Vehicle} object associated with this transaction.
-     *
-     * @return The {@link ObjectProperty} for {@code vehicle}.
-     */
-    public ObjectProperty<Vehicle> vehicleProperty() {
-        return vehicle;
     }
     /**
      * Retrieves the {@link ObjectProperty} for the {@link Category} object that classifies this transaction.
@@ -285,24 +266,6 @@ public class Transaction {
      */
     public void setTransactionDate(LocalDate transactionDate) {
         this.transactionDate.set(Objects.requireNonNull(transactionDate, "Transaction date cannot be null."));
-    }
-    /**
-     * Retrieves the {@link Vehicle} object associated with this transaction.
-     * Corresponds to the {@code VehicleID_FK} column in the database.
-     *
-     * @return The associated {@link Vehicle} object.
-     */
-    public Vehicle getVehicle() {
-        return vehicle.get();
-    }
-    /**
-     * Sets the {@link Vehicle} object associated with this transaction.
-     *
-     * @param vehicle The {@link Vehicle} object to set. Must not be {@code null}.
-     * @throws NullPointerException if {@code vehicle} is {@code null}.
-     */
-    public void setVehicle(Vehicle vehicle) {
-        this.vehicle.set(Objects.requireNonNull(vehicle, "Vehicle cannot be null."));
     }
     /**
      * Retrieves the {@link Category} object that classifies this transaction.
@@ -416,7 +379,6 @@ public class Transaction {
         return "Transaction{" +
                 "transactionID=" + getTransactionID() +
                 ", transactionDate=" + getTransactionDate() +
-                ", vehicleID=" + (getVehicle() != null ? getVehicle().getVehicleID() : "null") +
                 ", categoryID=" + (getCategory() != null ? getCategory().getCategoryID() : "null") +
                 ", amount=" + getAmount() +
                 ", paymentMethod=" + (getPaymentMethod() != null ? getPaymentMethod().toString() : "null") +

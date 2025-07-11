@@ -88,14 +88,12 @@ CREATE TABLE Categories (
 -- 📒 Transactions
 CREATE TABLE Transactions (
     TransactionID INTEGER PRIMARY KEY AUTOINCREMENT,                        -- Transaction Identifier
-    VehicleID_FK INTEGER NOT NULL,                                          -- Vehicle Identifier (Foreign Key)
     CategoryID_FK INTEGER NOT NULL,                                         -- Category Identifier (Foreign Key)
     InvoiceID_FK INTEGER,                                                   -- Invoice Identifier (Foreign Key)
     TransactionDate TEXT NOT NULL,                                          -- Date of the Transaction
     Amount NUMERIC NOT NULL,                                                -- Transaction Amount
     PaymentMethod TEXT,                                                     -- Method of Payment for the Transaction
     Notes TEXT,                                                             -- Contextual Notes about the Transaction
-    FOREIGN KEY (VehicleID_FK) REFERENCES Vehicles(VehicleID),
     FOREIGN KEY (CategoryID_FK) REFERENCES Categories(CategoryID),
     FOREIGN KEY (InvoiceID_FK) REFERENCES Invoices(InvoiceID)
 );
