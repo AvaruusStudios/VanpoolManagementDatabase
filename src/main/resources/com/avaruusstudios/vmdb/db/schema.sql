@@ -8,8 +8,9 @@ CREATE TABLE Vehicles (
     Capacity INTEGER NOT NULL,                          -- Vehicle Seating Capacity
     LeaseStartDate TEXT NOT NULL,                       -- Lease Start Date in ISO format recommended
     LeaseEndDate TEXT,                                  -- Lease End Date in ISO format recommended
-    IsActive INTEGER NOT NULL DEFAULT 1,                -- 1=True, 0=False
     Discount NUMERIC DEFAULT 0,                         -- Discount amount
+    IsActive INTEGER NOT NULL DEFAULT 1,                -- 1=True, 0=False
+    DeletedAt TEXT DEFAULT NULL,
     Notes TEXT                                          -- Contextual Notes about the Vehicle
 );
 
@@ -24,6 +25,7 @@ CREATE TABLE Locations (
     Latitude REAL,                                      -- Location Latitude
     Longitude REAL,                                     -- Location Longitude
     IsActive INTEGER NOT NULL DEFAULT 1,                -- 1=True, 0=False
+    DeletedAt TEXT DEFAULT NULL,
     Notes TEXT                                          -- Contextual Notes about the Location
 );
 
@@ -39,10 +41,11 @@ CREATE TABLE Participants (
     Phone TEXT,                                                                                         -- Participant Phone Number
     DistanceMiles NUMERIC NOT NULL,                                                                     -- Distance in Miles from Pickup Location to Drop-Off Location
     JoinDate TEXT NOT NULL,                                                                             -- Date Participant Joined the Vanpoool
-    IsActive INTEGER NOT NULL DEFAULT 1,                                                                -- 1=True, 0=False
     Program TEXT NOT NULL CHECK (Program IN ('TRANSPORTATION_INCENTIVE_PROGRAM', 'DAILY', 'NONE')),     -- Program the Participant is associated with
     BenefitAmount NUMERIC DEFAULT 0,                                                                    -- Benefit Amount the Participant receives each month
     Role TEXT DEFAULT 'PARTICIPANT' CHECK (Role IN ('PARTICIPANT', 'COORDINATOR')),                     -- The role withing the vanpool
+    IsActive INTEGER NOT NULL DEFAULT 1,                                                                -- 1=True, 0=False
+    DeletedAt TEXT DEFAULT NULL,
     Notes TEXT,                                                                                         -- Contextual Notes about the Participant
     FOREIGN KEY (PickUpLocationID_FK) REFERENCES Locations(LocationID),
     FOREIGN KEY (DropOffLocationID_FK) REFERENCES Locations(LocationID)
@@ -57,6 +60,7 @@ CREATE TABLE Invoices (
     DueDate TEXT NOT NULL,                                                                       -- Date the Participants are required to pay their share of the Invoice
     PeriodLabel TEXT NOT NULL,                                                                   -- Coverage period of the Invoice (eg. MMM YYYY)
     IsActive INTEGER NOT NULL DEFAULT 1,                                                         -- 1=True, 0=False
+    DeletedAt TEXT DEFAULT NULL,
     Notes TEXT,                                                                                  -- Contextual Notes about the Invoice
     FOREIGN KEY (VehicleID_FK) REFERENCES Vehicles(VehicleID)
 );
@@ -70,6 +74,7 @@ CREATE TABLE LineItems (
     PersonalPayment NUMERIC NOT NULL,                                       -- The amount the Participant is required to pay to their personal credit card
     IsPaid INTEGER NOT NULL DEFAULT 0,                                      -- Did the Participant make their payment?
     IsActive INTEGER NOT NULL DEFAULT 1,                                    -- 1=True, 0=False
+    DeletedAt TEXT DEFAULT NULL,
     Notes TEXT,                                                             -- Contextual Notes about the Invoice Item
     FOREIGN KEY (InvoiceID_FK) REFERENCES Invoices(InvoiceID),
     FOREIGN KEY (ParticipantID_FK) REFERENCES Participants(ParticipantID)
@@ -82,6 +87,8 @@ CREATE TABLE Categories (
     CategoryType TEXT NOT NULL CHECK (CategoryType IN ('INCOME', 'EXPENSE', 'CREDIT', 'NONE')), -- Category Types
     CategoryName TEXT NOT NULL,                                                         -- Category Names
     Description TEXT,                                                                   -- Category Long Descriptions
+    IsActive INTEGER NOT NULL DEFAULT 1,                                                -- 1=True, 0=False
+    DeletedAt TEXT DEFAULT NULL,
     FOREIGN KEY (ParticipantID_FK) REFERENCES Participants(ParticipantID)
 );
 
@@ -121,5 +128,6 @@ CREATE TABLE Users (
     Email VARCHAR(255),                             -- Email Address of the User
     UserRole VARCHAR(50) NOT NULL,                  -- User Role (e.g., "ADMIN", "TREASURER", "USER", "COORDINATOR")
     IsActive INTEGER NOT NULL DEFAULT 1,            -- 1 for TRUE, 0 for FALSE
+    DeletedAt TEXT DEFAULT NULL,
     DateCreated TEXT DEFAULT CURRENT_TIMESTAMP      -- SQLite uses TEXT for DATETIME and CURRENT_TIMESTAMP
 );
