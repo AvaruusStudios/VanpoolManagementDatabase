@@ -1,6 +1,14 @@
 package com.avaruusstudios.vmdb.model;
 
-import javafx.beans.property.*; // Import JavaFX property classes
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+
+import java.time.LocalDate; // For DeletedAt
 import java.util.Objects;
 
 /**
@@ -13,6 +21,7 @@ import java.util.Objects;
  * This class maps directly to the `Categories` table in the database.
  * Each category is uniquely identified by an ID, has a required name,
  * an optional description, and a specific {@link CategoryType} (Income, Expense, or Credit).
+ * It also includes fields for tracking its active status and soft-deletion.
  * </p>
  *
  * <p>
@@ -26,6 +35,11 @@ import java.util.Objects;
  * (i.e., {@link #participantProperty()} must be {@code null}). These are general vanpool expenses/credits.</li>
  * </ul>
  * </p>
+ *
+ * @author AvaruusStudios
+ * @version 1.1
+ * Created On: 2025-07-11
+ * Updated On: 2025-07-11
  *
  * @see CategoryType
  * @see Participant
@@ -55,7 +69,11 @@ public class Category {
      * </p>
      * <p>
      * This field represents a **foreign key relationship** to the {@code Participants} table
-     * (corresponding to {@code ParticipantID_FK INTEGER} in the database).
+     * (corresponding to {@code ParticipantID_FK INTEGER} in the database). The underlying
+     * database column stores the participant's ID, while this POJO directly holds the
+     * {@link Participant} object for convenience and to facilitate business rules.
+     * </p>
+     * <p>
      * Its nullability depends on the {@link #categoryTypeProperty()} as per business rules:
      * <ul>
      * <li>**REQUIRED** (non-{@code null}) if {@link #categoryTypeProperty()} is {@link CategoryType#INCOME}.</li>
@@ -84,9 +102,8 @@ public class Category {
      * </p>
      * <p>
      * This string field provides a concise and human-readable label for the category.
-     * It maps directly to the {@code CategoryName TEXT NOT NULL UNIQUE} column in the database.
-     * This name should be **unique** across all categories, regardless of type or participant,
-     * to prevent ambiguity when retrieving categories by name. This field is exposed as a {@link StringProperty}.
+     * It maps directly to the {@code CategoryName TEXT NOT NULL} column in the database.
+     * This field is exposed as a {@link StringProperty}.
      * </p>
      */
     private final StringProperty categoryName;
@@ -102,6 +119,30 @@ public class Category {
      * </p>
      */
     private final StringProperty description;
+    /**
+     * <p>
+     * Indicates whether the category record is currently active (1) or inactive (0).
+     * </p>
+     * <p>
+     * This field maps to the {@code IsActive INTEGER NOT NULL DEFAULT 1} column in the database.
+     * It is used for soft-deletion and logical filtering of records,
+     * allowing data to be marked as inactive without physically removing it from the database.
+     * Default value is 1 (active). Exposed as an {@link IntegerProperty}.
+     * </p>
+     */
+    private final IntegerProperty isActive;
+    /**
+     * <p>
+     * The timestamp indicating when this record was logically deleted (soft-deleted).
+     * </p>
+     * <p>
+     * This field maps to the {@code DeletedAt TEXT DEFAULT NULL} column in the database.
+     * It stores the date and time in ISO format (e.g., "YYYY-MM-DD HH:MM:SS") when `IsActive`
+     * is set to 0. A {@code null} value indicates the record is not deleted.
+     * Exposed as an {@link ObjectProperty} of {@link LocalDate}.
+     * </p>
+     */
+    private final ObjectProperty<LocalDate> deletedAt;
 
     /**
      * <p>
@@ -110,12 +151,12 @@ public class Category {
      * <p>
      * This constructor initializes {@code categoryID} to {@code null} and all other fields
      * to their default JavaFX Property values (e.g., {@code null} for ObjectProperties,
-     * empty string for StringProperties). It is useful for frameworks (like ORMs or
+     * empty string for StringProperties, 0 for IntegerProperties). It is useful for frameworks (like ORMs or
      * deserializers) that instantiate objects via reflection and then populate them
      * using setters. When used in application code, all required fields
      * ({@link #categoryTypeProperty()} and {@link #categoryNameProperty()}) and the associated
      * {@link #participantProperty()} (if {@link CategoryType#INCOME}) must be set subsequently
-     * using the appropriate setters.
+     * using the appropriate setters. Defaults {@code isActive} to 1.
      * </p>
      */
     public Category() {
@@ -124,7 +165,10 @@ public class Category {
         this.categoryType = new SimpleObjectProperty<>(this, "categoryType");
         this.categoryName = new SimpleStringProperty(this, "categoryName");
         this.description = new SimpleStringProperty(this, "description");
+        this.isActive = new SimpleIntegerProperty(this, "isActive", 1); // Default to active
+        this.deletedAt = new SimpleObjectProperty<>(this, "deletedAt", null); // Default to not deleted
     }
+
     /**
      * <p>
      * Full constructor to initialize all fields of a {@code Category} instance.
@@ -142,23 +186,31 @@ public class Category {
      * @param categoryType The {@link CategoryType} (Income, Expense, Credit). Must not be {@code null}.
      * @param categoryName The name of the category. Must not be {@code null} or empty after trimming.
      * @param description  An optional longer description of the category. Can be {@code null}.
+     * @param isActive     The active status of the category (1 for active, 0 for inactive).
+     * @param deletedAt    The date this category was soft-deleted, or {@code null} if not deleted.
      * @throws NullPointerException     if {@code categoryID}, {@code categoryType} or {@code categoryName} is {@code null}.
      * @throws IllegalArgumentException if {@code categoryName} is empty after trimming,
-     * or if participant/categoryType business rules are violated.
+     * or if participant/categoryType business rules are violated, or if `isActive` is not 0 or 1.
      */
-    public Category(Integer categoryID, Participant participant, CategoryType categoryType, String categoryName, String description) {
+    public Category(Integer categoryID, Participant participant, CategoryType categoryType, String categoryName,
+                    String description, int isActive, LocalDate deletedAt) {
         this.categoryID = new SimpleObjectProperty<>(this, "categoryID", Objects.requireNonNull(categoryID, "CategoryID cannot be null for an existing category."));
         this.participant = new SimpleObjectProperty<>(this, "participant");
         this.categoryType = new SimpleObjectProperty<>(this, "categoryType");
         this.categoryName = new SimpleStringProperty(this, "categoryName");
         this.description = new SimpleStringProperty(this, "description");
+        this.isActive = new SimpleIntegerProperty(this, "isActive");
+        this.deletedAt = new SimpleObjectProperty<>(this, "deletedAt");
 
         // Setters enforce validation and business rules
         setCategoryType(categoryType);
         setParticipant(participant);   // Will internally check against this.categoryType
         setCategoryName(categoryName);
         setDescription(description);
+        setIsActive(isActive);
+        setDeletedAt(deletedAt);
     }
+
     /**
      * <p>
      * Convenience constructor for creating a new {@code Category} object that doesn't yet have a database ID.
@@ -166,6 +218,7 @@ public class Category {
      * <p>
      * This constructor is ideal when preparing a new category record for **insertion** into the database.
      * The {@code categoryID} is omitted as it is typically auto-generated by the database.
+     * {@code isActive} defaults to 1 (active) and {@code deletedAt} defaults to {@code null}.
      * All parameters are validated via their respective setters.
      * </p>
      *
@@ -178,9 +231,10 @@ public class Category {
      * or if participant/categoryType business rules are violated.
      */
     public Category(Participant participant, CategoryType categoryType, String categoryName, String description) {
-        // Delegate to the full constructor with null categoryID for a new entity
-        this(null, participant, categoryType, categoryName, description);
+        // Delegate to the full constructor with null categoryID and default isActive/deletedAt for a new entity
+        this(null, participant, categoryType, categoryName, description, 1, null);
     }
+
     /**
      * Internal helper method to validate the coupling between CategoryType and Participant.
      * This method is called by constructors and `setParticipant`.
@@ -201,9 +255,7 @@ public class Category {
         }
     }
 
-    // ------------------------------------
-    // JavaFX Property Accessor Methods
-    // ------------------------------------
+    // --- JavaFX Property Accessor Methods ---
 
     /**
      * <p>
@@ -253,7 +305,7 @@ public class Category {
      * </p>
      * <p>
      * This property represents the {@code CategoryName} column in the database.
-     * It holds the user-friendly, unique name of the category.
+     * It holds the user-friendly name of the category.
      * </p>
      *
      * @return The {@link StringProperty} for {@code categoryName}.
@@ -274,10 +326,35 @@ public class Category {
     public StringProperty descriptionProperty() {
         return description;
     }
+    /**
+     * <p>
+     * Retrieves the {@link IntegerProperty} for the active status of this category.
+     * </p>
+     * <p>
+     * This property represents the {@code IsActive} column in the database (1 for active, 0 for inactive).
+     * </p>
+     *
+     * @return The {@link IntegerProperty} for {@code isActive}.
+     */
+    public IntegerProperty isActiveProperty() {
+        return isActive;
+    }
+    /**
+     * <p>
+     * Retrieves the {@link ObjectProperty} for the soft-deletion timestamp of this category.
+     * </p>
+     * <p>
+     * This property represents the {@code DeletedAt} column in the database. A non-null value
+     * indicates the record has been soft-deleted.
+     * </p>
+     *
+     * @return The {@link ObjectProperty} for {@code deletedAt}.
+     */
+    public ObjectProperty<LocalDate> deletedAtProperty() {
+        return deletedAt;
+    }
 
-    // ---------------------
-    // Value Getters and Setters
-    // ---------------------
+    // --- Value Getters and Setters ---
 
     /**
      * <p>
@@ -407,7 +484,7 @@ public class Category {
      * Sets the name of this category.
      * </p>
      * <p>
-     * This field is mapped as {@code NOT NULL UNIQUE} in the database schema,
+     * This field is mapped as {@code NOT NULL} in the database schema,
      * so it's important to ensure a non-{@code null} and non-empty name is always provided.
      * Leading/trailing whitespace will be trimmed.
      * </p>
@@ -451,10 +528,65 @@ public class Category {
     public void setDescription(String description) {
         this.description.set((description != null) ? description.strip() : null);
     }
+    /**
+     * <p>
+     * Retrieves the active status of this category.
+     * </p>
+     * <p>
+     * Corresponds to the {@code IsActive} column in the database (1 for active, 0 for inactive).
+     * </p>
+     *
+     * @return An integer representing the active status (1 for true, 0 for false).
+     */
+    public int getIsActive() {
+        return isActive.get();
+    }
+    /**
+     * <p>
+     * Sets the active status of this category.
+     * </p>
+     * <p>
+     * This method validates that the provided value is either 1 (active) or 0 (inactive).
+     * </p>
+     *
+     * @param isActive An integer representing the active status (1 for true, 0 for false).
+     * @throws IllegalArgumentException if `isActive` is not 0 or 1.
+     */
+    public void setIsActive(int isActive) {
+        if (isActive != 0 && isActive != 1) {
+            throw new IllegalArgumentException("IsActive must be 0 (false) or 1 (true).");
+        }
+        this.isActive.set(isActive);
+    }
+    /**
+     * <p>
+     * Retrieves the soft-deletion timestamp for this category.
+     * </p>
+     * <p>
+     * Corresponds to the {@code DeletedAt} column in the database.
+     * </p>
+     *
+     * @return The {@link LocalDate} when the category was soft-deleted, or {@code null} if not deleted.
+     */
+    public LocalDate getDeletedAt() {
+        return deletedAt.get();
+    }
+    /**
+     * <p>
+     * Sets the soft-deletion timestamp for this category.
+     * </p>
+     * <p>
+     * Setting this field implies a soft-delete operation. This should typically be
+     * used in conjunction with setting {@link #setIsActive(int) isActive} to 0.
+     * </p>
+     *
+     * @param deletedAt The {@link LocalDate} to set, or {@code null} to indicate not deleted.
+     */
+    public void setDeletedAt(LocalDate deletedAt) {
+        this.deletedAt.set(deletedAt);
+    }
 
-    // ---------------------
-    // Utility Methods
-    // ---------------------
+    // --- Utility Methods ---
 
     /**
      * <p>
@@ -463,11 +595,12 @@ public class Category {
      * <p>
      * This method is primarily used for debugging and logging, providing
      * a concise summary of the category's key attributes.
-     * The format includes the category ID, name, type, and associated participant ID (if any).
+     * The format includes the category ID, name, type, associated participant ID (if any),
+     * active status, and deletion timestamp.
      * </p>
      *
      * @return A string in the format:
-     * "Category{ID=..., Name='...', Type=..., ParticipantID=...}"
+     * "Category{ID=..., Name='...', Type=..., ParticipantID=..., IsActive=..., DeletedAt=...}"
      */
     @Override
     public String toString() {
@@ -476,6 +609,8 @@ public class Category {
                 ", categoryName='" + getCategoryName() + '\'' +
                 ", categoryType=" + getCategoryType() +
                 ", participantID=" + (getParticipant() != null ? getParticipant().getParticipantID() : "null") +
+                ", isActive=" + getIsActive() +
+                ", deletedAt=" + getDeletedAt() +
                 '}';
     }
     /**
