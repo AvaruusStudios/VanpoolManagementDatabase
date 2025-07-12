@@ -27,6 +27,7 @@ import java.util.Objects;
  * @version 1.3
  * Created On: 2025-07-11
  * Updated On: 2025-07-12
+ *
  * @see Role
  * @see EventLog
  */

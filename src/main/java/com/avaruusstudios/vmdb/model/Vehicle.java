@@ -26,6 +26,7 @@ import java.util.Objects;
  * @version 1.4
  * Created On: 2025-07-11
  * Updated On: 2025-07-12
+ *
  * @see Transaction
  */
 public class Vehicle {
