@@ -25,7 +25,7 @@ import java.util.List;
  * @see EventLog
  * @see DatabaseAccessException
  */
-public interface EventLogDataAccess extends GenericDataAccess<EventLog, Integer> {
+public interface EventLogDataAccess extends CreateDataAccess<EventLog, Integer> {
 
     /**
      * <p>

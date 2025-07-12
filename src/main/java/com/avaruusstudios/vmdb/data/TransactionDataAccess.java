@@ -26,7 +26,7 @@ import java.util.List;
  * @see Transaction
  * @see DatabaseAccessException
  */
-public interface TransactionDataAccess extends GenericDataAccess<Transaction, Integer> {
+public interface TransactionDataAccess extends UpdateDataAccess<Transaction, Integer> {
 
     /**
      * <p>
