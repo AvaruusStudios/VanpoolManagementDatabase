@@ -18,6 +18,11 @@ import java.util.Objects;
  * All properties are exposed as JavaFX Properties for UI binding.
  * </p>
  *
+ * @author AvaruusStudios
+ * @version 1.1
+ * Created On: 2025-07-11
+ * Updated On: 2025-07-11
+ *
  * @see User
  * @see EventType
  * @see ErrorCode
@@ -158,9 +163,7 @@ public class EventLog {
         this(null, user, eventDate, eventType, tableName, recordID, errorCode, description);
     }
 
-    // ------------------------------------
-    // JavaFX Property Accessor Methods
-    // ------------------------------------
+    // --- JavaFX Property Accessor Methods ---
 
     /**
      * Retrieves the {@link ReadOnlyObjectProperty} for the unique identifier of this event log entry.
@@ -231,9 +234,7 @@ public class EventLog {
         return description;
     }
 
-    // ---------------------
-    // Value Getters and Setters
-    // ---------------------
+    // --- Value Getters and Setters ---
 
     /**
      * Retrieves the unique identifier for this event log entry.
@@ -400,9 +401,7 @@ public class EventLog {
         this.description.set((description != null) ? description.strip() : null);
     }
 
-    // ---------------------
-    // Utility Methods
-    // ---------------------
+    // --- Utility Methods ---
 
     /**
      * <p>
