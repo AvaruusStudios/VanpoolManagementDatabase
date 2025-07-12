@@ -1,13 +1,14 @@
 package com.avaruusstudios.vmdb.model;
 
-import javafx.beans.property.BooleanProperty; // New import for boolean property
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty; // New import for simple boolean property
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
+import java.time.LocalDateTime; // New import for deletedAt
 import java.util.Objects;
 
 /**
@@ -18,11 +19,21 @@ import java.util.Objects;
  * </p>
  *
  * <p>
- * Each location is uniquely identified and its properties are designed to support
- * data binding with JavaFX UI components, making it suitable for a responsive
- * desktop application. This class directly maps to the `Locations` table in the SQLite database.
+ * Each location is uniquely identified ({@code LocationID INTEGER PRIMARY KEY AUTOINCREMENT})
+ * and its properties are designed to support data binding with JavaFX UI components, making it suitable for a responsive
+ * desktop application. This class directly maps to the `Locations` table in the SQLite database,
+ * including its name ({@code LocationName TEXT NOT NULL}), address ({@code Address TEXT NOT NULL}),
+ * city ({@code City TEXT NOT NULL}), state ({@code State TEXT NOT NULL}), zip code ({@code ZipCode TEXT NOT NULL}),
+ * optional geographic coordinates ({@code Latitude REAL}, {@code Longitude REAL}),
+ * an active status flag ({@code IsActive INTEGER NOT NULL DEFAULT 1}),
+ * a timestamp for logical deletion ({@code DeletedAt TEXT DEFAULT NULL}),
+ * and any contextual notes ({@code Notes TEXT}).
  * </p>
  *
+ * @author AvaruusStudios
+ * @version 1.1
+ * Created On: 2025-07-11
+ * Updated On: 2025-07-12
  * @see Vehicle
  * @see Participant
  */
@@ -78,28 +89,36 @@ public class Location {
      */
     private final ObjectProperty<Double> longitude;
     /**
-     * Optional free-form text for additional notes or administrative comments specific to this location.
-     * (corresponds to {@code Notes TEXT} in the database).
-     */
-    private final StringProperty notes;
-    /**
      * Indicates whether the location is currently active or has been logically deleted/deactivated.
      * (corresponds to {@code IsActive INTEGER NOT NULL DEFAULT 1} in the database).
      * `true` (1) for active, `false` (0) for inactive.
      */
     private final BooleanProperty isActive;
+    /**
+     * The timestamp when the location was logically deleted or deactivated.
+     * This field is optional and can be {@code null} if the location is active.
+     * Corresponds to {@code DeletedAt TEXT DEFAULT NULL} in the database.
+     */
+    private final ObjectProperty<LocalDateTime> deletedAt; // New field from schema
+    /**
+     * Optional free-form text for additional notes or administrative comments specific to this location.
+     * (corresponds to {@code Notes TEXT} in the database).
+     */
+    private final StringProperty notes;
 
 
     /**
      * Default constructor for creating a new, unpersisted {@code Location} object.
-     * Initializes properties with default values (null for ID, empty strings for text, null for coordinates).
+     * Initializes properties with default values (null for ID, empty strings for text, null for coordinates,
+     * `isActive` as true, `deletedAt` as null, `notes` as empty string).
      * The {@code locationID} is set to {@code null} to explicitly indicate that
      * this location has not yet been assigned a unique ID by the database.
      * This constructor is primarily used by frameworks that instantiate objects
      * via reflection (e.g., ORMs, JSON deserializers) before populating their fields.
      */
     public Location() {
-        this(null, "", "", "", "", "", null, null, true, ""); // Default to active
+        // Default to active, notes as empty string, deletedAt as null
+        this(null, "", "", "", "", "", null, null, true, null, "");
     }
 
     /**
@@ -116,13 +135,15 @@ public class Location {
      * @param zipCode       The postal zip code for the location. Must not be null or empty.
      * @param latitude      The geographical latitude coordinate. Can be {@code null}.
      * @param longitude     The geographical longitude coordinate. Can be {@code null}.
-     * @param notes         Optional notes or a detailed description. Can be {@code null}.
      * @param isActive      The active status of the location (true for active, false for inactive/deleted).
+     * @param deletedAt     The {@link LocalDateTime} when the location was logically deleted, or {@code null} if active.
+     * @param notes         Optional notes or a detailed description. Can be {@code null}.
      *
      * @throws IllegalArgumentException if any mandatory string fields are empty/null or coordinates are out of valid range.
      * @throws IllegalStateException    if `locationID` is attempted to be changed once set.
      */
-    public Location(Integer locationID, String locationName, String address, String city, String state, String zipCode, Double latitude, Double longitude, Boolean isActive, String notes) {
+    public Location(Integer locationID, String locationName, String address, String city, String state, String zipCode,
+                    Double latitude, Double longitude, Boolean isActive, LocalDateTime deletedAt, String notes) {
         this.locationID = new SimpleObjectProperty<>(this, "locationID", locationID);
         this.locationName = new SimpleStringProperty(this, "locationName");
         this.address = new SimpleStringProperty(this, "address");
@@ -131,8 +152,10 @@ public class Location {
         this.zipCode = new SimpleStringProperty(this, "zipCode");
         this.latitude = new SimpleObjectProperty<>(this, "latitude");
         this.longitude = new SimpleObjectProperty<>(this, "longitude");
+        this.isActive = new SimpleBooleanProperty(this, "isActive");
+        this.deletedAt = new SimpleObjectProperty<>(this, "deletedAt"); // Initialize new property
         this.notes = new SimpleStringProperty(this, "notes");
-        this.isActive = new SimpleBooleanProperty(this, "isActive"); // Initialize new property
+
 
         setLocationName(locationName);
         setAddress(address);
@@ -141,8 +164,9 @@ public class Location {
         setZipCode(zipCode);
         setLatitude(latitude);
         setLongitude(longitude);
+        setIsActive(isActive);
+        setDeletedAt(deletedAt); // Set new property
         setNotes(notes);
-        setIsActive(isActive); // Set the new property
     }
 
     /**
@@ -163,7 +187,8 @@ public class Location {
      * @throws IllegalArgumentException if any mandatory string fields are empty/null or coordinates are out of valid range.
      */
     public Location(String locationName, String address, String city, String state, String zipCode, Double latitude, Double longitude, String notes) {
-        this(null, locationName, address, city, state, zipCode, latitude, longitude, true, notes); // Default to active for new instances
+        // Default to active for new instances, and deletedAt as null
+        this(null, locationName, address, city, state, zipCode, latitude, longitude, true, null, notes);
     }
 
     // --- JavaFX Property Accessors ---
@@ -254,16 +279,6 @@ public class Location {
     }
 
     /**
-     * Retrieves the {@link StringProperty} for any additional notes pertaining to the location.
-     * This property corresponds to the {@code Notes} column in the database.
-     *
-     * @return The {@link StringProperty} for {@code notes}.
-     */
-    public StringProperty notesProperty() {
-        return notes;
-    }
-
-    /**
      * Retrieves the {@link BooleanProperty} for the active status of the location.
      * This property corresponds to the {@code IsActive} column in the database.
      *
@@ -271,6 +286,26 @@ public class Location {
      */
     public BooleanProperty isActiveProperty() {
         return isActive;
+    }
+
+    /**
+     * Retrieves the {@link ObjectProperty} for the deletion timestamp of the location.
+     * This property corresponds to the {@code DeletedAt} column in the database.
+     *
+     * @return The {@link ObjectProperty} for {@code deletedAt}.
+     */
+    public ObjectProperty<LocalDateTime> deletedAtProperty() { // New property accessor
+        return deletedAt;
+    }
+
+    /**
+     * Retrieves the {@link StringProperty} for any additional notes pertaining to the location.
+     * This property corresponds to the {@code Notes} column in the database.
+     *
+     * @return The {@link StringProperty} for {@code notes}.
+     */
+    public StringProperty notesProperty() {
+        return notes;
     }
 
     // --- Value Getters and Setters ---
@@ -313,6 +348,7 @@ public class Location {
 
     /**
      * Retrieves the human-readable name of the location.
+     * Corresponds to the {@code LocationName} column in the database.
      *
      * @return The location name as a {@link String}.
      */
@@ -340,6 +376,7 @@ public class Location {
 
     /**
      * Retrieves the street address of the location.
+     * Corresponds to the {@code Address} column in the database.
      *
      * @return The street address as a {@link String}.
      */
@@ -367,6 +404,7 @@ public class Location {
 
     /**
      * Retrieves the city of the location.
+     * Corresponds to the {@code City} column in the database.
      *
      * @return The city as a {@link String}.
      */
@@ -394,6 +432,7 @@ public class Location {
 
     /**
      * Retrieves the state or province abbreviation of the location.
+     * Corresponds to the {@code State} column in the database.
      *
      * @return The state abbreviation as a {@link String}.
      */
@@ -421,6 +460,7 @@ public class Location {
 
     /**
      * Retrieves the postal zip code of the location.
+     * Corresponds to the {@code ZipCode} column in the database.
      *
      * @return The zip code as a {@link String}.
      */
@@ -450,6 +490,7 @@ public class Location {
 
     /**
      * Retrieves the geographical latitude of the location.
+     * Corresponds to the {@code Latitude} column in the database.
      *
      * @return The latitude as a {@link Double}, or {@code null} if not set.
      */
@@ -476,6 +517,7 @@ public class Location {
 
     /**
      * Retrieves the geographical longitude of the location.
+     * Corresponds to the {@code Longitude} column in the database.
      *
      * @return The longitude as a {@link Double}, or {@code null} if not set.
      */
@@ -501,7 +543,46 @@ public class Location {
     }
 
     /**
+     * Retrieves the active status of the location.
+     * Corresponds to the {@code IsActive} column in the database.
+     *
+     * @return {@code true} if the location is active, {@code false} if it's inactive/logically deleted.
+     */
+    public boolean getIsActive() {
+        return isActive.get();
+    }
+
+    /**
+     * Sets the active status of the location.
+     *
+     * @param isActive {@code true} to mark the location as active, {@code false} for inactive/logically deleted.
+     */
+    public void setIsActive(boolean isActive) {
+        this.isActive.set(isActive);
+    }
+
+    /**
+     * Retrieves the timestamp when the location was logically deleted or deactivated.
+     * Corresponds to the {@code DeletedAt} column in the database.
+     *
+     * @return The {@link LocalDateTime} of deletion, or {@code null} if the location is active.
+     */
+    public LocalDateTime getDeletedAt() { // New getter
+        return deletedAt.get();
+    }
+
+    /**
+     * Sets the timestamp when the location was logically deleted or deactivated.
+     *
+     * @param deletedAt The {@link LocalDateTime} to set as the deletion timestamp. Can be {@code null}.
+     */
+    public void setDeletedAt(LocalDateTime deletedAt) { // New setter
+        this.deletedAt.set(deletedAt);
+    }
+
+    /**
      * Retrieves any additional notes or administrative comments for the location.
+     * Corresponds to the {@code Notes} column in the database.
      *
      * @return The notes string, or {@code null} if no notes are present.
      */
@@ -521,24 +602,6 @@ public class Location {
         this.notes.set((notes == null) ? null : notes.trim());
     }
 
-    /**
-     * Retrieves the active status of the location.
-     *
-     * @return {@code true} if the location is active, {@code false} if it's inactive/logically deleted.
-     */
-    public boolean getIsActive() {
-        return isActive.get();
-    }
-
-    /**
-     * Sets the active status of the location.
-     *
-     * @param isActive {@code true} to mark the location as active, {@code false} for inactive/logically deleted.
-     */
-    public void setIsActive(boolean isActive) {
-        this.isActive.set(isActive);
-    }
-
     // --- Utility Methods ---
 
     /**
@@ -548,11 +611,11 @@ public class Location {
      * a concise summary of the location's key attributes.
      * </p>
      * <p>
-     * The format includes the location ID, name, city, state, and active status.
+     * The format includes the location ID, name, city, state, active status, and deleted timestamp.
      * </p>
      *
      * @return A string in the format:
-     * "Location{ID=..., Name=..., City=..., State=..., isActive=...}"
+     * "Location{ID=..., Name=..., City=..., State=..., isActive=..., deletedAt=...}"
      */
     @Override
     public String toString() {
@@ -561,7 +624,8 @@ public class Location {
                 ", locationName='" + getLocationName() + '\'' +
                 ", city='" + getCity() + '\'' +
                 ", state='" + getState() + '\'' +
-                ", isActive=" + getIsActive() + // Added isActive to toString
+                ", isActive=" + getIsActive() +
+                ", deletedAt=" + getDeletedAt() + // Added new field
                 '}';
     }
 
