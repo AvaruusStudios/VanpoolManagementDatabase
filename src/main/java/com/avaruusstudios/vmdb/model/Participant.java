@@ -3,6 +3,7 @@ package com.avaruusstudios.vmdb.model;
 import javafx.beans.property.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime; // New import for deletedAt
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -10,15 +11,26 @@ import java.util.regex.Pattern;
  * <p>
  * Represents an individual participant within the Vanpool Management System.
  * This class stores personal, contact, and participation details for a commuter,
- * including their assigned pickup and drop-off locations, associated program,
- * financial benefits, and role within the vanpool.
+ * including their assigned pickup and drop-off locations ({@code PickUpLocationID_FK}, {@code DropOffLocationID_FK}),
+ * associated program ({@code Program}), financial benefits ({@code BenefitAmount}),
+ * and role within the vanpool ({@code Role}).
  * </p>
  *
  * <p>
- * Each participant is uniquely identified and their properties are designed to support
- * data binding with JavaFX UI components, making it suitable for a responsive
- * desktop application. This class directly maps to the `Participants` table in the SQLite database.
+ * Each participant is uniquely identified ({@code ParticipantID INTEGER PRIMARY KEY AUTOINCREMENT})
+ * and their properties are designed to support data binding with JavaFX UI components, making it suitable for a responsive
+ * desktop application. This class directly maps to the `Participants` table in the SQLite database,
+ * incorporating fields such as first name ({@code FirstName TEXT NOT NULL}), middle name ({@code MiddleName TEXT}),
+ * last name ({@code LastName TEXT NOT NULL}), email ({@code Email TEXT NOT NULL UNIQUE}), phone ({@code Phone TEXT NOT NULL}),
+ * distance traveled ({@code DistanceMiles REAL NOT NULL}), join date ({@code JoinDate TEXT NOT NULL}),
+ * active status ({@code IsActive INTEGER NOT NULL}), a timestamp for logical deletion ({@code DeletedAt TEXT DEFAULT NULL}),
+ * and any contextual notes ({@code Notes TEXT}).
  * </p>
+ *
+ * @author AvaruusStudios
+ * @version 1.1
+ * Created On: 2025-07-11
+ * Updated On: 2025-07-12
  *
  * @see Location
  * @see Program
@@ -106,6 +118,12 @@ public class Participant {
      */
     private final ObjectProperty<Role> role;
     /**
+     * The timestamp when the participant was logically deleted or deactivated.
+     * This field is optional and can be {@code null} if the participant is active.
+     * Corresponds to {@code DeletedAt TEXT DEFAULT NULL} in the database.
+     */
+    private final ObjectProperty<LocalDateTime> deletedAt; // New field from schema
+    /**
      * Optional free-form text for additional notes or administrative comments pertaining to this participant.
      * (corresponds to {@code Notes TEXT} in the database).
      */
@@ -129,8 +147,11 @@ public class Participant {
      * via reflection (e.g., ORMs, JSON deserializers) before populating their fields.
      */
     public Participant() {
-        this(null, new Location(), new Location(), "", "", "", "", "", BigDecimal.ZERO, LocalDate.now(), true, Program.NONE, BigDecimal.ZERO, Role.PARTICIPANT, "");
+        // Default to active, notes as empty string, deletedAt as null
+        this(null, new Location(), new Location(), "", "", "", "", "",
+                BigDecimal.ZERO, LocalDate.now(), true, Program.NONE, BigDecimal.ZERO, Role.PARTICIPANT, null, "");
     }
+
     /**
      * Full constructor to initialize all fields of a {@code Participant} instance.
      * This constructor is typically used when loading an *existing* participant
@@ -151,6 +172,7 @@ public class Participant {
      * @param program         The {@link Program} the participant is associated with. Must not be null.
      * @param benefitAmount   The monthly static benefit amount. Must not be null and non-negative.
      * @param role            The {@link Role} of the participant within the vanpool. Must not be null.
+     * @param deletedAt       The {@link LocalDateTime} when the participant was logically deleted, or {@code null} if active.
      * @param notes           Optional free-form notes. Can be null.
      *
      * @throws IllegalArgumentException if any mandatory argument is invalid (e.g., null, empty, bad format, out of range).
@@ -159,7 +181,7 @@ public class Participant {
     public Participant(Integer participantID, Location pickUpLocation, Location dropOffLocation,
                        String firstName, String middleName, String lastName, String email, String phone,
                        BigDecimal distanceMiles, LocalDate joinDate, boolean isActive,
-                       Program program, BigDecimal benefitAmount, Role role, String notes) {
+                       Program program, BigDecimal benefitAmount, Role role, LocalDateTime deletedAt, String notes) {
         this.participantID = new SimpleObjectProperty<>(this, "participantID", participantID);
         this.pickUpLocation = new SimpleObjectProperty<>(this, "pickUpLocation");
         this.dropOffLocation = new SimpleObjectProperty<>(this, "dropOffLocation");
@@ -174,7 +196,9 @@ public class Participant {
         this.program = new SimpleObjectProperty<>(this, "program");
         this.benefitAmount = new SimpleObjectProperty<>(this, "benefitAmount");
         this.role = new SimpleObjectProperty<>(this, "role");
+        this.deletedAt = new SimpleObjectProperty<>(this, "deletedAt"); // Initialize new property
         this.notes = new SimpleStringProperty(this, "notes");
+
 
         setPickUpLocation(pickUpLocation);
         setDropOffLocation(dropOffLocation);
@@ -189,8 +213,10 @@ public class Participant {
         setProgram(program);
         setBenefitAmount(benefitAmount);
         setRole(role);
+        setDeletedAt(deletedAt); // Set new property
         setNotes(notes);
     }
+
     /**
      * Convenience constructor for creating a new {@code Participant} object that does not yet have a database ID.
      * This constructor is ideal when preparing a new participant record for **insertion** into the database,
@@ -218,11 +244,11 @@ public class Participant {
                        String firstName, String middleName, String lastName, String email, String phone,
                        BigDecimal distanceMiles, LocalDate joinDate, boolean isActive,
                        Program program, BigDecimal benefitAmount, Role role, String notes) {
-        // Calls the full constructor with participantID as null
+        // Calls the full constructor with participantID as null and deletedAt as null
         this(null, pickUpLocation, dropOffLocation,
                 firstName, middleName, lastName, email, phone,
                 distanceMiles, joinDate, isActive,
-                program, benefitAmount, role, notes);
+                program, benefitAmount, role, null, notes);
     }
 
     // --- JavaFX Property Accessors ---
@@ -241,6 +267,7 @@ public class Participant {
     public ReadOnlyObjectProperty<Integer> participantIDProperty() {
         return participantID;
     }
+
     /**
      * Retrieves the {@link ObjectProperty} for the participant's pickup location.
      * This property holds a {@link Location} object and corresponds to the {@code PickUpLocationID_FK}
@@ -251,6 +278,7 @@ public class Participant {
     public ObjectProperty<Location> pickUpLocationProperty() {
         return pickUpLocation;
     }
+
     /**
      * Retrieves the {@link ObjectProperty} for the participant's drop-off location.
      * This property holds a {@link Location} object and corresponds to the {@code DropOffLocationID_FK}
@@ -261,6 +289,7 @@ public class Participant {
     public ObjectProperty<Location> dropOffLocationProperty() {
         return dropOffLocation;
     }
+
     /**
      * Retrieves the {@link StringProperty} for the participant's first name.
      * This property corresponds to the {@code FirstName} column in the database.
@@ -270,6 +299,7 @@ public class Participant {
     public StringProperty firstNameProperty() {
         return firstName;
     }
+
     /**
      * Retrieves the {@link StringProperty} for the participant's middle name.
      * This property corresponds to the {@code MiddleName} column in the database.
@@ -279,6 +309,7 @@ public class Participant {
     public StringProperty middleNameProperty() {
         return middleName;
     }
+
     /**
      * Retrieves the {@link StringProperty} for the participant's last name.
      * This property corresponds to the {@code LastName} column in the database.
@@ -288,6 +319,7 @@ public class Participant {
     public StringProperty lastNameProperty() {
         return lastName;
     }
+
     /**
      * Retrieves the {@link StringProperty} for the participant's email address.
      * This property corresponds to the {@code Email} column in the database.
@@ -297,6 +329,7 @@ public class Participant {
     public StringProperty emailProperty() {
         return email;
     }
+
     /**
      * Retrieves the {@link StringProperty} for the participant's phone number.
      * This property corresponds to the {@code Phone} column in the database.
@@ -306,6 +339,7 @@ public class Participant {
     public StringProperty phoneProperty() {
         return phone;
     }
+
     /**
      * Retrieves the {@link ObjectProperty} for the distance between pickup and drop-off locations.
      * This property holds a {@link BigDecimal} value and corresponds to the {@code DistanceMiles} column in the database.
@@ -315,6 +349,7 @@ public class Participant {
     public ObjectProperty<BigDecimal> distanceMilesProperty() {
         return distanceMiles;
     }
+
     /**
      * Retrieves the {@link ObjectProperty} for the participant's join date.
      * This property holds a {@link LocalDate} value and corresponds to the {@code JoinDate} column in the database.
@@ -324,6 +359,7 @@ public class Participant {
     public ObjectProperty<LocalDate> joinDateProperty() {
         return joinDate;
     }
+
     /**
      * Retrieves the {@link BooleanProperty} indicating if the participant is currently active.
      * This property corresponds to the {@code IsActive} column in the database.
@@ -333,6 +369,7 @@ public class Participant {
     public BooleanProperty isActiveProperty() {
         return isActive;
     }
+
     /**
      * Retrieves the {@link ObjectProperty} for the participant's associated vanpool program.
      * This property holds a {@link Program} enum value and corresponds to the {@code Program} column in the database.
@@ -342,6 +379,7 @@ public class Participant {
     public ObjectProperty<Program> programProperty() {
         return program;
     }
+
     /**
      * Retrieves the {@link ObjectProperty} for the participant's monthly benefit amount.
      * This property holds a {@link BigDecimal} value and corresponds to the {@code BenefitAmount} column in the database.
@@ -351,6 +389,7 @@ public class Participant {
     public ObjectProperty<BigDecimal> benefitAmountProperty() {
         return benefitAmount;
     }
+
     /**
      * Retrieves the {@link ObjectProperty} for the participant's role within the vanpool.
      * This property holds a {@link Role} enum value and corresponds to the {@code Role} column in the database.
@@ -360,6 +399,17 @@ public class Participant {
     public ObjectProperty<Role> roleProperty() {
         return role;
     }
+
+    /**
+     * Retrieves the {@link ObjectProperty} for the deletion timestamp of the participant.
+     * This property corresponds to the {@code DeletedAt} column in the database.
+     *
+     * @return The {@link ObjectProperty} for {@code deletedAt}.
+     */
+    public ObjectProperty<LocalDateTime> deletedAtProperty() { // New property accessor
+        return deletedAt;
+    }
+
     /**
      * Retrieves the {@link StringProperty} for any additional notes pertaining to the participant.
      * This property corresponds to the {@code Notes} column in the database.
@@ -384,6 +434,7 @@ public class Participant {
     public Integer getParticipantID() {
         return participantID.get();
     }
+
     /**
      * Sets the unique ID for this participant. This method is designed to be package-private
      * and is primarily for use by data access objects (DAOs) when an ID is generated
@@ -394,7 +445,7 @@ public class Participant {
      * </p>
      *
      * @param id The unique integer ID assigned by the database.
-     * @throws IllegalStateException if the ID has already been assigned to this object.
+     * @throws IllegalStateException    if the ID has already been assigned to this object.
      * @throws IllegalArgumentException if the provided ID is {@code null} or non-positive.
      */
     void _setParticipantID(Integer id) { // Package-private for DAO use only
@@ -404,16 +455,19 @@ public class Participant {
         if (id == null || id <= 0) {
             throw new IllegalArgumentException("Participant ID cannot be null or non-positive.");
         }
-        ((SimpleObjectProperty<Integer>)this.participantID).set(id);
+        ((SimpleObjectProperty<Integer>) this.participantID).set(id);
     }
+
     /**
      * Retrieves the participant's pickup {@link Location}.
+     * Corresponds to the {@code PickUpLocationID_FK} column in the database.
      *
      * @return The {@link Location} object representing the pickup point.
      */
     public Location getPickUpLocation() {
         return pickUpLocation.get();
     }
+
     /**
      * Sets the participant's pickup {@link Location}.
      * <p>
@@ -430,14 +484,17 @@ public class Participant {
         }
         this.pickUpLocation.set(pickUpLocation);
     }
+
     /**
      * Retrieves the participant's drop-off {@link Location}.
+     * Corresponds to the {@code DropOffLocationID_FK} column in the database.
      *
      * @return The {@link Location} object representing the drop-off point.
      */
     public Location getDropOffLocation() {
         return dropOffLocation.get();
     }
+
     /**
      * Sets the participant's drop-off {@link Location}.
      * <p>
@@ -454,14 +511,17 @@ public class Participant {
         }
         this.dropOffLocation.set(dropOffLocation);
     }
+
     /**
      * Retrieves the participant's first name.
+     * Corresponds to the {@code FirstName} column in the database.
      *
      * @return The first name as a {@link String}.
      */
     public String getFirstName() {
         return firstName.get();
     }
+
     /**
      * Sets the participant's first name.
      * <p>
@@ -479,14 +539,17 @@ public class Participant {
         }
         this.firstName.set(trimmedFirstName);
     }
+
     /**
      * Retrieves the participant's middle name.
+     * Corresponds to the {@code MiddleName} column in the database.
      *
      * @return The middle name as a {@link String}, or {@code null} if not set.
      */
     public String getMiddleName() {
         return middleName.get();
     }
+
     /**
      * Sets the participant's middle name.
      * <p>
@@ -499,14 +562,17 @@ public class Participant {
     public void setMiddleName(String middleName) {
         this.middleName.set((middleName == null || middleName.trim().isEmpty()) ? null : middleName.trim());
     }
+
     /**
      * Retrieves the participant's last name.
+     * Corresponds to the {@code LastName} column in the database.
      *
      * @return The last name as a {@link String}.
      */
     public String getLastName() {
         return lastName.get();
     }
+
     /**
      * Sets the participant's last name.
      * <p>
@@ -524,14 +590,17 @@ public class Participant {
         }
         this.lastName.set(trimmedLastName);
     }
+
     /**
      * Retrieves the participant's email address.
+     * Corresponds to the {@code Email} column in the database.
      *
      * @return The email address as a {@link String}.
      */
     public String getEmail() {
         return email.get();
     }
+
     /**
      * Sets the participant's email address.
      * <p>
@@ -553,14 +622,17 @@ public class Participant {
         }
         this.email.set(trimmedEmail);
     }
+
     /**
      * Retrieves the participant's phone number (digits only).
+     * Corresponds to the {@code Phone} column in the database.
      *
      * @return The phone number as a {@link String}.
      */
     public String getPhone() {
         return phone.get();
     }
+
     /**
      * Sets the participant's phone number.
      * <p>
@@ -582,14 +654,17 @@ public class Participant {
         }
         this.phone.set(cleanedPhone);
     }
+
     /**
      * Retrieves the calculated distance in miles between pickup and drop-off locations.
+     * Corresponds to the {@code DistanceMiles} column in the database.
      *
      * @return The distance in miles as a {@link BigDecimal}.
      */
     public BigDecimal getDistanceMiles() {
         return distanceMiles.get();
     }
+
     /**
      * Sets the calculated distance in miles.
      * <p>
@@ -610,14 +685,17 @@ public class Participant {
         }
         this.distanceMiles.set(distanceMiles);
     }
+
     /**
      * Retrieves the participant's join date.
+     * Corresponds to the {@code JoinDate} column in the database.
      *
      * @return The join date as a {@link LocalDate}.
      */
     public LocalDate getJoinDate() {
         return joinDate.get();
     }
+
     /**
      * Sets the participant's join date.
      * <p>
@@ -638,14 +716,17 @@ public class Participant {
         }
         this.joinDate.set(joinDate);
     }
+
     /**
      * Retrieves the participant's active status.
+     * Corresponds to the {@code IsActive} column in the database.
      *
      * @return {@code true} if the participant is currently active, {@code false} otherwise.
      */
-    public boolean isActive() {
+    public boolean getIsActive() {
         return isActive.get();
     }
+
     /**
      * Sets the participant's active status.
      * <p>
@@ -658,14 +739,17 @@ public class Participant {
     public void setIsActive(boolean active) {
         this.isActive.set(active);
     }
+
     /**
      * Retrieves the {@link Program} the participant is associated with.
+     * Corresponds to the {@code Program} column in the database.
      *
      * @return The {@link Program} enum value.
      */
     public Program getProgram() {
         return program.get();
     }
+
     /**
      * Sets the participant's associated program.
      * <p>
@@ -682,14 +766,17 @@ public class Participant {
         }
         this.program.set(program);
     }
+
     /**
      * Retrieves the monthly benefit amount allotted to the participant.
+     * Corresponds to the {@code BenefitAmount} column in the database.
      *
      * @return The monthly benefit amount as a {@link BigDecimal}.
      */
     public BigDecimal getBenefitAmount() {
         return benefitAmount.get();
     }
+
     /**
      * Sets the monthly benefit amount.
      * <p>
@@ -710,19 +797,22 @@ public class Participant {
         }
         this.benefitAmount.set(benefitAmount);
     }
+
     /**
-     * Retrieves the {@link Role} assigned to the participant.
+     * Retrieves the {@link Role} of the participant within the vanpool.
+     * Corresponds to the {@code Role} column in the database.
      *
      * @return The {@link Role} enum value.
      */
     public Role getRole() {
         return role.get();
     }
+
     /**
-     * Sets the participant's role.
+     * Sets the {@link Role} of the participant.
      * <p>
      * This field is mandatory and must not be {@code null}. It defines the participant's
-     * functional role within the vanpool system (e.g., "DRIVER", "COMMUTER").
+     * functional role (e.g., Driver, Commuter) within the vanpool system.
      * </p>
      *
      * @param role The {@link Role} to set. Must not be {@code null}.
@@ -734,14 +824,36 @@ public class Participant {
         }
         this.role.set(role);
     }
+
+    /**
+     * Retrieves the timestamp when the participant was logically deleted or deactivated.
+     * Corresponds to the {@code DeletedAt} column in the database.
+     *
+     * @return The {@link LocalDateTime} of deletion, or {@code null} if the participant is active.
+     */
+    public LocalDateTime getDeletedAt() { // New getter
+        return deletedAt.get();
+    }
+
+    /**
+     * Sets the timestamp when the participant was logically deleted or deactivated.
+     *
+     * @param deletedAt The {@link LocalDateTime} to set as the deletion timestamp. Can be {@code null}.
+     */
+    public void setDeletedAt(LocalDateTime deletedAt) { // New setter
+        this.deletedAt.set(deletedAt);
+    }
+
     /**
      * Retrieves any additional notes or administrative comments for the participant.
+     * Corresponds to the {@code Notes} column in the database.
      *
      * @return The notes string, or {@code null} if no notes are present.
      */
     public String getNotes() {
         return notes.get();
     }
+
     /**
      * Sets additional notes or administrative comments for the participant.
      * <p>
@@ -763,12 +875,11 @@ public class Participant {
      * a concise summary of the participant's key attributes.
      * </p>
      * <p>
-     * The format includes the participant ID, full name, email, active status,
-     * associated program, and role.
+     * The format includes the participant ID, first name, last name, program, and active status.
      * </p>
      *
      * @return A string in the format:
-     * "Participant{ID=..., FirstName='...', LastName='...', Email='...', IsActive=..., Program=..., Role=...}"
+     * "Participant{ID=..., FirstName=..., LastName=..., Program=..., isActive=..., deletedAt=...}"
      */
     @Override
     public String toString() {
@@ -776,12 +887,12 @@ public class Participant {
                 "participantID=" + getParticipantID() +
                 ", firstName='" + getFirstName() + '\'' +
                 ", lastName='" + getLastName() + '\'' +
-                ", email='" + getEmail() + '\'' +
-                ", isActive=" + isActive() +
                 ", program=" + getProgram() +
-                ", role=" + getRole() +
+                ", isActive=" + getIsActive() +
+                ", deletedAt=" + getDeletedAt() + // Added new field
                 '}';
     }
+
     /**
      * <p>
      * Indicates whether some other object is "equal to" this one.
@@ -808,6 +919,7 @@ public class Participant {
         }
         return Objects.equals(getParticipantID(), that.getParticipantID());
     }
+
     /**
      * <p>
      * Returns a hash code value for the object. This method is supported for the benefit of
