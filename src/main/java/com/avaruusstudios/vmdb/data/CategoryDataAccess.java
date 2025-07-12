@@ -26,7 +26,7 @@ import java.util.List;
  * @see Category
  * @see DatabaseAccessException
  */
-public interface CategoriesDataAccess extends GenericDataAccess<Category, Integer> {
+public interface CategoryDataAccess extends GenericDataAccess<Category, Integer> {
 
     /**
      * <p>
