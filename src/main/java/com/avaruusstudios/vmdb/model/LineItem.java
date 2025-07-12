@@ -3,12 +3,12 @@ package com.avaruusstudios.vmdb.model;
 import javafx.beans.property.BooleanProperty; // Import JavaFX property classes
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty; // New import for SimpleBooleanProperty
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-
 import java.math.BigDecimal;
+import java.time.LocalDateTime; // New import for deletedAt
 import java.util.Objects;
 
 /**
@@ -19,13 +19,22 @@ import java.util.Objects;
  * </p>
  *
  * <p>
- * This class encapsulates the unique identifier for the item, references to its parent invoice
- * and the involved participant, the composite {@link Amount} representing benefit and personal payments,
- * a flag indicating the official payment status, an active status for soft deletion, and any relevant notes.
+ * This class encapsulates the unique identifier for the item ({@code LineItemID INTEGER PRIMARY KEY AUTOINCREMENT}),
+ * references to its parent invoice ({@code InvoiceID_FK INTEGER NOT NULL})
+ * and the involved participant ({@code ParticipantID_FK INTEGER NOT NULL}),
+ * the composite {@link Amount} representing benefit ({@code BenefitPayment NUMERIC NOT NULL}) and personal payments ({@code PersonalPayment NUMERIC NOT NULL}),
+ * a flag indicating the official payment status ({@code IsPaid INTEGER NOT NULL DEFAULT 0}),
+ * an active status for soft deletion ({@code IsActive INTEGER NOT NULL DEFAULT 1}),
+ * a timestamp for logical deletion ({@code DeletedAt TEXT DEFAULT NULL}),
+ * and any relevant notes ({@code Notes TEXT}).
  * The payment status (`isPaid`) is determined by external transaction matching logic,
  * rather than a stored `paidAmount` field.
  * </p>
  *
+ * @author AvaruusStudios
+ * @version 1.1
+ * Created On: 2025-07-11
+ * Updated On: 2025-07-12
  * @see Invoice
  * @see Participant
  * @see Amount
@@ -33,7 +42,7 @@ import java.util.Objects;
 public class LineItem {
     /**
      * Unique identifier for the invoice line item. This serves as the primary key
-     * in the database for invoice item records ({@code InvoiceItemID INTEGER PRIMARY KEY AUTOINCREMENT}).
+     * in the database for invoice item records ({@code LineItemID INTEGER PRIMARY KEY AUTOINCREMENT}).
      * <p>
      * For a newly created invoice item not yet persisted to the database, this value will be {@code null}.
      * Once assigned by the database, it becomes immutable.
@@ -55,7 +64,7 @@ public class LineItem {
     /**
      * A composite {@link Amount} object encapsulating the required benefit payment
      * and personal payment for this invoice line item.
-     * This field is **required** (corresponds to {@code BenefitPayment REAL NOT NULL} and {@code PersonalPayment REAL NOT NULL} in the database).
+     * This field is **required** (corresponds to {@code BenefitPayment NUMERIC NOT NULL} and {@code PersonalPayment NUMERIC NOT NULL} in the database).
      */
     private final ObjectProperty<Amount> amountDue;
     /**
@@ -72,6 +81,12 @@ public class LineItem {
      */
     private final BooleanProperty isActive;
     /**
+     * The timestamp when the line item was logically deleted or deactivated.
+     * This field is optional and can be {@code null} if the line item is active.
+     * Corresponds to {@code DeletedAt TEXT DEFAULT NULL} in the database.
+     */
+    private final ObjectProperty<LocalDateTime> deletedAt; // New field from schema
+    /**
      * Optional notes or contextual information about the invoice line item.
      * Corresponds to {@code Notes TEXT} in the database.
      */
@@ -83,7 +98,8 @@ public class LineItem {
      * this invoice line item has not yet been assigned a unique ID by the database.
      * This constructor initializes the {@code amountDue} field with a default {@link Amount} object.
      * Initializes other properties to default/null values to ensure a stable state,
-     * including setting `isPaid` to `false` and `isActive` to `true` by default.
+     * including setting `isPaid` to `false` and `isActive` to `true` by default,
+     * and `deletedAt` to `null`.
      * This constructor is primarily used by frameworks that instantiate objects
      * via reflection (e.g., ORMs, JSON deserializers) before populating their fields.
      */
@@ -94,6 +110,7 @@ public class LineItem {
         this.amountDue = new SimpleObjectProperty<>(this, "amountDue", new Amount()); // Ensure Amount is always initialized
         this.isPaid = new SimpleBooleanProperty(this, "isPaid", false); // Default to unpaid
         this.isActive = new SimpleBooleanProperty(this, "isActive", true); // Default to active
+        this.deletedAt = new SimpleObjectProperty<>(this, "deletedAt", null); // Initialize new property to null
         this.notes = new SimpleStringProperty(this, "notes");
     }
 
@@ -109,24 +126,27 @@ public class LineItem {
      * @param amountDue         The {@link Amount} object representing the required benefit and personal payments. Must not be {@code null}.
      * @param isPaid            A boolean indicating if the full amount due for this item has been officially paid.
      * @param isActive          The active status of the line item (true for active, false for inactive/deleted).
+     * @param deletedAt         The {@link LocalDateTime} when the line item was logically deleted, or {@code null} if active.
      * @param notes             Any optional notes or additional information about the invoice item. Can be {@code null}.
      * @throws NullPointerException if `invoiceItemID`, `invoice`, `participant`, or `amountDue` are {@code null}.
      */
     public LineItem(Integer invoiceItemID, Invoice invoice, Participant participant,
-                    Amount amountDue, boolean isPaid, boolean isActive, String notes) {
+                    Amount amountDue, boolean isPaid, boolean isActive, LocalDateTime deletedAt, String notes) {
         this.invoiceItemID = new SimpleObjectProperty<>(this, "invoiceItemID", Objects.requireNonNull(invoiceItemID, "Invoice item ID cannot be null for an existing item."));
         this.invoice = new SimpleObjectProperty<>(this, "invoice");
         this.participant = new SimpleObjectProperty<>(this, "participant");
         this.amountDue = new SimpleObjectProperty<>(this, "amountDue");
         this.isPaid = new SimpleBooleanProperty(this, "isPaid");
-        this.isActive = new SimpleBooleanProperty(this, "isActive"); // Initialize new property
+        this.isActive = new SimpleBooleanProperty(this, "isActive");
+        this.deletedAt = new SimpleObjectProperty<>(this, "deletedAt"); // Initialize new property
         this.notes = new SimpleStringProperty(this, "notes");
 
         setInvoice(invoice);
         setParticipant(participant);
         setAmountDue(amountDue);
-        setIsPaid(isPaid); // Use setter for consistency
-        setIsActive(isActive); // Set the new property
+        setIsPaid(isPaid);
+        setIsActive(isActive);
+        setDeletedAt(deletedAt); // Set new property
         setNotes(notes);
     }
 
@@ -145,17 +165,15 @@ public class LineItem {
      */
     public LineItem(Invoice invoice, Participant participant,
                     Amount amountDue, boolean isPaid, String notes) {
-        // Call the full constructor with null for invoiceItemID and isActive defaulting to true
-        this(null, invoice, participant, amountDue, isPaid, true, notes);
+        // Call the full constructor with null for invoiceItemID, isActive defaulting to true, and deletedAt as null
+        this(null, invoice, participant, amountDue, isPaid, true, null, notes);
     }
 
-    // ---------------------
-    // JavaFX Property Accessors
-    // ---------------------
+    // --- JavaFX Property Accessors ---
 
     /**
      * Retrieves the read-only property for the invoice line item's unique ID.
-     * This property represents the {@code InvoiceItemID} column in the database.
+     * This property represents the {@code LineItemID} column in the database.
      * <p>
      * As this property is {@code ReadOnlyObjectProperty}, its value cannot be
      * changed directly after initial assignment, enforcing the immutability
@@ -171,6 +189,7 @@ public class LineItem {
     /**
      * Retrieves the {@link ObjectProperty} for the {@link Invoice} object
      * to which this line item belongs.
+     * This property represents the foreign key relationship to the {@code Invoices} table ({@code InvoiceID_FK}).
      *
      * @return The {@link ObjectProperty} for {@code invoice}.
      */
@@ -181,6 +200,7 @@ public class LineItem {
     /**
      * Retrieves the {@link ObjectProperty} for the {@link Participant} object
      * for whom this line item is generated.
+     * This property represents the foreign key relationship to the {@code Participants} table ({@code ParticipantID_FK}).
      *
      * @return The {@link ObjectProperty} for {@code participant}.
      */
@@ -191,6 +211,7 @@ public class LineItem {
     /**
      * Retrieves the {@link ObjectProperty} for the {@link Amount} object
      * representing the required benefit and personal payments.
+     * This property corresponds to the {@code BenefitPayment} and {@code PersonalPayment} columns in the database.
      *
      * @return The {@link ObjectProperty} for {@code amountDue}.
      */
@@ -200,6 +221,7 @@ public class LineItem {
 
     /**
      * Retrieves the {@link BooleanProperty} indicating whether the line item is paid.
+     * This property corresponds to the {@code IsPaid} column in the database.
      *
      * @return The {@link BooleanProperty} for {@code isPaid}.
      */
@@ -218,7 +240,18 @@ public class LineItem {
     }
 
     /**
+     * Retrieves the {@link ObjectProperty} for the deletion timestamp of the line item.
+     * This property corresponds to the {@code DeletedAt} column in the database.
+     *
+     * @return The {@link ObjectProperty} for {@code deletedAt}.
+     */
+    public ObjectProperty<LocalDateTime> deletedAtProperty() { // New property accessor
+        return deletedAt;
+    }
+
+    /**
      * Retrieves the {@link StringProperty} for any optional notes.
+     * This property corresponds to the {@code Notes} column in the database.
      *
      * @return The {@link StringProperty} for {@code notes}.
      */
@@ -226,14 +259,12 @@ public class LineItem {
         return notes;
     }
 
-    // ---------------------
-    // Value Getters and Setters
-    // ---------------------
+    // --- Value Getters and Setters ---
 
     /**
      * Retrieves the unique identifier for this invoice line item.
      * For new, unpersisted invoice items, this will be {@code null}.
-     * Corresponds to the {@code InvoiceItemID} column in the database.
+     * Corresponds to the {@code LineItemID} column in the database.
      *
      * @return The {@link Integer} primary key used to identify this invoice line item record, or {@code null} if not yet assigned.
      */
@@ -346,6 +377,7 @@ public class LineItem {
 
     /**
      * Retrieves the active status of the line item.
+     * Corresponds to the {@code IsActive} column in the database.
      *
      * @return {@code true} if the line item is active, {@code false} if it's inactive/logically deleted.
      */
@@ -360,6 +392,25 @@ public class LineItem {
      */
     public void setIsActive(boolean isActive) {
         this.isActive.set(isActive);
+    }
+
+    /**
+     * Retrieves the timestamp when the line item was logically deleted or deactivated.
+     * Corresponds to the {@code DeletedAt} column in the database.
+     *
+     * @return The {@link LocalDateTime} of deletion, or {@code null} if the line item is active.
+     */
+    public LocalDateTime getDeletedAt() { // New getter
+        return deletedAt.get();
+    }
+
+    /**
+     * Sets the timestamp when the line item was logically deleted or deactivated.
+     *
+     * @param deletedAt The {@link LocalDateTime} to set as the deletion timestamp. Can be {@code null}.
+     */
+    public void setDeletedAt(LocalDateTime deletedAt) { // New setter
+        this.deletedAt.set(deletedAt);
     }
 
     /**
@@ -382,9 +433,7 @@ public class LineItem {
         this.notes.set((notes != null) ? notes.strip() : null);
     }
 
-    // ---------------------
-    // Computed Properties
-    // ---------------------
+    // --- Computed Properties ---
 
     /**
      * Calculates the total amount that is currently due for this invoice line item,
@@ -400,9 +449,7 @@ public class LineItem {
         return currentAmountDue != null ? currentAmountDue.getTotal() : BigDecimal.ZERO;
     }
 
-    // ---------------------
-    // Utility Methods
-    // ---------------------
+    // --- Utility Methods ---
 
     /**
      * <p>
@@ -413,22 +460,23 @@ public class LineItem {
      * <p>
      * The format includes the invoice item ID, the parent invoice's ID,
      * the associated participant's ID, the total amount due, the official paid status,
-     * and the active status.
+     * the active status, the deleted timestamp, and notes.
      * </p>
      *
      * @return A string in the format:
-     * "LineItem{ID=..., InvoiceID=..., ParticipantID=..., AmountDue=..., IsPaid=..., IsActive=...}"
+     * "LineItem{ID=..., InvoiceID=..., ParticipantID=..., AmountDue=..., IsPaid=..., IsActive=..., DeletedAt=..., Notes=...}"
      */
     @Override
     public String toString() {
         return "LineItem{" +
-                "invoiceItemID=" + getInvoiceItemID() + // Use getter
-                ", invoiceID=" + (getInvoice() != null ? getInvoice().getInvoiceID() : "null") + // Use getter
-                ", participantID=" + (getParticipant() != null ? getParticipant().getParticipantID() : "null") + // Use getter
-                ", amountDue=" + (getAmountDue() != null ? getAmountDue().toString() : "null") + // Use getter
-                ", isPaid=" + getIsPaid() + // Use getter
-                ", isActive=" + getIsActive() + // Added isActive to toString
-                ", notes='" + getNotes() + '\'' + // Added notes to toString
+                "invoiceItemID=" + getInvoiceItemID() +
+                ", invoiceID=" + (getInvoice() != null ? getInvoice().getInvoiceID() : "null") +
+                ", participantID=" + (getParticipant() != null ? getParticipant().getParticipantID() : "null") +
+                ", amountDue=" + (getAmountDue() != null ? getAmountDue().toString() : "null") +
+                ", isPaid=" + getIsPaid() +
+                ", isActive=" + getIsActive() +
+                ", deletedAt=" + getDeletedAt() + // Added new field
+                ", notes='" + getNotes() + '\'' +
                 '}';
     }
 
@@ -452,7 +500,7 @@ public class LineItem {
         if (o == null || getClass() != o.getClass()) return false;
         LineItem that = (LineItem) o;
         // Equality is based on the primary key (invoiceItemID), safely handling null Integer
-        return Objects.equals(getInvoiceItemID(), that.getInvoiceItemID()); // Use getters
+        return Objects.equals(getInvoiceItemID(), that.getInvoiceItemID());
     }
 
     /**
@@ -470,6 +518,6 @@ public class LineItem {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(getInvoiceItemID()); // Use getter
+        return Objects.hash(getInvoiceItemID());
     }
 }
