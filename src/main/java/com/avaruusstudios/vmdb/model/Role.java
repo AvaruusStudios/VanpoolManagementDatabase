@@ -18,10 +18,16 @@ import java.util.Objects;
  * {@link #toString()}.
  * </p>
  *
+ * @author AvaruusStudios
+ * @version 1.0
+ * Created On: 2025-07-12
+ * Updated On: 2025-07-12
+ *
  * @see User
  * @see Participant
  */
 public enum Role {
+    // --- Enum Constants ---
     /**
      * Represents a user with full administrative privileges across the system.
      * Stored in DB as "ADMIN". Primarily a System Role.
@@ -53,8 +59,9 @@ public enum Role {
      * Represents a participant designated as a primary or secondary driver of the van.
      * Stored in DB as "DRIVER". Primarily a Participant Role.
      */
-    DRIVER("Driver", false, true); // Uncommented as it's a valid role that may be used
+    DRIVER("Driver", false, true);
 
+    // --- Fields ---
     /**
      * The user-friendly string representation of the role, suitable for display in the UI.
      * This is typically PascalCase (e.g., "Admin", "Participant").
@@ -71,6 +78,7 @@ public enum Role {
      */
     private final boolean isParticipantApplicable;
 
+    // --- Constructor ---
     /**
      * Constructs a {@code Role} enum constant.
      *
@@ -84,6 +92,7 @@ public enum Role {
         this.isParticipantApplicable = isParticipantApplicable;
     }
 
+    // --- Getters ---
     /**
      * Retrieves the canonical name of the enum constant (e.g., "ADMIN", "PARTICIPANT").
      * This is the recommended string value for storing in the database to ensure consistency
@@ -103,6 +112,8 @@ public enum Role {
     public String getDisplayValue() {
         return displayValue;
     }
+
+    // --- Applicability Checkers ---
     /**
      * Checks if this role is typically applicable to a system {@link User}.
      *
@@ -119,6 +130,8 @@ public enum Role {
     public boolean isParticipantApplicable() {
         return isParticipantApplicable;
     }
+
+    // --- Utility Methods ---
     /**
      * Returns the user-friendly string representation of this role.
      * This method overrides the default {@link Enum#toString()} behavior to
@@ -131,6 +144,8 @@ public enum Role {
     public String toString() {
         return displayValue;
     }
+
+    // --- Static Factory Method ---
     /**
      * <p>
      * Converts a database string value (which should be the ALLCAPS canonical name of the enum constant)
@@ -143,10 +158,11 @@ public enum Role {
      * to match the enum constant names.
      * </p>
      *
-     * @param dbString The string value obtained from a database `Role` or `UserRole` column (e.g., "ADMIN").
+     * @param dbString The string value obtained from a database `Role` or `UserRole` column (e.g., "ADMIN"). Must not be {@code null}.
      * @return The matching {@code Role} enum constant.
+     * @throws NullPointerException if the provided {@code dbString} is {@code null}.
      * @throws IllegalArgumentException if the provided string does not match any valid {@code Role} enum constant name,
-     * or if the input string is null or empty.
+     * or if the input string is empty after trimming.
      */
     public static Role fromDbValue(String dbString) {
         Objects.requireNonNull(dbString, "Role database string cannot be null.");
