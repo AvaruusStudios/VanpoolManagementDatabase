@@ -1,12 +1,12 @@
 package com.avaruusstudios.vmdb.model;
 
 import java.util.Arrays;
-import java.util.Objects; // Although not explicitly used after NONE removed, good to keep if needed for other methods in the future.
+import java.util.Objects;
 
 /**
  * Defines the distinct types of invoices that can be generated within the Vanpool Management System.
  * These types significantly influence business logic, particularly the calculation and validation
- * of the invoice's billing period ({@link Invoice#periodLabel}).
+ * of the invoice's billing period (accessed via {@link Invoice#getPeriodLabel()}).
  *
  * <p>
  * When stored in the database, the canonical name of the enum constant (e.g., "LEASE", "FUEL") is used.
