@@ -1,22 +1,28 @@
 package com.avaruusstudios.vmdb.model;
 
 import java.util.Arrays;
-import java.util.Objects;
+import java.util.Objects; // Although not explicitly used after NONE removed, good to keep if needed for other methods in the future.
 
 /**
- * <p>
  * Defines the distinct types of invoices that can be generated within the Vanpool Management System.
  * These types significantly influence business logic, particularly the calculation and validation
  * of the invoice's billing period ({@link Invoice#periodLabel}).
- * </p>
  *
  * <p>
  * When stored in the database, the canonical name of the enum constant (e.g., "LEASE", "FUEL") is used.
  * For user-facing display in the UI, a more user-friendly PascalCase string (e.g., "Lease", "Fuel")
  * is available via {@link #getDisplayValue()} and {@link #toString()}.
  * </p>
+ *
+ * @author AvaruusStudios
+ * @version 1.0
+ * Created On: 2025-07-12
+ * Updated On: 2025-07-12
+ *
+ * @see Invoice
  */
 public enum InvoiceType {
+    // --- Enum Constants ---
     /**
      * Represents an invoice primarily for vehicle lease charges.
      * When associated with an invoice, the {@code periodLabel} for a LEASE invoice
@@ -39,11 +45,13 @@ public enum InvoiceType {
      */
     NONE("None");
 
+    // --- Field ---
     /**
      * The user-friendly string representation of the invoice type, suitable for display in the UI.
      */
     private final String displayValue;
 
+    // --- Constructor ---
     /**
      * Constructs an {@code InvoiceType} enum constant.
      *
@@ -53,6 +61,7 @@ public enum InvoiceType {
         this.displayValue = displayValue;
     }
 
+    // --- Getters ---
     /**
      * Retrieves the canonical name of the enum constant (e.g., "LEASE", "FUEL").
      * This is the recommended string value for storing in the database to ensure consistency
@@ -63,6 +72,7 @@ public enum InvoiceType {
     public String getDbValue() {
         return this.name(); // Returns "LEASE", "FUEL", etc.
     }
+
     /**
      * Retrieves the user-friendly string value for this invoice type, suitable for display in the UI.
      *
@@ -71,6 +81,8 @@ public enum InvoiceType {
     public String getDisplayValue() {
         return displayValue;
     }
+
+    // --- Utility Methods ---
     /**
      * Returns the user-friendly string representation of this invoice type.
      * This method overrides the default {@link Enum#toString()} behavior to
@@ -83,6 +95,8 @@ public enum InvoiceType {
     public String toString() {
         return displayValue;
     }
+
+    // --- Static Factory Method ---
     /**
      * <p>
      * Converts a database string value (which should be the ALLCAPS canonical name of the enum constant)
@@ -97,7 +111,7 @@ public enum InvoiceType {
      * </p>
      *
      * @param dbString The string value obtained from a database `InvoiceType` column (e.g., "LEASE").
-     * @return The matching {@code InvoiceType} enum constant.
+     * @return The matching {@code InvoiceType} enum constant, or {@link #NONE} if no match is found or the input is {@code null} or empty.
      */
     public static InvoiceType fromDbValue(String dbString) {
         if (dbString == null || dbString.trim().isEmpty()) {
