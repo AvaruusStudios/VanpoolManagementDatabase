@@ -1,12 +1,10 @@
 package com.avaruusstudios.vmdb.model;
 
 /**
- * <p>
  * Defines a comprehensive set of custom error codes for the Vanpool Management System.
  * These codes are used to categorize and identify any and all errors that could be
  * encountered within the application, including system, runtime, configuration,
  * security, data handling, business logic, and external resource related issues.
- * </p>
  *
  * <p>
  * Each error code is associated with a unique integer value and a default description,
@@ -23,9 +21,14 @@ package com.avaruusstudios.vmdb.model;
  * </ul>
  * </p>
  *
+ * @author AvaruusStudios
+ * @version 1.0
+ * Created On: 2025-07-12
+ * Updated On: 2025-07-12
+ *
  * @see EventLog
  */
-public enum ErrorCode { // Renamed from AppErrorCode to ErrorCode
+public enum ErrorCode {
     // --- 1000s: System / Runtime Errors ---
     /** Indicates an unexpected or unhandled application state. */
     UNEXPECTED_APP_STATE(1000, "Unexpected application state encountered."),
@@ -36,7 +39,7 @@ public enum ErrorCode { // Renamed from AppErrorCode to ErrorCode
     /** Error occurred while executing the database schema script. */
     DB_SCHEMA_EXECUTION_ERROR(1003, "Error during database schema script execution."),
     /** Indicates an unmapped SQL error. */
-    UNKNOWN_SQL_ERROR(1004, "An unknown SQL error occurred."), // Added this line
+    UNKNOWN_SQL_ERROR(1004, "An unknown SQL error occurred."),
 
 
     // --- 2000s: Configuration / Setup Errors ---
@@ -89,9 +92,19 @@ public enum ErrorCode { // Renamed from AppErrorCode to ErrorCode
     /** Error during file read/write operation. */
     FILE_IO_ERROR(6003, "Error during file input/output operation.");
 
+    // --- Fields ---
+    /**
+     * The unique integer value assigned to this error code.
+     * This value is stored in the database's `EventLog` table.
+     */
     private final int value;
+    /**
+     * A default, human-readable description associated with this error code.
+     * This can serve as a default message in the `EventLog` or for initial display.
+     */
     private final String defaultDescription;
 
+    // --- Constructor ---
     /**
      * Constructs an ErrorCode enum constant.
      *
@@ -102,6 +115,8 @@ public enum ErrorCode { // Renamed from AppErrorCode to ErrorCode
         this.value = value;
         this.defaultDescription = defaultDescription;
     }
+
+    // --- Getters ---
     /**
      * Retrieves the integer value of the error code.
      * This is the value that would be stored in the `ErrorCode` column of the `EventLog` table.
@@ -111,6 +126,7 @@ public enum ErrorCode { // Renamed from AppErrorCode to ErrorCode
     public int getValue() {
         return value;
     }
+
     /**
      * Retrieves a default description for the error code.
      * This can be used as a starting point for the `Description` field in the `EventLog`.
@@ -120,6 +136,8 @@ public enum ErrorCode { // Renamed from AppErrorCode to ErrorCode
     public String getDefaultDescription() {
         return defaultDescription;
     }
+
+    // --- Utility Methods ---
     /**
      * Returns the integer value of the error code when this enum constant is converted to a string.
      *
@@ -129,22 +147,25 @@ public enum ErrorCode { // Renamed from AppErrorCode to ErrorCode
     public String toString() {
         return String.valueOf(value);
     }
+
+    // --- Static Factory Method ---
     /**
      * <p>
      * Converts an integer error code value into its corresponding {@code ErrorCode} enum constant.
-     * This static method can be useful when retrieving error codes from logs or external sources.
+     * This static method is useful when retrieving error codes from logs or external sources,
+     * providing a type-safe conversion.
      * </p>
      *
      * @param value The integer value of the error code.
      * @return The matching {@code ErrorCode} enum constant.
      * @throws IllegalArgumentException if the provided integer value does not match any known error code.
      */
-    public static ErrorCode fromValue(int value) { // Updated to ErrorCode
-        for (ErrorCode code : ErrorCode.values()) { // Updated to ErrorCode
+    public static ErrorCode fromValue(int value) {
+        for (ErrorCode code : ErrorCode.values()) {
             if (code.value == value) {
                 return code;
             }
         }
-        throw new IllegalArgumentException("Unknown ErrorCode value: " + value); // Updated to ErrorCode
+        throw new IllegalArgumentException("Unknown ErrorCode value: " + value);
     }
 }
