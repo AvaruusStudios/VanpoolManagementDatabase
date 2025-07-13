@@ -7,7 +7,7 @@ import java.util.Objects;
  * <p>
  * Represents the distinct types of programs a {@link Participant} can be associated with
  * within the Vanpool Management System. This enum enforces type safety for program
- * designations, ensuring that only predefined values are used.
+ * designations, ensuring that only predefined values are used for every participant.
  * </p>
  *
  * <p>
@@ -17,31 +17,35 @@ import java.util.Objects;
  * available via {@link #getDisplayValue()} and {@link #toString()}.
  * </p>
  *
+ * @author AvaruusStudios
+ * @version 1.1
+ * Created On: 2025-07-12
+ * Updated On: 2025-07-12
+ *
  * @see Participant
  */
 public enum Program {
+    // --- Enum Constants ---
     /**
      * Represents the "Transportation Incentive Program (TIP)" program.
      * This is typically for participants who receive a specific incentive.
+     * Stored in DB as "TRANSPORTATION_INCENTIVE_PROGRAM".
      */
     TRANSPORTATION_INCENTIVE_PROGRAM("Transportation Incentive Program (TIP)"),
     /**
      * Represents the "Daily" program.
      * This is for participants who commute on a daily basis without specific incentives.
+     * Stored in DB as "DAILY".
      */
-    DAILY("Daily"),
-    /**
-     * Represents a program type that is unknown, not applicable, or not yet defined.
-     * This serves as a default or fallback when a matching program cannot be found during
-     * database deserialization, ensuring null safety and a graceful fallback.
-     */
-    NONE("None");
+    DAILY("Daily");
 
+    // --- Field ---
     /**
      * The user-friendly string representation of the program type, suitable for display in the UI.
      */
     private final String displayValue;
 
+    // --- Constructor ---
     /**
      * Constructs a {@code Program} enum constant with its associated display string value.
      *
@@ -52,6 +56,7 @@ public enum Program {
         this.displayValue = displayValue;
     }
 
+    // --- Getters ---
     /**
      * Retrieves the canonical name of the enum constant (e.g., "DAILY", "TRANSPORTATION_INCENTIVE_PROGRAM").
      * This is the recommended string value for storing in the database to ensure consistency
@@ -62,6 +67,7 @@ public enum Program {
     public String getDbValue() {
         return this.name(); // Returns "TRANSPORTATION_INCENTIVE_PROGRAM", "DAILY", etc.
     }
+
     /**
      * Retrieves the user-friendly string value for this program type, suitable for display in the UI.
      *
@@ -70,6 +76,8 @@ public enum Program {
     public String getDisplayValue() {
         return displayValue;
     }
+
+    // --- Utility Methods ---
     /**
      * Returns the user-friendly string representation of this program type.
      * This method overrides the default {@link Enum#toString()} behavior to
@@ -82,6 +90,8 @@ public enum Program {
     public String toString() {
         return displayValue;
     }
+
+    // --- Static Factory Method ---
     /**
      * <p>
      * Converts a database string value (which should be the ALLCAPS canonical name of the enum constant)
@@ -91,23 +101,24 @@ public enum Program {
      * </p>
      * <p>
      * The conversion is robust, trimming whitespace and converting the input to uppercase
-     * to match the enum constant names. If no matching program type is found, it
-     * gracefully returns {@link #NONE}.
+     * to match the enum constant names.
      * </p>
      *
-     * @param dbString The string value retrieved from the database's `Program` column (e.g., "DAILY").
+     * @param dbString The string value retrieved from the database's `Program` column (e.g., "DAILY"). Must not be {@code null} or empty.
      * @return The {@code Program} enum constant matching the provided string.
-     * Returns {@link #NONE} if no matching program type is found for the given string,
-     * or if the input string is null or empty.
+     * @throws NullPointerException if {@code dbString} is {@code null}.
+     * @throws IllegalArgumentException if {@code dbString} is empty, or if no matching program type is found for the given string.
      */
     public static Program fromDbValue(String dbString) {
-        if (dbString == null || dbString.trim().isEmpty()) {
-            return NONE; // Consistent with your original logic to return NONE for null/empty
-        }
+        Objects.requireNonNull(dbString, "Program database value cannot be null.");
         String trimmedUpperDbString = dbString.trim().toUpperCase();
+        if (trimmedUpperDbString.isEmpty()) {
+            throw new IllegalArgumentException("Program database value cannot be empty.");
+        }
+
         return Arrays.stream(Program.values())
                 .filter(program -> program.name().equalsIgnoreCase(trimmedUpperDbString)) // Compare with canonical name
                 .findFirst()
-                .orElse(NONE); // Return NONE if no match
+                .orElseThrow(() -> new IllegalArgumentException("Unknown Program database value: '" + dbString + "'"));
     }
 }
