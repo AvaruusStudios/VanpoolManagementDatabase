@@ -4,18 +4,15 @@ import java.math.BigDecimal;
 import java.util.Objects;
 
 /**
- * <p>
- * Represents a composite financial amount, typically used to encapsulate monetary values
- * that consist of distinct components, such as a **benefit due** portion and a
- * **personal due** portion. This class provides a structured and **immutable** way
- * to handle these dual-component amounts, often seen in financial transactions within the
- * Vanpool Management System.
- * </p>
+ * Represents a composite financial amount, encapsulating monetary values that consist of
+ * distinct components, such as a benefit due portion and a personal due portion.
+ * This class provides a structured and **immutable** way to handle these dual-component amounts,
+ * often seen in financial transactions within the Vanpool Management System.
  *
  * <p>
- * **Crucially, all monetary values are handled using {@link BigDecimal} to ensure
+ * Crucially, all monetary values are handled using {@link BigDecimal} to ensure
  * arbitrary precision and avoid floating-point arithmetic errors, which are unacceptable
- * in financial calculations.**
+ * in financial calculations.
  * </p>
  *
  * <p>
@@ -28,6 +25,11 @@ import java.util.Objects;
  * This model is designed to correspond directly to composite amount fields in database tables
  * like {@code InvoiceItems}.
  * </p>
+ *
+ * @author AvaruusStudios
+ * @version 1.0
+ * Created On: 2025-07-12
+ * Updated On: 2025-07-12
  */
 public final class Amount {
     /**
@@ -43,7 +45,7 @@ public final class Amount {
      * ensuring that precision is maintained.
      * </p>
      */
-    private final BigDecimal benefitDue; // Changed from benefitPayment
+    private final BigDecimal benefitDue;
     /**
      * <p>
      * The portion of an amount designated as **due for personal payment**.
@@ -55,7 +57,7 @@ public final class Amount {
      * Like {@link #benefitDue}, proper conversion is needed for database storage.
      * </p>
      */
-    private final BigDecimal personalDue; // Changed from personalPayment
+    private final BigDecimal personalDue;
 
     /**
      * <p>
@@ -69,6 +71,7 @@ public final class Amount {
     public Amount() {
         this(BigDecimal.ZERO, BigDecimal.ZERO);
     }
+
     /**
      * <p>
      * Constructs an {@code Amount} object with specified benefit and personal due components.
@@ -99,9 +102,7 @@ public final class Amount {
         }
     }
 
-    // ---------------------
-    // Getters (Setters are removed for immutability)
-    // ---------------------
+    // --- Getters ---
 
     /**
      * <p>
@@ -110,9 +111,10 @@ public final class Amount {
      *
      * @return The {@link BigDecimal} value representing the benefit due component.
      */
-    public BigDecimal getBenefitDue() { // Changed from getBenefitPayment()
+    public BigDecimal getBenefitDue() {
         return benefitDue;
     }
+
     /**
      * <p>
      * Retrieves the portion of this amount designated as due for personal payment.
@@ -120,13 +122,11 @@ public final class Amount {
      *
      * @return The {@link BigDecimal} value representing the personal due component.
      */
-    public BigDecimal getPersonalDue() { // Changed from getPersonalPayment()
+    public BigDecimal getPersonalDue() {
         return personalDue;
     }
 
-    // ---------------------
-    // Utility Methods
-    // ---------------------
+    // --- Utility Methods ---
 
     /**
      * <p>
@@ -140,8 +140,9 @@ public final class Amount {
      * @return The {@link BigDecimal} value representing the combined total of {@link #benefitDue} and {@link #personalDue}.
      */
     public BigDecimal getTotal() {
-        return benefitDue.add(personalDue); // Updated calculation
+        return benefitDue.add(personalDue);
     }
+
     /**
      * <p>
      * Returns a string representation of the {@code Amount} object.
@@ -156,11 +157,12 @@ public final class Amount {
     @Override
     public String toString() {
         return "Amount{" +
-                "benefit=" + benefitDue + // Updated field name
-                ", personal=" + personalDue + // Updated field name
+                "benefit=" + benefitDue +
+                ", personal=" + personalDue +
                 ", total=" + getTotal() +
                 '}';
     }
+
     /**
      * <p>
      * Indicates whether some other object is "equal to" this one.
@@ -181,9 +183,10 @@ public final class Amount {
         if (o == null || getClass() != o.getClass()) return false;
         Amount amount = (Amount) o;
         // Use BigDecimal's equals method for precise comparison
-        return benefitDue.equals(amount.benefitDue) && // Updated field name
-                personalDue.equals(amount.personalDue); // Updated field name
+        return benefitDue.equals(amount.benefitDue) &&
+                personalDue.equals(amount.personalDue);
     }
+
     /**
      * <p>
      * Returns a hash code value for the object.
@@ -200,6 +203,6 @@ public final class Amount {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(benefitDue, personalDue); // Updated field names
+        return Objects.hash(benefitDue, personalDue);
     }
 }
