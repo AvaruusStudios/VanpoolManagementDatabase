@@ -3,11 +3,9 @@ package com.avaruusstudios.vmdb.model;
 import java.util.Arrays;
 
 /**
- * <p>
  * Defines the types of financial categories used in the Vanpool Management System.
  * These types classify money flowing into (INCOME), money flowing out of (EXPENSE),
  * or general adjustments (CREDIT) to the vanpool accounts.
- * </p>
  *
  * <p>
  * This enum's constant names (e.g., "INCOME", "EXPENSE") serve as the canonical
@@ -17,12 +15,18 @@ import java.util.Arrays;
  * design of {@link Role}, {@link Program}, and {@link InvoiceType} enums.
  * </p>
  *
+ * @author AvaruusStudios
+ * @version 1.0
+ * Created On: 2025-07-12
+ * Updated On: 2025-07-12
+ *
  * @see Category
  * @see Role
  * @see Program
  * @see InvoiceType
  */
 public enum CategoryType {
+    // --- Enum Constants ---
     /**
      * Represents a category for money coming into the vanpool (e.g., participant payments, external funding).
      * Stored in DB as "INCOME" (which is its enum name). Displayed as "Income".
@@ -45,11 +49,13 @@ public enum CategoryType {
      */
     NONE("None");
 
+    // --- Fields ---
     /**
      * The user-friendly string representation of the category type for display purposes.
      */
     private final String displayValue;
 
+    // --- Constructor ---
     /**
      * Constructor for the CategoryType enum.
      *
@@ -59,6 +65,7 @@ public enum CategoryType {
         this.displayValue = displayValue;
     }
 
+    // --- Getters ---
     /**
      * Retrieves the exact string value that should be stored in or read from the database
      * for this category type. This value is the canonical name of the enum constant itself.
@@ -68,6 +75,7 @@ public enum CategoryType {
     public String getDbValue() {
         return this.name(); // Consistent with Role.java, Program.java, InvoiceType.java
     }
+
     /**
      * Retrieves the user-friendly string value for this category type, suitable for display in the UI.
      *
@@ -76,6 +84,7 @@ public enum CategoryType {
     public String getDisplayValue() {
         return displayValue;
     }
+
     /**
      * Returns the user-friendly display value of the category type when this enum constant is converted to a string.
      * This method overrides the default {@link Enum#toString()} behavior to
@@ -88,6 +97,8 @@ public enum CategoryType {
     public String toString() {
         return displayValue;
     }
+
+    // --- Static Factory Method ---
     /**
      * <p>
      * Converts a database string value into its corresponding {@code CategoryType} enum constant.
