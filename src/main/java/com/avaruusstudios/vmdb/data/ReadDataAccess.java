@@ -11,9 +11,10 @@ import java.util.Optional;
  *
  * <p>
  * It establishes a standardized set of methods for retrieving single entities by their
- * primary key, fetching all entities of a specific type, and counting the total number
- * of records. This interface forms the most fundamental layer for interacting with
- * persistent data, suitable for entities where modifications are not permitted via this DAO.
+ * primary key, fetching all entities of a specific type, counting the total number
+ * of records, and checking for the existence of a record by its primary key. This interface
+ * forms the most fundamental layer for interacting with persistent data, suitable for
+ * entities where modifications are not permitted via this DAO.
  * </p>
  *
  * <p>
@@ -30,7 +31,7 @@ import java.util.Optional;
  * that rely on the entity's unique identifier.
  *
  * @author [Your Name/AvaruusStudios]
- * @version 1.1 // Incremented version for JavaDoc and method name updates
+ * @version 1.2 // Incremented version for adding existsById()
  * @since 2025-07-11
  */
 public interface ReadDataAccess<T, K> {
@@ -89,4 +90,21 @@ public interface ReadDataAccess<T, K> {
      * The underlying {@code SQLException} will be wrapped.
      */
     long countRecord() throws DatabaseAccessException;
+
+    /**
+     * <p>
+     * Checks if a record of the entity with the specified primary key exists in the database.
+     * This method is more efficient than {@link #readRecord(Object)} when only
+     * existence needs to be verified, as it avoids fetching the entire entity object.
+     * </p>
+     *
+     * @param id The primary key (of type {@code K}, typically {@code Integer}) of the
+     * entity record to check for existence. This uniquely identifies the record.
+     * @return {@code true} if a record with the specified ID exists in the database;
+     * {@code false} otherwise.
+     * @throws DatabaseAccessException if a database access error occurs during the check.
+     * The underlying {@code SQLException} will be wrapped.
+     * @since 2025-07-13 (or current date if this is being added now)
+     */
+    boolean existsById(K id) throws DatabaseAccessException;
 }
