@@ -1,6 +1,7 @@
 package com.avaruusstudios.vmdb.model;
 
 import java.util.Arrays;
+import java.util.Objects; // Added for Objects.requireNonNull in updated fromDbValue
 
 /**
  * Defines the types of financial categories used in the Vanpool Management System.
@@ -10,13 +11,12 @@ import java.util.Arrays;
  * <p>
  * This enum's constant names (e.g., "INCOME", "EXPENSE") serve as the canonical
  * string representation for database storage. It also provides a separate
- * user-friendly string for display purposes. It includes a {@link #NONE} type
- * for robust handling of unknown or unspecified categories, aligning with the
- * design of {@link Role}, {@link Program}, and {@link InvoiceType} enums.
+ * user-friendly string for display purposes. Every transaction *must* be
+ * classified as one of these three distinct types.
  * </p>
  *
  * @author AvaruusStudios
- * @version 1.0
+ * @version 1.1
  * Created On: 2025-07-12
  * Updated On: 2025-07-12
  *
@@ -26,7 +26,6 @@ import java.util.Arrays;
  * @see InvoiceType
  */
 public enum CategoryType {
-    // --- Enum Constants ---
     /**
      * Represents a category for money coming into the vanpool (e.g., participant payments, external funding).
      * Stored in DB as "INCOME" (which is its enum name). Displayed as "Income".
@@ -42,12 +41,7 @@ public enum CategoryType {
      * This could include overpayments, refunds, or other positive adjustments that are not standard income.
      * Stored in DB as "CREDIT" (which is its enum name). Displayed as "Credit".
      */
-    CREDIT("Credit"),
-    /**
-     * Represents an unknown or unspecified category type.
-     * Stored in DB as "NONE" (which is its enum name). Displayed as "None".
-     */
-    NONE("None");
+    CREDIT("Credit");
 
     // --- Fields ---
     /**
@@ -70,10 +64,10 @@ public enum CategoryType {
      * Retrieves the exact string value that should be stored in or read from the database
      * for this category type. This value is the canonical name of the enum constant itself.
      *
-     * @return The database-compatible string value (e.g., "INCOME", "EXPENSE", "CREDIT", "NONE").
+     * @return The database-compatible string value (e.g., "INCOME", "EXPENSE", "CREDIT").
      */
     public String getDbValue() {
-        return this.name(); // Consistent with Role.java, Program.java, InvoiceType.java
+        return this.name();
     }
 
     /**
@@ -103,26 +97,28 @@ public enum CategoryType {
      * <p>
      * Converts a database string value into its corresponding {@code CategoryType} enum constant.
      * This static method is crucial for deserializing category type data read from the database,
-     * providing a type-safe conversion, and handles unknown values gracefully by returning {@link #NONE}.
+     * providing a type-safe conversion.
      * </p>
      * <p>
      * The conversion is robust, trimming whitespace and comparing case-insensitively
-     * against the {@code name()} (canonical DB value) of each enum constant. If the provided string is
-     * {@code null}, empty, or does not match any valid category type, {@link #NONE} is returned.
+     * against the {@code name()} (canonical DB value) of each enum constant.
      * </p>
      *
-     * @param dbValue The string value obtained from a database `CategoryType` column.
-     * @return The matching {@code CategoryType} enum constant, or {@link #NONE} if no match is found or input is invalid.
+     * @param dbValue The string value obtained from a database `CategoryType` column. Must not be {@code null} or empty.
+     * @return The matching {@code CategoryType} enum constant.
+     * @throws NullPointerException if {@code dbValue} is {@code null}.
+     * @throws IllegalArgumentException if {@code dbValue} is empty, or if no matching {@code CategoryType} is found.
      */
     public static CategoryType fromDbValue(String dbValue) {
-        if (dbValue == null || dbValue.trim().isEmpty()) {
-            return NONE; // Return NONE for null or empty strings
-        }
+        Objects.requireNonNull(dbValue, "Category type database value cannot be null.");
         String trimmedDbValue = dbValue.trim();
-        // Use Arrays.stream for conciseness and robustness
+        if (trimmedDbValue.isEmpty()) {
+            throw new IllegalArgumentException("Category type database value cannot be empty.");
+        }
+
         return Arrays.stream(CategoryType.values())
-                .filter(type -> type.name().equalsIgnoreCase(trimmedDbValue)) // Compare against this.name()
+                .filter(type -> type.name().equalsIgnoreCase(trimmedDbValue))
                 .findFirst()
-                .orElse(NONE); // Return NONE if no match is found
+                .orElseThrow(() -> new IllegalArgumentException("Unknown CategoryType database value: " + dbValue));
     }
 }
