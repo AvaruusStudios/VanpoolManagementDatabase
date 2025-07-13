@@ -40,7 +40,10 @@ public enum ErrorCode {
     DB_SCHEMA_EXECUTION_ERROR(1003, "Error during database schema script execution."),
     /** Indicates an unmapped SQL error. */
     UNKNOWN_SQL_ERROR(1004, "An unknown SQL error occurred."),
-
+    /** A critical internal application resource (e.g., a specific service, thread pool, or cache) is unavailable. */
+    RESOURCE_UNAVAILABLE(1005, "A required internal resource is unavailable."),
+    /** An error occurred while communicating with a third-party external service or API. */
+    THIRD_PARTY_SERVICE_ERROR(1006, "Error communicating with a third-party service."),
 
     // --- 2000s: Configuration / Setup Errors ---
     /** Application configuration setting is missing or invalid. */
@@ -69,6 +72,8 @@ public enum ErrorCode {
     DUPLICATE_UNIQUE_VALUE(4004, "A value requiring uniqueness already exists."),
     /** An invalid or unsupported enumeration value was provided. */
     INVALID_ENUM_VALUE(4005, "Invalid or unsupported enumeration value provided."),
+    /** The format of the provided data is incorrect (e.g., malformed email, invalid phone number pattern). */
+    DATA_FORMAT_ERROR(4006, "The provided data is in an incorrect format."),
 
     // --- 5000s: Business Logic / Process Errors ---
     /** Attempt to delete a record that has active dependencies. */
@@ -81,6 +86,8 @@ public enum ErrorCode {
     INVALID_RECORD_STATE(5003, "Operation not allowed in current record state."),
     /** Data inconsistency detected during a business operation. */
     DATA_INCONSISTENCY(5004, "Data inconsistency detected."),
+    /** An expected record or entity was not found in the system to perform the requested operation. */
+    RECORD_NOT_FOUND(5005, "The requested record/entity was not found."),
 
     // --- 6000s: External Resource / I/O Errors ---
     /** Required file not found on the file system. */
