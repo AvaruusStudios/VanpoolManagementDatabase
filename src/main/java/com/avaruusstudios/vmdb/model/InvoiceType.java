@@ -22,7 +22,6 @@ import java.util.Objects;
  * @see Invoice
  */
 public enum InvoiceType {
-    // --- Enum Constants ---
     /**
      * Represents an invoice primarily for vehicle lease charges.
      * When associated with an invoice, the {@code periodLabel} for a LEASE invoice

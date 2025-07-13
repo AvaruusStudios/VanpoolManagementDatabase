@@ -26,7 +26,6 @@ import java.util.Objects; // Although not strictly needed for this specific `fro
  * @see Transaction
  */
 public enum PaymentMethod { // Renamed from PaymentMethodType to PaymentMethod
-    // --- Enum Constants ---
     /**
      * Represents payments made using a dedicated benefit card (e.g., pre-tax commuter benefits).
      * Stored in DB as "Benefit Card".

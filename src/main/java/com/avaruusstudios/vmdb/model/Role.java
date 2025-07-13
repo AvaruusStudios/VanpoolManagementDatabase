@@ -27,7 +27,6 @@ import java.util.Objects;
  * @see Participant
  */
 public enum Role {
-    // --- Enum Constants ---
     /**
      * Represents a user with full administrative privileges across the system.
      * Stored in DB as "ADMIN". Primarily a System Role.

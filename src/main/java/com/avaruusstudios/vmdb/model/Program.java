@@ -25,7 +25,6 @@ import java.util.Objects;
  * @see Participant
  */
 public enum Program {
-    // --- Enum Constants ---
     /**
      * Represents the "Transportation Incentive Program (TIP)" program.
      * This is typically for participants who receive a specific incentive.
