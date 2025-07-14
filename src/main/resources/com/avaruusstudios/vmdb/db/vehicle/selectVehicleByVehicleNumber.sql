@@ -7,8 +7,11 @@ SELECT
     Vehicles.Capacity,
     Vehicles.LeaseStartDate,
     Vehicles.LeaseEndDate,
+    Vehicles.Discount,
     Vehicles.IsActive,
-    Vehicles.SubsidyAmount,
+    Vehicles.DeletedAt,
     Vehicles.Notes
 FROM
-    Vehicles;
+    Vehicles
+WHERE
+    Vehicles.VehicleNumber = ?;
