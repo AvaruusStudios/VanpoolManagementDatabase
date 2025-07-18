@@ -4,16 +4,17 @@ import com.avaruusstudios.vmdb.data.DatabaseAccessException;
 import com.avaruusstudios.vmdb.data.VehicleDataAccess;
 import com.avaruusstudios.vmdb.db.DatabaseManager;
 import com.avaruusstudios.vmdb.db.QueryLoader;
-import com.avaruusstudios.vmdb.model.Vehicle;
+import com.avaruusstudios.vmdb.model.Vehicle; // Ensure this is the updated Vehicle model
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal; // Import for BigDecimal
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -63,18 +64,41 @@ public class VehicleImplementation implements VehicleDataAccess {
     private static final DateTimeFormatter CUSTOM_DATETIME_FORMATTER = DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm", Locale.ENGLISH);
 
     // SQL Queries (loaded from external .sql files with lowercase first word + CamelCase filenames)
-    private static final String SQL_CREATE_VEHICLE = QueryLoader.getQuery("vehicle/insertVehicle.sql");
-    private static final String SQL_READ_VEHICLE_BY_ID = QueryLoader.getQuery("vehicle/selectVehicleById.sql");
-    private static final String SQL_READ_ALL_VEHICLES = QueryLoader.getQuery("vehicle/selectVehiclesAll.sql");
-    private static final String SQL_COUNT_VEHICLES = QueryLoader.getQuery("vehicle/selectCountVehicles.sql");
-    private static final String SQL_EXISTS_VEHICLE_BY_ID = QueryLoader.getQuery("vehicle/selectExistsVehicleById.sql");
-    private static final String SQL_UPDATE_VEHICLE = QueryLoader.getQuery("vehicle/updateVehicle.sql");
-    private static final String SQL_SOFT_DELETE_VEHICLE = QueryLoader.getQuery("vehicle/deleteVehicleSoft.sql");
-    private static final String SQL_FIND_BY_VEHICLE_NUMBER = QueryLoader.getQuery("vehicle/selectVehicleByVehicleNumber.sql");
-    private static final String SQL_FIND_ACTIVE_VEHICLE = QueryLoader.getQuery("vehicle/selectActiveVehicle.sql");
-    private static final String SQL_FIND_BY_MAKE = QueryLoader.getQuery("vehicle/selectVehiclesByMake.sql");
-    private static final String SQL_FIND_BY_MODEL = QueryLoader.getQuery("vehicle/selectVehiclesByModel.sql");
-    private static final String SQL_FIND_BY_YEAR = QueryLoader.getQuery("vehicle/selectVehiclesByYear.sql");
+    private static final String SQL_CREATE_VEHICLE;
+    private static final String SQL_READ_VEHICLE_BY_ID;
+    private static final String SQL_READ_ALL_VEHICLES;
+    private static final String SQL_COUNT_VEHICLES;
+    private static final String SQL_EXISTS_VEHICLE_BY_ID;
+    private static final String SQL_UPDATE_VEHICLE;
+    private static final String SQL_SOFT_DELETE_VEHICLE;
+    private static final String SQL_FIND_BY_VEHICLE_NUMBER;
+    private static final String SQL_FIND_ACTIVE_VEHICLE;
+    private static final String SQL_FIND_BY_MAKE;
+    private static final String SQL_FIND_BY_MODEL;
+    private static final String SQL_FIND_BY_YEAR;
+
+    // Static block to load SQL queries once when the class is initialized
+    static {
+        try {
+            SQL_CREATE_VEHICLE = QueryLoader.getQuery("vehicle/insertVehicle.sql");
+            SQL_READ_VEHICLE_BY_ID = QueryLoader.getQuery("vehicle/selectVehicleById.sql");
+            SQL_READ_ALL_VEHICLES = QueryLoader.getQuery("vehicle/selectAllVehicles.sql");
+            SQL_COUNT_VEHICLES = QueryLoader.getQuery("vehicle/countVehicles.sql");
+            SQL_EXISTS_VEHICLE_BY_ID = QueryLoader.getQuery("vehicle/existsVehicleById.sql");
+            SQL_UPDATE_VEHICLE = QueryLoader.getQuery("vehicle/updateVehicle.sql");
+            SQL_SOFT_DELETE_VEHICLE = QueryLoader.getQuery("vehicle/deleteVehicleSoft.sql");
+            SQL_FIND_BY_VEHICLE_NUMBER = QueryLoader.getQuery("vehicle/selectVehicleByVehicleNumber.sql");
+            SQL_FIND_ACTIVE_VEHICLE = QueryLoader.getQuery("vehicle/selectActiveVehicle.sql");
+            SQL_FIND_BY_MAKE = QueryLoader.getQuery("vehicle/selectVehiclesByMake.sql");
+            SQL_FIND_BY_MODEL = QueryLoader.getQuery("vehicle/selectVehiclesByModel.sql");
+            SQL_FIND_BY_YEAR = QueryLoader.getQuery("vehicle/selectVehiclesByYear.sql");
+            logger.info("All SQL queries for VehicleImplementation loaded successfully.");
+        } catch (IllegalArgumentException e) {
+            logger.error("Failed to load one or more SQL queries for VehicleImplementation. Check .sql files and paths.", e);
+            // Re-throw as ExceptionInInitializerError to indicate a critical setup failure
+            throw new ExceptionInInitializerError(e);
+        }
+    }
 
     /**
      * Maps a {@link ResultSet} row to a {@link Vehicle} object.
@@ -86,41 +110,47 @@ public class VehicleImplementation implements VehicleDataAccess {
      * @throws SQLException If a column is not found or other database access errors occur.
      */
     private Vehicle mapResultSetToVehicle(ResultSet rs) throws SQLException {
-        Integer vehicleID = rs.getInt("VehicleID"); // NOT NULL in schema, but SQLite's INTEGER PRIMARY KEY is nullable on read
-        String vehicleNumber = rs.getString("VehicleNumber"); // NOT NULL
-        String make = rs.getString("Make"); // Nullable
-        String model = rs.getString("Model"); // Nullable
-        Integer year = rs.getObject("Year", Integer.class); // Nullable, use getObject
-        Integer capacity = rs.getInt("Capacity"); // NOT NULL, use getInt
+        // Create a new Vehicle object using a constructor that doesn't require an ID,
+        // or a default constructor if available.
+        Vehicle vehicle = new Vehicle();
+
+        // Use the _setVehicleID method to set the ID after retrieval.
+        Integer vehicleID = rs.getInt("VehicleID");
+        if (vehicleID > 0) { // Check if ID is valid (SQLite returns 0 for NULL INT)
+            vehicle._setVehicleID(vehicleID);
+        }
+
+        // Set other properties using their respective setters
+        vehicle.setVehicleNumber(rs.getString("VehicleNumber"));
+        vehicle.setMake(rs.getString("Make"));
+        vehicle.setModel(rs.getString("Model"));
+
+        // Use getObject for nullable Integer, handling potential nulls
+        vehicle.setYear(rs.getObject("Year", Integer.class));
+
+        vehicle.setCapacity(rs.getInt("Capacity"));
 
         // Handle LeaseStartDate (TEXT in DB, LocalDate in Java, NOT NULL)
-        LocalDate leaseStartDate = LocalDate.parse(rs.getString("LeaseStartDate"), CUSTOM_DATE_FORMATTER);
+        vehicle.setLeaseStartDate(LocalDate.parse(rs.getString("LeaseStartDate"), CUSTOM_DATE_FORMATTER));
 
         // Handle LeaseEndDate (TEXT in DB, LocalDate in Java, Nullable)
-        LocalDate leaseEndDate = null;
         String leaseEndDateStr = rs.getString("LeaseEndDate");
-        if (leaseEndDateStr != null && !leaseEndDateStr.isEmpty()) {
-            leaseEndDate = LocalDate.parse(leaseEndDateStr, CUSTOM_DATE_FORMATTER);
-        }
+        vehicle.setLeaseEndDate(leaseEndDateStr != null && !leaseEndDateStr.isEmpty() ? LocalDate.parse(leaseEndDateStr, CUSTOM_DATE_FORMATTER) : null);
 
-        // --- CORRECTED: Use BigDecimal for discount ---
-        BigDecimal discount = rs.getObject("Discount", BigDecimal.class); // Nullable (has default 0), use getObject
+        // Handle Discount (NUMERIC/REAL in DB, BigDecimal in Java, Nullable)
+        // Use getObject with BigDecimal.class for nullable numeric types
+        vehicle.setDiscount(rs.getObject("Discount", BigDecimal.class));
 
-        boolean isActive = rs.getInt("IsActive") == 1; // NOT NULL
+        // CORRECTED: Call setIsActive() method directly
+        vehicle.setIsActive(rs.getInt("IsActive") == 1); // NOT NULL
 
         // Handle DeletedAt (TEXT in DB, LocalDateTime in Java, Nullable)
-        LocalDateTime deletedAt = null;
         String deletedAtStr = rs.getString("DeletedAt");
-        if (deletedAtStr != null && !deletedAtStr.isEmpty()) {
-            deletedAt = LocalDateTime.parse(deletedAtStr, CUSTOM_DATETIME_FORMATTER);
-        }
+        vehicle.setDeletedAt(deletedAtStr != null && !deletedAtStr.isEmpty() ? LocalDateTime.parse(deletedAtStr, CUSTOM_DATETIME_FORMATTER) : null);
 
-        String notes = rs.getString("Notes"); // Nullable
+        vehicle.setNotes(rs.getString("Notes")); // Nullable
 
-        return new Vehicle(
-                vehicleID, vehicleNumber, make, model, year, capacity,
-                leaseStartDate, leaseEndDate, discount, isActive, deletedAt, notes
-        );
+        return vehicle;
     }
 
     // --- CreateDataAccess Implementation ---
@@ -162,12 +192,21 @@ public class VehicleImplementation implements VehicleDataAccess {
             pstmt.setString(paramIndex++, vehicleNumber);
             pstmt.setString(paramIndex++, vehicle.getMake()); // Nullable
             pstmt.setString(paramIndex++, vehicle.getModel()); // Nullable
-            pstmt.setObject(paramIndex++, vehicle.getYear(), java.sql.Types.INTEGER); // Nullable
+            // Use setObject for nullable Integer types, specify SQL type
+            if (vehicle.getYear() != null) {
+                pstmt.setInt(paramIndex++, vehicle.getYear());
+            } else {
+                pstmt.setNull(paramIndex++, Types.INTEGER);
+            }
             pstmt.setInt(paramIndex++, vehicle.getCapacity()); // NOT NULL
             pstmt.setString(paramIndex++, vehicle.getLeaseStartDate().format(CUSTOM_DATE_FORMATTER)); // NOT NULL
             pstmt.setString(paramIndex++, vehicle.getLeaseEndDate() != null ? vehicle.getLeaseEndDate().format(CUSTOM_DATE_FORMATTER) : null); // Nullable
-            // --- CORRECTED: Use setBigDecimal for discount ---
-            pstmt.setBigDecimal(paramIndex++, vehicle.getDiscount()); // Nullable (NUMERIC in schema)
+            // Use setBigDecimal for BigDecimal, setNull with Types.NUMERIC/DECIMAL for nulls
+            if (vehicle.getDiscount() != null) {
+                pstmt.setBigDecimal(paramIndex++, vehicle.getDiscount());
+            } else {
+                pstmt.setNull(paramIndex++, Types.NUMERIC);
+            }
             pstmt.setInt(paramIndex++, vehicle.isActive() ? 1 : 0); // NOT NULL
             pstmt.setString(paramIndex++, vehicle.getDeletedAt() != null ? vehicle.getDeletedAt().format(CUSTOM_DATETIME_FORMATTER) : null); // Nullable
             pstmt.setString(paramIndex++, vehicle.getNotes()); // Nullable
@@ -182,21 +221,9 @@ public class VehicleImplementation implements VehicleDataAccess {
                 if (generatedKeys.next()) {
                     int id = generatedKeys.getInt(1); // Get the auto-generated ID
                     logger.info("Vehicle created with ID: {}", id);
-                    // Return a new Vehicle object with the assigned ID from the database
-                    return new Vehicle(
-                            id,
-                            vehicle.getVehicleNumber(),
-                            vehicle.getMake(),
-                            vehicle.getModel(),
-                            vehicle.getYear(),
-                            vehicle.getCapacity(),
-                            vehicle.getLeaseStartDate(),
-                            vehicle.getLeaseEndDate(),
-                            vehicle.getDiscount(),
-                            vehicle.isActive(),
-                            vehicle.getDeletedAt(),
-                            vehicle.getNotes()
-                    );
+                    // Update the *original* vehicle object with the assigned ID.
+                    vehicle._setVehicleID(id);
+                    return vehicle; // Return the updated object
                 } else {
                     logger.error("Creating vehicle failed, no ID obtained for vehicle number: {}", vehicle.getVehicleNumber());
                     throw new DatabaseAccessException("Creating vehicle failed, no ID obtained.");
@@ -219,6 +246,9 @@ public class VehicleImplementation implements VehicleDataAccess {
     @Override
     public Optional<Vehicle> readRecord(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "Vehicle ID cannot be null for readRecord.");
+        if (id <= 0) {
+            throw new IllegalArgumentException("Vehicle ID must be positive for readRecord.");
+        }
 
         try (Connection connection = DatabaseManager.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(SQL_READ_VEHICLE_BY_ID)) {
@@ -275,6 +305,9 @@ public class VehicleImplementation implements VehicleDataAccess {
     @Override
     public boolean existsById(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "Vehicle ID cannot be null for existsById.");
+        if (id <= 0) {
+            throw new IllegalArgumentException("Vehicle ID must be positive for existsById.");
+        }
 
         try (Connection connection = DatabaseManager.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(SQL_EXISTS_VEHICLE_BY_ID)) {
@@ -296,6 +329,9 @@ public class VehicleImplementation implements VehicleDataAccess {
     public void updateRecord(Vehicle vehicle) throws DatabaseAccessException {
         Objects.requireNonNull(vehicle, "Vehicle cannot be null for updateRecord.");
         Objects.requireNonNull(vehicle.getVehicleID(), "Vehicle ID cannot be null for updateRecord.");
+        if (vehicle.getVehicleID() <= 0) {
+            throw new IllegalArgumentException("Vehicle ID must be positive for updateRecord.");
+        }
         Objects.requireNonNull(vehicle.getVehicleNumber(), "Vehicle number cannot be null for updateRecord.");
         Objects.requireNonNull(vehicle.getCapacity(), "Vehicle capacity cannot be null for updateRecord (NOT NULL constraint).");
         Objects.requireNonNull(vehicle.getLeaseStartDate(), "Vehicle lease start date cannot be null for updateRecord (NOT NULL constraint).");
@@ -312,12 +348,21 @@ public class VehicleImplementation implements VehicleDataAccess {
             pstmt.setString(paramIndex++, vehicleNumber);
             pstmt.setString(paramIndex++, vehicle.getMake()); // Nullable
             pstmt.setString(paramIndex++, vehicle.getModel()); // Nullable
-            pstmt.setObject(paramIndex++, vehicle.getYear(), java.sql.Types.INTEGER); // Nullable
+            // Use setObject for nullable Integer types, specify SQL type
+            if (vehicle.getYear() != null) {
+                pstmt.setInt(paramIndex++, vehicle.getYear());
+            } else {
+                pstmt.setNull(paramIndex++, Types.INTEGER);
+            }
             pstmt.setInt(paramIndex++, vehicle.getCapacity()); // NOT NULL
             pstmt.setString(paramIndex++, vehicle.getLeaseStartDate().format(CUSTOM_DATE_FORMATTER)); // NOT NULL
             pstmt.setString(paramIndex++, vehicle.getLeaseEndDate() != null ? vehicle.getLeaseEndDate().format(CUSTOM_DATE_FORMATTER) : null); // Nullable
-            // --- CORRECTED: Use setBigDecimal for discount ---
-            pstmt.setBigDecimal(paramIndex++, vehicle.getDiscount()); // Nullable (NUMERIC in schema)
+            // Use setBigDecimal for BigDecimal, setNull with Types.NUMERIC/DECIMAL for nulls
+            if (vehicle.getDiscount() != null) {
+                pstmt.setBigDecimal(paramIndex++, vehicle.getDiscount());
+            } else {
+                pstmt.setNull(paramIndex++, Types.NUMERIC);
+            }
             pstmt.setInt(paramIndex++, vehicle.isActive() ? 1 : 0); // NOT NULL
             pstmt.setString(paramIndex++, vehicle.getDeletedAt() != null ? vehicle.getDeletedAt().format(CUSTOM_DATETIME_FORMATTER) : null); // Nullable
             pstmt.setString(paramIndex++, vehicle.getNotes()); // Nullable
@@ -345,6 +390,9 @@ public class VehicleImplementation implements VehicleDataAccess {
     @Override
     public void deleteRecord(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "Vehicle ID cannot be null for deleteRecord.");
+        if (id <= 0) {
+            throw new IllegalArgumentException("Vehicle ID must be positive for deleteRecord.");
+        }
 
         try (Connection connection = DatabaseManager.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(SQL_SOFT_DELETE_VEHICLE)) {
@@ -405,7 +453,7 @@ public class VehicleImplementation implements VehicleDataAccess {
                 Vehicle activeVehicle = mapResultSetToVehicle(rs);
                 if (rs.next()) { // Check if there's a second active vehicle (data integrity issue)
                     String warningMsg = "WARNING: Multiple active vehicles found, violating business rule! " +
-                            "IDs: " + activeVehicle.getVehicleID() + ", " + rs.getInt("VehicleID") + " and possibly more.";
+                            "First ID: " + activeVehicle.getVehicleID() + ", Second ID: " + rs.getInt("VehicleID") + " and possibly more.";
                     logger.warn(warningMsg);
                     // For now, return the first one found, but this indicates a problem to be addressed at service layer.
                 }
