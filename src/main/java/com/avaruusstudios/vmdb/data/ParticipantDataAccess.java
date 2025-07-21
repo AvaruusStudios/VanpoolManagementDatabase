@@ -1,6 +1,6 @@
 package com.avaruusstudios.vmdb.data;
 
-import com.avaruusstudios.vmdb.model.Participant; // Assuming your Participant POJO is here
+import com.avaruusstudios.vmdb.model.Participant;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,19 +11,31 @@ import java.util.Optional;
  * </p>
  *
  * <p>
- * It extends {@link DeleteDataAccess} to inherit standard CRUD operations for Participant,
- * and adds specialized methods relevant to participant data retrieval and management.
+ * It aggregates the standard CRUD operations for {@link Participant} by extending
+ * {@link ReadDataAccess}, {@link CreateDataAccess}, {@link UpdateDataAccess},
+ * and {@link DeleteDataAccess}. This interface also adds specialized methods
+ * relevant to participant data retrieval and management, such as finding by email,
+ * counting/retrieving active participants, or filtering by program/role.
  * </p>
  *
- * @author [Your Name/AvaruusStudios]
- * @version 1.1 // Updated version due to method additions based on schema review
+ * @author AvaruusStudios
+ * @version 1.1 // Version updated for interface refactoring
+ * Created On: 2025-07-14 // Assuming original creation date of the file
+ * Updated On: 2025-07-20 // Current date of modification
  * @since 2025-07-06 // Original creation date
+ *
+ * @see ReadDataAccess
+ * @see CreateDataAccess
+ * @see UpdateDataAccess
  *
  * @see DeleteDataAccess
  * @see Participant
  * @see DatabaseAccessException
  */
-public interface ParticipantDataAccess extends DeleteDataAccess<Participant, Integer> {
+public interface ParticipantDataAccess extends ReadDataAccess<Participant, Integer>,
+        CreateDataAccess<Participant>,
+        UpdateDataAccess<Participant>,
+        DeleteDataAccess<Integer> {
     /**
      * <p>
      * Finds a {@link Participant} record by their unique email address.
