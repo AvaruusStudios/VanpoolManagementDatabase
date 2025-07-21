@@ -11,8 +11,11 @@ import java.util.Optional;
  * </p>
  *
  * <p>
- * It extends {@link DeleteDataAccess} to inherit standard CRUD operations for Vehicle,
- * and adds specialized methods relevant to vehicle data retrieval and management.
+ * It aggregates the standard CRUD operations for {@link Vehicle} by extending
+ * {@link ReadDataAccess}, {@link CreateDataAccess}, {@link UpdateDataAccess},
+ * and {@link DeleteDataAccess}. This interface also adds specialized methods
+ * relevant to vehicle data retrieval and management, such as finding by unique
+ * vehicle number, retrieving the single active vehicle, or filtering by make, model, or year.
  * </p>
  *
  * <p>
@@ -20,15 +23,23 @@ import java.util.Optional;
  * The application does not manage or "issue out" a fleet of vehicles.
  * </p>
  *
- * @author [Your Name/AvaruusStudios]
- * @version 1.5 // Updated version due to method removal
+ * @author AvaruusStudios
+ * @version 1.5 // Version updated for interface refactoring
+ * Created On: 2025-07-14 // Assuming original creation date of the file
+ * Updated On: 2025-07-20 // Current date of modification
  * @since 2025-07-05
  *
+ * @see ReadDataAccess
+ * @see CreateDataAccess
+ * @see UpdateDataAccess
  * @see DeleteDataAccess
  * @see Vehicle
  * @see DatabaseAccessException
  */
-public interface VehicleDataAccess extends DeleteDataAccess<Vehicle, Integer> {
+public interface VehicleDataAccess extends ReadDataAccess<Vehicle, Integer>,
+        CreateDataAccess<Vehicle>,
+        UpdateDataAccess<Vehicle>,
+        DeleteDataAccess<Integer> {
     /**
      * <p>
      * Finds a {@link Vehicle} record by its unique vehicle number.
