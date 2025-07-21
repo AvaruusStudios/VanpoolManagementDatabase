@@ -8,9 +8,14 @@ import java.util.Optional;
 /**
  * <p>
  * This interface defines the contract for Data Access Operations specific to the {@link User} entity
- * within the Vanpool Management Database (VMDB) application. It extends {@link DeleteDataAccess},
- * thereby inheriting fundamental Create, Read, Update, and Delete (CRUD) capabilities
- * for {@code User} objects, identified by an {@code Integer} primary key.
+ * within the Vanpool Management Database (VMDB) application.
+ * </p>
+ *
+ * <p>
+ * It aggregates the standard Create, Read, Update, and Delete (CRUD) capabilities
+ * for {@code User} objects by extending {@link ReadDataAccess}, {@link CreateDataAccess},
+ * {@link UpdateDataAccess}, and {@link DeleteDataAccess}, with operations identified by an
+ * {@code Integer} primary key.
  * </p>
  *
  * <p>
@@ -23,15 +28,22 @@ import java.util.Optional;
  * </p>
  *
  * @author AvaruusStudios
- * @version 1.0 // Initial version for this interface
- * Created On: 2025-07-14 // Current Date
- * Updated On: 2025-07-14 // Current Date
+ * @version 1.0 // Initial version for this interface (version of this contract)
+ * Created On: 2025-07-14
+ * Updated On: 2025-07-20 // Current date of modification
  *
- * @see User
+ * @see ReadDataAccess
+ * @see CreateDataAccess
+ * @see UpdateDataAccess
  * @see DeleteDataAccess
+ * @see User
  * @see Role
+ * @see DatabaseAccessException
  */
-public interface UserDataAccess extends DeleteDataAccess<User, Integer> {
+public interface UserDataAccess extends ReadDataAccess<User, Integer>,
+        CreateDataAccess<User>,
+        UpdateDataAccess<User>,
+        DeleteDataAccess<Integer> {
 
     /**
      * Retrieves a single {@link User} entity from the database based on their Windows username.
