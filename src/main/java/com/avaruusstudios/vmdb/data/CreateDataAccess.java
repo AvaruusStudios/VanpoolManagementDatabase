@@ -2,17 +2,15 @@ package com.avaruusstudios.vmdb.data;
 
 /**
  * <p>
- * This interface defines the contract for Data Access Objects (DAOs) that **introduce
- * creation (write) operations** on entities within the Vanpool Management Database (VMDB) application.
+ * This interface defines the contract for Data Access Objects (DAOs) that provide
+ * **creation (write) operations** on entities within the Vanpool Management Database (VMDB) application.
  * </p>
  *
  * <p>
- * By extending {@link ReadDataAccess}, this interface inherits all methods for retrieving
- * and counting entities. Its primary distinguishing feature is the addition of a method
- * specifically for persisting new entities. This interface is particularly suitable for
- * entities that are designed to be created once and then read, but are not intended to
- * be updated or deleted through the application's standard data access layer (e.g., audit logs,
- * certain types of historical records where modifications are disallowed).
+ * This interface specifically adds a method for persisting new entities. It is suitable
+ * for entities where new records need to be stored in the underlying data storage.
+ * It focuses solely on the creation aspect, allowing for flexible composition with
+ * other data access capabilities (e.g., read, update, delete).
  * </p>
  *
  * <p>
@@ -22,14 +20,13 @@ package com.avaruusstudios.vmdb.data;
  *
  * @param <T> The type of the entity (e.g., {@code com.avaruusstudios.vmdb.model.EventLog}).
  * This represents the domain model object that the DAO will persist and retrieve.
- * @param <K> The type of the primary key for the entity {@code T}. Typically {@code java.lang.Integer}.
  *
- * @author [Your Name/AvaruusStudios]
- * @version 1.2 // Incremented version for JavaDoc clarification
- * @since 2025-07-11
- * @see ReadDataAccess
+ * @author AvaruusStudios
+ * @version 1.0 // This version refers to the state of this specific interface's public contract
+ * Created On: 2025-07-14 // Assuming original creation date for the content of this file
+ * Updated On: 2025-07-20 // Current date of modification
  */
-public interface CreateDataAccess<T, K> extends ReadDataAccess<T, K> {
+public interface CreateDataAccess<T> {
 
     /**
      * <p>
@@ -54,5 +51,4 @@ public interface CreateDataAccess<T, K> extends ReadDataAccess<T, K> {
      * {@code SQLException} will be wrapped within this custom exception.
      */
     T createRecord(T entity) throws DatabaseAccessException;
-
 }

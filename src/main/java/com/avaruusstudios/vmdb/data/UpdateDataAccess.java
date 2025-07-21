@@ -2,16 +2,14 @@ package com.avaruusstudios.vmdb.data;
 
 /**
  * <p>
- * This interface defines the contract for Data Access Objects (DAOs) that support
- * **update operations** in addition to creation and read operations on entities
- * within the Vanpool Management Database (VMDB) application.
+ * This interface defines the contract for Data Access Objects (DAOs) that provide
+ * **update operations** on entities within the Vanpool Management Database (VMDB) application.
  * </p>
  *
  * <p>
- * It extends {@link CreateDataAccess} to inherit methods for creating, reading,
- * and counting entities, and adds a method specifically for modifying existing entities.
- * This interface is suitable for entities that are created, read, and can have
- * their persistent state altered, but are not intended for deletion via this DAO.
+ * This interface specifically adds a method for modifying existing entities. It focuses
+ * solely on the update aspect, allowing for flexible composition with other data access
+ * capabilities (e.g., read, create, delete).
  * </p>
  *
  * <p>
@@ -21,14 +19,13 @@ package com.avaruusstudios.vmdb.data;
  *
  * @param <T> The type of the entity (e.g., {@code com.avaruusstudios.vmdb.model.Participant}).
  * This represents the domain model object that the DAO will update and interact with.
- * @param <K> The type of the primary key for the entity {@code T}. Typically {@code java.lang.Integer}.
  *
- * @author [Your Name/AvaruusStudios]
- * @version 1.0 // Initial version for this new interface
- * @since 2025-07-11
- * @see CreateDataAccess
+ * @author AvaruusStudios
+ * @version 1.0 // This version refers to the state of this specific interface's public contract
+ * Created On: 2025-07-14 // Assuming original creation date for the content of this file
+ * Updated On: 2025-07-20 // Current date of modification
  */
-public interface UpdateDataAccess<T, K> extends CreateDataAccess<T, K> {
+public interface UpdateDataAccess<T> {
 
     /**
      * <p>

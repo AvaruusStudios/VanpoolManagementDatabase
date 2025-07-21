@@ -30,9 +30,10 @@ import java.util.Optional;
  * This type parameter ensures type safety when performing operations
  * that rely on the entity's unique identifier.
  *
- * @author [Your Name/AvaruusStudios]
- * @version 1.2 // Incremented version for adding existsById()
- * @since 2025-07-11
+ * @author AvaruusStudios
+ * @version 1.0 // This version refers to the state of this specific interface's public contract
+ * Created On: 2025-07-14 // Assuming original creation date for the content of this file
+ * Updated On: 2025-07-20 // Current date of modification
  */
 public interface ReadDataAccess<T, K> {
 
