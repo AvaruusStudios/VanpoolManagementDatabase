@@ -4,7 +4,6 @@ import com.avaruusstudios.vmdb.model.Category;
 import com.avaruusstudios.vmdb.model.CategoryType;
 import java.util.List;
 
-
 /**
  * <p>
  * This interface defines the contract for Data Access Operations specific to the
@@ -12,21 +11,31 @@ import java.util.List;
  * </p>
  *
  * <p>
- * It extends {@link DeleteDataAccess} to inherit standard CRUD operations for Category.
- * This DAO is designed to support UI elements like cascading dropdowns by providing
- * access to distinct category types and all categories filtered by a specific type,
- * aligning with the Coordinator's tracking and data presentation needs.
+ * It aggregates the standard CRUD operations for {@link Category} by extending
+ * {@link ReadDataAccess}, {@link CreateDataAccess}, {@link UpdateDataAccess},
+ * and {@link DeleteDataAccess}. This DAO is further designed to support UI elements
+ * like cascading dropdowns by providing access to distinct category types and all
+ * categories filtered by a specific type, aligning with the Coordinator's tracking
+ * and data presentation needs.
  * </p>
  *
- * @author [Your Name/AvaruusStudios]
- * @version 1.4 // Incremented version for new method additions based on UI requirements
+ * @author AvaruusStudios
+ * @version 1.4 // Incremented version for new method additions and interface refactoring
+ * Created On: 2025-07-14
+ * Updated On: 2025-07-20 // Current date of modification
  * @since 2025-07-09
  *
+ * @see ReadDataAccess
+ * @see CreateDataAccess
+ * @see UpdateDataAccess
  * @see DeleteDataAccess
  * @see Category
  * @see DatabaseAccessException
  */
-public interface CategoryDataAccess extends DeleteDataAccess<Category, Integer> {
+public interface CategoryDataAccess extends ReadDataAccess<Category, Integer>,
+        CreateDataAccess<Category>,
+        UpdateDataAccess<Category>,
+        DeleteDataAccess<Integer> {
 
     /**
      * <p>
