@@ -11,19 +11,30 @@ import java.util.Optional;
  * </p>
  *
  * <p>
- * It extends {@link DeleteDataAccess} to inherit standard CRUD operations for Location,
- * and adds specialized methods relevant to location data retrieval and management.
+ * It aggregates the standard CRUD operations for {@link Location} by extending
+ * {@link ReadDataAccess}, {@link CreateDataAccess}, {@link UpdateDataAccess},
+ * and {@link DeleteDataAccess}. This interface also adds specialized methods
+ * relevant to location data retrieval and management, such as finding locations
+ * by address components or by unique name.
  * </p>
  *
- * @author [Your Name/AvaruusStudios]
- * @version 1.2 // Updated version due to method addition based on schema review
+ * @author AvaruusStudios
+ * @version 1.2 // Version updated for interface refactoring
+ * Created On: 2025-07-14 // Assuming original creation date of the file
+ * Updated On: 2025-07-20 // Current date of modification
  * @since 2025-07-06 // Original creation date
  *
+ * @see ReadDataAccess
+ * @see CreateDataAccess
+ * @see UpdateDataAccess
  * @see DeleteDataAccess
  * @see Location
  * @see DatabaseAccessException
  */
-public interface LocationDataAccess extends DeleteDataAccess<Location, Integer> {
+public interface LocationDataAccess extends ReadDataAccess<Location, Integer>,
+        CreateDataAccess<Location>,
+        UpdateDataAccess<Location>,
+        DeleteDataAccess<Integer> {
     /**
      * <p>
      * Finds a {@link Location} record by a unique combination of its address components.
