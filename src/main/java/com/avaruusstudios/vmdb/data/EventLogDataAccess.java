@@ -11,21 +11,27 @@ import java.util.List;
  * </p>
  *
  * <p>
- * It extends {@link DeleteDataAccess} to inherit standard CRUD operations for EventLog records.
- * This interface provides specific query methods for retrieving event logs based on
- * the associated user, the type of event, or the table affected, supporting key auditing
- * and diagnostic functionalities.
+ * It provides **read and creation operations** for EventLog records by extending
+ * {@link ReadDataAccess} and {@link CreateDataAccess}. This design pattern is
+ * typical for audit logs, which are primarily created and then queried, but not
+ * generally updated or deleted via the application's standard data access layer.
+ * This interface further offers specific query methods for retrieving event logs
+ * based on the associated user, the type of event, or the table affected, supporting
+ * key auditing and diagnostic functionalities.
  * </p>
  *
- * @author [Your Name/AvaruusStudios]
- * @version 1.1 // Incremented version due to method additions
+ * @author AvaruusStudios
+ * @version 1.1 // Version incremented for interface refactoring and clarity
+ * Created On: 2025-07-14 // Assuming original creation date of the file
+ * Updated On: 2025-07-20 // Current date of modification
  * @since 2025-07-11
  *
- * @see DeleteDataAccess
+ * @see ReadDataAccess
+ * @see CreateDataAccess
  * @see EventLog
  * @see DatabaseAccessException
  */
-public interface EventLogDataAccess extends CreateDataAccess<EventLog, Integer> {
+public interface EventLogDataAccess extends ReadDataAccess<EventLog, Integer>, CreateDataAccess<EventLog> {
 
     /**
      * <p>
