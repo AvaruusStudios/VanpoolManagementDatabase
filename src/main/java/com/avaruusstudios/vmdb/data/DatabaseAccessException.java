@@ -37,7 +37,7 @@ package com.avaruusstudios.vmdb.data; // Changed package to 'data'
  * @version 1.0
  * @since 2025-07-04
  *
- * @see GenericDataAccess
+ * @see DeleteDataAccess
  * @see java.sql.SQLException
  * @see java.lang.RuntimeException
  */

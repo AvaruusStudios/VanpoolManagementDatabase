@@ -37,7 +37,7 @@ package com.avaruusstudios.vmdb.data;
  * @since 2025-07-11
  * @see UpdateDataAccess
  */
-public interface GenericDataAccess<T, K> extends UpdateDataAccess<T, K> {
+public interface DeleteDataAccess<T, K> extends UpdateDataAccess<T, K> {
 
     /**
      * <p>

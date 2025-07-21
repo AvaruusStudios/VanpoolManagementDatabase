@@ -11,7 +11,7 @@ import java.util.Optional;
  * </p>
  *
  * <p>
- * It extends {@link GenericDataAccess} to inherit standard CRUD operations for Participant,
+ * It extends {@link DeleteDataAccess} to inherit standard CRUD operations for Participant,
  * and adds specialized methods relevant to participant data retrieval and management.
  * </p>
  *
@@ -19,11 +19,11 @@ import java.util.Optional;
  * @version 1.1 // Updated version due to method additions based on schema review
  * @since 2025-07-06 // Original creation date
  *
- * @see GenericDataAccess
+ * @see DeleteDataAccess
  * @see Participant
  * @see DatabaseAccessException
  */
-public interface ParticipantDataAccess extends GenericDataAccess<Participant, Integer> {
+public interface ParticipantDataAccess extends DeleteDataAccess<Participant, Integer> {
     /**
      * <p>
      * Finds a {@link Participant} record by their unique email address.

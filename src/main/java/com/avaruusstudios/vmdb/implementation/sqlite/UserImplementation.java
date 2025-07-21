@@ -5,7 +5,7 @@ import com.avaruusstudios.vmdb.db.QueryLoader;
 import com.avaruusstudios.vmdb.model.User;
 import com.avaruusstudios.vmdb.model.Role;
 import com.avaruusstudios.vmdb.data.UserDataAccess;
-import com.avaruusstudios.vmdb.data.GenericDataAccess;
+import com.avaruusstudios.vmdb.data.DeleteDataAccess;
 import com.avaruusstudios.vmdb.data.UpdateDataAccess;
 import com.avaruusstudios.vmdb.data.CreateDataAccess;
 import com.avaruusstudios.vmdb.data.ReadDataAccess;
@@ -32,7 +32,7 @@ import java.util.Optional;
  * <p>
  * Concrete implementation of the {@link UserDataAccess} interface for managing
  * {@link User} data in an SQLite database. This class fully implements all generic
- * CRUD and read operations inherited via {@link GenericDataAccess}, along with
+ * CRUD and read operations inherited via {@link DeleteDataAccess}, along with
  * specific queries for {@code User} entities (e.g., finding by Windows username or role).
  * </p>
  *
@@ -72,7 +72,7 @@ import java.util.Optional;
  * @see DatabaseManager
  * @see QueryLoader
  * @see DatabaseAccessException
- * @see GenericDataAccess
+ * @see DeleteDataAccess
  * @see CreateDataAccess
  * @see ReadDataAccess
  * @see UpdateDataAccess

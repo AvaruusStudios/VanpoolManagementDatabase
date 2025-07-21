@@ -8,7 +8,7 @@ import java.util.Optional;
 /**
  * <p>
  * This interface defines the contract for Data Access Operations specific to the {@link User} entity
- * within the Vanpool Management Database (VMDB) application. It extends {@link GenericDataAccess},
+ * within the Vanpool Management Database (VMDB) application. It extends {@link DeleteDataAccess},
  * thereby inheriting fundamental Create, Read, Update, and Delete (CRUD) capabilities
  * for {@code User} objects, identified by an {@code Integer} primary key.
  * </p>
@@ -28,10 +28,10 @@ import java.util.Optional;
  * Updated On: 2025-07-14 // Current Date
  *
  * @see User
- * @see GenericDataAccess
+ * @see DeleteDataAccess
  * @see Role
  */
-public interface UserDataAccess extends GenericDataAccess<User, Integer> {
+public interface UserDataAccess extends DeleteDataAccess<User, Integer> {
 
     /**
      * Retrieves a single {@link User} entity from the database based on their Windows username.

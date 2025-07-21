@@ -2,7 +2,6 @@ package com.avaruusstudios.vmdb.data;
 
 import com.avaruusstudios.vmdb.model.LineItem; // Assuming your LineItem POJO is here
 import java.util.List;
-import java.util.Optional; // Still needed for GenericDataAccess
 
 /**
  * <p>
@@ -11,7 +10,7 @@ import java.util.Optional; // Still needed for GenericDataAccess
  * </p>
  *
  * <p>
- * It extends {@link GenericDataAccess} to inherit standard CRUD operations for LineItem,
+ * It extends {@link DeleteDataAccess} to inherit standard CRUD operations for LineItem,
  * and adds specialized methods relevant to line item data retrieval and management,
  * particularly given its strong relationship with {@link com.avaruusstudios.vmdb.model.Invoice}
  * and {@link com.avaruusstudios.vmdb.model.Participant}.
@@ -20,11 +19,11 @@ import java.util.Optional; // Still needed for GenericDataAccess
  * @author [Your Name/AvaruusStudios]
  * @version 1.0
  * @since 2025-07-09 // Current date
- * @see GenericDataAccess
+ * @see DeleteDataAccess
  * @see LineItem
  * @see DatabaseAccessException
  */
-public interface LineItemDataAccess extends GenericDataAccess<LineItem, Integer> {
+public interface LineItemDataAccess extends DeleteDataAccess<LineItem, Integer> {
 
     /**
      * <p>

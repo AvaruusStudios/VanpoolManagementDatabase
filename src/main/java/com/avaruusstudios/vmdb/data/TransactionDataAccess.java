@@ -11,7 +11,7 @@ import java.util.List;
  * </p>
  *
  * <p>
- * It extends {@link GenericDataAccess} to inherit standard CRUD operations for Transaction,
+ * It extends {@link DeleteDataAccess} to inherit standard CRUD operations for Transaction,
  * and includes specific methods for filtering transactions by date range, category, and invoice.
  * This refined interface reflects a streamlined approach, moving complex aggregations and
  * calculations (like running balances) to higher service or presentation layers, and
@@ -22,7 +22,7 @@ import java.util.List;
  * @version 1.1 // Updated version to reflect removals and refinements
  * @since 2025-07-09 // Original creation date
  *
- * @see GenericDataAccess
+ * @see DeleteDataAccess
  * @see Transaction
  * @see DatabaseAccessException
  */

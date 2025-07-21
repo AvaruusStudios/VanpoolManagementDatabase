@@ -12,7 +12,7 @@ import java.util.List;
  * </p>
  *
  * <p>
- * It extends {@link GenericDataAccess} to inherit standard CRUD operations for Category.
+ * It extends {@link DeleteDataAccess} to inherit standard CRUD operations for Category.
  * This DAO is designed to support UI elements like cascading dropdowns by providing
  * access to distinct category types and all categories filtered by a specific type,
  * aligning with the Coordinator's tracking and data presentation needs.
@@ -22,11 +22,11 @@ import java.util.List;
  * @version 1.4 // Incremented version for new method additions based on UI requirements
  * @since 2025-07-09
  *
- * @see GenericDataAccess
+ * @see DeleteDataAccess
  * @see Category
  * @see DatabaseAccessException
  */
-public interface CategoryDataAccess extends GenericDataAccess<Category, Integer> {
+public interface CategoryDataAccess extends DeleteDataAccess<Category, Integer> {
 
     /**
      * <p>

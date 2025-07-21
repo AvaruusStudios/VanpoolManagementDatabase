@@ -11,7 +11,7 @@ import java.util.Optional;
  * </p>
  *
  * <p>
- * It extends {@link GenericDataAccess} to inherit standard CRUD operations for Vehicle,
+ * It extends {@link DeleteDataAccess} to inherit standard CRUD operations for Vehicle,
  * and adds specialized methods relevant to vehicle data retrieval and management.
  * </p>
  *
@@ -24,11 +24,11 @@ import java.util.Optional;
  * @version 1.5 // Updated version due to method removal
  * @since 2025-07-05
  *
- * @see GenericDataAccess
+ * @see DeleteDataAccess
  * @see Vehicle
  * @see DatabaseAccessException
  */
-public interface VehicleDataAccess extends GenericDataAccess<Vehicle, Integer> {
+public interface VehicleDataAccess extends DeleteDataAccess<Vehicle, Integer> {
     /**
      * <p>
      * Finds a {@link Vehicle} record by its unique vehicle number.

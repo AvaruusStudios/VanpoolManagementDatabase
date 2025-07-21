@@ -11,7 +11,7 @@ import java.util.List;
  * </p>
  *
  * <p>
- * It extends {@link GenericDataAccess} to inherit standard CRUD operations for Invoice,
+ * It extends {@link DeleteDataAccess} to inherit standard CRUD operations for Invoice,
  * and adds specialized methods relevant to invoice data retrieval and management.
  * </p>
  *
@@ -19,11 +19,11 @@ import java.util.List;
  * @version 1.2 // Updated version due to method renaming
  * @since 2025-07-08
  *
- * @see GenericDataAccess
+ * @see DeleteDataAccess
  * @see Invoice
  * @see DatabaseAccessException
  */
-public interface InvoiceDataAccess extends GenericDataAccess<Invoice, Integer> {
+public interface InvoiceDataAccess extends DeleteDataAccess<Invoice, Integer> {
     /**
      * <p>
      * Retrieves a list of {@link Invoice} records that fall within a specified date range

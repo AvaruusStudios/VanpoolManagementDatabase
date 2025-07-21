@@ -11,7 +11,7 @@ import java.util.List;
  * </p>
  *
  * <p>
- * It extends {@link GenericDataAccess} to inherit standard CRUD operations for EventLog records.
+ * It extends {@link DeleteDataAccess} to inherit standard CRUD operations for EventLog records.
  * This interface provides specific query methods for retrieving event logs based on
  * the associated user, the type of event, or the table affected, supporting key auditing
  * and diagnostic functionalities.
@@ -21,7 +21,7 @@ import java.util.List;
  * @version 1.1 // Incremented version due to method additions
  * @since 2025-07-11
  *
- * @see GenericDataAccess
+ * @see DeleteDataAccess
  * @see EventLog
  * @see DatabaseAccessException
  */
