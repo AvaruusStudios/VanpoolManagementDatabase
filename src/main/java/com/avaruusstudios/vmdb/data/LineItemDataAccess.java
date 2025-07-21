@@ -1,6 +1,8 @@
 package com.avaruusstudios.vmdb.data;
 
 import com.avaruusstudios.vmdb.model.LineItem; // Assuming your LineItem POJO is here
+import com.avaruusstudios.vmdb.model.Invoice; // Added import for Invoice, as it's @see'd now
+import com.avaruusstudios.vmdb.model.Participant; // Added import for Participant, as it's @see'd now
 import java.util.List;
 
 /**
@@ -10,20 +12,32 @@ import java.util.List;
  * </p>
  *
  * <p>
- * It extends {@link DeleteDataAccess} to inherit standard CRUD operations for LineItem,
- * and adds specialized methods relevant to line item data retrieval and management,
- * particularly given its strong relationship with {@link com.avaruusstudios.vmdb.model.Invoice}
- * and {@link com.avaruusstudios.vmdb.model.Participant}.
+ * It aggregates the standard CRUD operations for {@link LineItem} by extending
+ * {@link ReadDataAccess}, {@link CreateDataAccess}, {@link UpdateDataAccess},
+ * and {@link DeleteDataAccess}. This interface also adds specialized methods
+ * relevant to line item data retrieval and management, particularly given its
+ * strong relationship with {@link Invoice} and {@link Participant}.
  * </p>
  *
- * @author [Your Name/AvaruusStudios]
- * @version 1.0
- * @since 2025-07-09 // Current date
+ * @author AvaruusStudios
+ * @version 1.0 // This version refers to the state of this specific interface's public contract
+ * Created On: 2025-07-14 // Assuming original creation date of the file
+ * Updated On: 2025-07-20 // Current date of modification
+ * @since 2025-07-09
+ *
+ * @see ReadDataAccess
+ * @see CreateDataAccess
+ * @see UpdateDataAccess
  * @see DeleteDataAccess
  * @see LineItem
+ * @see Invoice
+ * @see Participant
  * @see DatabaseAccessException
  */
-public interface LineItemDataAccess extends DeleteDataAccess<LineItem, Integer> {
+public interface LineItemDataAccess extends ReadDataAccess<LineItem, Integer>,
+        CreateDataAccess<LineItem>,
+        UpdateDataAccess<LineItem>,
+        DeleteDataAccess<Integer> {
 
     /**
      * <p>
