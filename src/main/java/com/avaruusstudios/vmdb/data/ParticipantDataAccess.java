@@ -1,6 +1,9 @@
 package com.avaruusstudios.vmdb.data;
 
 import com.avaruusstudios.vmdb.model.Participant;
+import com.avaruusstudios.vmdb.model.Program;
+import com.avaruusstudios.vmdb.model.Role;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -75,7 +78,7 @@ public interface ParticipantDataAccess extends ReadDataAccess<Participant, Integ
      * @return A {@link List} of {@link Participant} objects in the specified program.
      * @throws DatabaseAccessException If a database access error occurs during retrieval.
      */
-    List<Participant> findByProgram(String program) throws DatabaseAccessException;
+    List<Participant> findByProgram(Program program) throws DatabaseAccessException;
     /**
      * <p>
      * Retrieves a list of participants based on their role within the vanpool.
@@ -85,5 +88,5 @@ public interface ParticipantDataAccess extends ReadDataAccess<Participant, Integ
      * @return A {@link List} of {@link Participant} objects with the specified role.
      * @throws DatabaseAccessException If a database access error occurs during retrieval.
      */
-    List<Participant> findByRole(String role) throws DatabaseAccessException;
+    List<Participant> findByRole(Role role) throws DatabaseAccessException;
 }

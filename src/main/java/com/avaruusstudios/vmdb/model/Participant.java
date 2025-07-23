@@ -448,7 +448,7 @@ public class Participant {
      * @throws IllegalStateException    if the ID has already been assigned to this object.
      * @throws IllegalArgumentException if the provided ID is {@code null} or non-positive.
      */
-    void _setParticipantID(Integer id) { // Package-private for DAO use only
+    public void _setParticipantID(Integer id) { // Package-private for DAO use only
         if (this.participantID.get() != null) {
             throw new IllegalStateException("Participant ID cannot be changed once set.");
         }

@@ -36,7 +36,13 @@ public enum Program {
      * This is for participants who commute on a daily basis without specific incentives.
      * Stored in DB as "DAILY".
      */
-    DAILY("Daily");
+    DAILY("Daily"),
+    /**
+     * Represents the "None" program.
+     * This is the default choice for a new Participant.
+     * Stored in the DB as "NONE".
+     */
+    NONE("None");
 
     // --- Field ---
     /**
