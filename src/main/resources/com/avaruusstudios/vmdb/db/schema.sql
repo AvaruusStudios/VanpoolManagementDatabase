@@ -59,6 +59,7 @@ CREATE TABLE Invoices (
     InvoiceDate TEXT NOT NULL,                                                                   -- Date the Invoice was created
     DueDate TEXT NOT NULL,                                                                       -- Date the Participants are required to pay their share of the Invoice
     PeriodLabel TEXT NOT NULL,                                                                   -- Coverage period of the Invoice (eg. MMM YYYY)
+    PaymentStatus TEXT NOT NULL DEFAULT 'UNPAID' CHECK (PaymentStatus IN ('UNPAID', 'PARTIALLY_PAID', 'PAID', 'OVERDUE', 'CANCELLED')), -- Payment status of the Invoice
     IsActive INTEGER NOT NULL DEFAULT 1,                                                         -- 1=True, 0=False
     DeletedAt TEXT DEFAULT NULL,
     Notes TEXT,                                                                                  -- Contextual Notes about the Invoice

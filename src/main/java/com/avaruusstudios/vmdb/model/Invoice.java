@@ -9,11 +9,10 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime; // New import for deletedAt
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
-import java.time.temporal.ChronoUnit;
 
 /**
  * <p>
@@ -24,7 +23,7 @@ import java.time.temporal.ChronoUnit;
  * <p>
  * A singular invoice contains metadata such as its unique identifier, the date it was prepared,
  * its due date, the billing period it covers, the associated {@link Vehicle} object, its
- * {@link InvoiceType}, any relevant notes, and its active status for soft deletion.
+ * {@link InvoiceType}, its {@link PaymentStatus}, any relevant notes, and its active status for soft deletion.
  * This object structure directly reflects the schema used for the {@code Invoices} table in the SQLite database to track billing records, where
  * {@code VehicleID_FK} and {@code InvoiceType} are now represented by embedded objects.
  * </p>
@@ -32,10 +31,11 @@ import java.time.temporal.ChronoUnit;
  * @author AvaruusStudios
  * @version 1.1
  * Created On: 2025-07-11
- * Updated On: 2025-07-11
+ * Updated On: 2025-07-25 (Added PaymentStatus field)
  *
  * @see Vehicle
  * @see InvoiceType
+ * @see PaymentStatus
  * @see LineItem
  * @see Transaction
  */
@@ -82,6 +82,11 @@ public class Invoice {
      */
     private final ObjectProperty<YearMonth> periodLabel;
     /**
+     * The current payment status of the invoice (e.g., UNPAID, PAID, OVERDUE).
+     * This field is **required** (corresponds to {@code PaymentStatus TEXT NOT NULL} in the database).
+     */
+    private final ObjectProperty<PaymentStatus> paymentStatus;
+    /**
      * Indicates whether the invoice is currently active or has been logically deleted/deactivated.
      * (corresponds to {@code IsActive INTEGER NOT NULL DEFAULT 1} in the database).
      * `true` (1) for active, `false` (0) for inactive.
@@ -92,7 +97,7 @@ public class Invoice {
      * This field is optional and can be {@code null} if the invoice is active.
      * Corresponds to {@code DeletedAt TEXT DEFAULT NULL} in the database.
      */
-    private final ObjectProperty<LocalDateTime> deletedAt; // New field from schema
+    private final ObjectProperty<LocalDateTime> deletedAt;
     /**
      * Optional free-form text for additional notes or administrative comments specific to this location.
      * (corresponds to {@code Notes TEXT} in the database).
@@ -109,8 +114,8 @@ public class Invoice {
      * via reflection (e.g., ORMs, JSON deserializers) before populating their fields.
      */
     public Invoice() {
-        // Default to active, notes as empty string, deletedAt as null
-        this(null, null, null, LocalDate.now(), LocalDate.now().plusDays(7), null, true, null, "");
+        // Default to active, notes as empty string, deletedAt as null, paymentStatus as UNPAID
+        this(null, null, null, LocalDate.now(), LocalDate.now().plusDays(7), null, PaymentStatus.UNPAID, true, null, "");
     }
 
     /**
@@ -125,15 +130,16 @@ public class Invoice {
      * @param invoiceDate   The {@link LocalDate} when the invoice was generated (e.g., {@code 2024-05-15}). Must not be {@code null} and not in the future.
      * @param dueDate       The {@link LocalDate} by which the invoice is to be paid (e.g., {@code 2024-05-31}). Must not be {@code null}, must be in the future, and within 14 days.
      * @param periodLabel   The {@link YearMonth} representing the billing period of the invoice (e.g., {@code YearMonth.of(2024, 5)} for May 2024). Must not be {@code null} and must match derived value based on type/date.
+     * @param paymentStatus The {@link PaymentStatus} of the invoice. Must not be {@code null}.
      * @param isActive      The active status of the invoice (true for active, false for inactive/deleted).
      * @param deletedAt     The {@link LocalDateTime} when the invoice was logically deleted, or {@code null} if active.
      * @param notes         Any optional notes or additional information about the invoice. Can be {@code null}.
-     * @throws NullPointerException     if `invoiceID` (for existing invoices), `vehicle`, `invoiceType`, `invoiceDate`, `dueDate`, or `periodLabel` are {@code null}.
+     * @throws NullPointerException     if `invoiceID` (for existing invoices), `vehicle`, `invoiceType`, `invoiceDate`, `dueDate`, `periodLabel`, or `paymentStatus` are {@code null}.
      * @throws IllegalArgumentException if date or period label validations fail (e.g., invoice date in future, due date out of range, period label mismatch).
      * @throws IllegalStateException    if dependencies for `periodLabel` validation (like `invoiceType` or `invoiceDate`) are not set when `setPeriodLabel` is called.
      */
     public Invoice(Integer invoiceID, Vehicle vehicle, InvoiceType invoiceType, LocalDate invoiceDate,
-                   LocalDate dueDate, YearMonth periodLabel, Boolean isActive, LocalDateTime deletedAt, String notes) {
+                   LocalDate dueDate, YearMonth periodLabel, PaymentStatus paymentStatus, Boolean isActive, LocalDateTime deletedAt, String notes) {
         // Initialize immutable ID property first
         this.invoiceID = new SimpleObjectProperty<>(this, "invoiceID", Objects.requireNonNull(invoiceID, "Invoice ID cannot be null for an existing invoice."));
 
@@ -143,20 +149,22 @@ public class Invoice {
         this.invoiceDate = new SimpleObjectProperty<>(this, "invoiceDate");
         this.dueDate = new SimpleObjectProperty<>(this, "dueDate");
         this.periodLabel = new SimpleObjectProperty<>(this, "periodLabel");
+        this.paymentStatus = new SimpleObjectProperty<>(this, "paymentStatus"); // Initialize new property
         this.isActive = new SimpleBooleanProperty(this, "isActive");
-        this.deletedAt = new SimpleObjectProperty<>(this, "deletedAt"); // Initialize new property
+        this.deletedAt = new SimpleObjectProperty<>(this, "deletedAt");
         this.notes = new SimpleStringProperty(this, "notes");
 
 
         // Set dependencies first using their setters with validation
-        setVehicle(vehicle); // Set early as it's near the top
+        setVehicle(vehicle);
         setInvoiceType(invoiceType);
         setInvoiceDate(invoiceDate);
         setDueDate(dueDate);
         // PeriodLabel depends on invoiceType and invoiceDate, so set after them
         setPeriodLabel(periodLabel);
+        setPaymentStatus(paymentStatus); // Set new property
         setIsActive(isActive);
-        setDeletedAt(deletedAt); // Set new property
+        setDeletedAt(deletedAt);
         setNotes(notes);
     }
 
@@ -178,8 +186,8 @@ public class Invoice {
      */
     public Invoice(Vehicle vehicle, InvoiceType invoiceType, LocalDate invoiceDate,
                    LocalDate dueDate, YearMonth periodLabel, String notes) {
-        // Calls the full constructor with invoiceID as null, isActive as true, and deletedAt as null (default for new entities)
-        this(null, vehicle, invoiceType, invoiceDate, dueDate, periodLabel, true, null, notes);
+        // Calls the full constructor with invoiceID as null, isActive as true, deletedAt as null, and paymentStatus as UNPAID (default for new entities)
+        this(null, vehicle, invoiceType, invoiceDate, dueDate, periodLabel, PaymentStatus.UNPAID, true, null, notes);
 
         // Additional Rule for convenience constructor: InvoiceDate MUST BE == CURRENT DATE at time of creation for new invoices.
         Objects.requireNonNull(invoiceDate, "Invoice date cannot be null for new invoice."); // Redundant but for clarity
@@ -211,7 +219,7 @@ public class Invoice {
      *
      * @return The {@link ObjectProperty} for {@code vehicle}.
      */
-    public ObjectProperty<Vehicle> vehicleProperty() { // Reordered
+    public ObjectProperty<Vehicle> vehicleProperty() {
         return vehicle;
     }
 
@@ -256,6 +264,16 @@ public class Invoice {
     }
 
     /**
+     * Retrieves the {@link ObjectProperty} for the invoice's payment status.
+     * This property holds a {@link PaymentStatus} value and corresponds to the {@code PaymentStatus} column in the database.
+     *
+     * @return The {@link ObjectProperty} for {@code paymentStatus}.
+     */
+    public ObjectProperty<PaymentStatus> paymentStatusProperty() {
+        return paymentStatus;
+    }
+
+    /**
      * Retrieves the {@link BooleanProperty} for the active status of the invoice.
      * This property corresponds to the {@code IsActive} column in the database.
      *
@@ -271,7 +289,7 @@ public class Invoice {
      *
      * @return The {@link ObjectProperty} for {@code deletedAt}.
      */
-    public ObjectProperty<LocalDateTime> deletedAtProperty() { // New property accessor
+    public ObjectProperty<LocalDateTime> deletedAtProperty() {
         return deletedAt;
     }
 
@@ -328,7 +346,7 @@ public class Invoice {
      *
      * @return The associated {@link Vehicle} object.
      */
-    public Vehicle getVehicle() { // Reordered
+    public Vehicle getVehicle() {
         return vehicle.get();
     }
 
@@ -339,7 +357,7 @@ public class Invoice {
      * @param vehicle The {@link Vehicle} object to associate with this invoice. Must not be {@code null}.
      * @throws NullPointerException if {@code vehicle} is {@code null}.
      */
-    public void setVehicle(Vehicle vehicle) { // Reordered
+    public void setVehicle(Vehicle vehicle) {
         this.vehicle.set(Objects.requireNonNull(vehicle, "Vehicle cannot be null."));
     }
 
@@ -489,6 +507,26 @@ public class Invoice {
     }
 
     /**
+     * Retrieves the current payment status of the invoice.
+     * Corresponds to the {@code PaymentStatus} column in the database.
+     *
+     * @return The {@link PaymentStatus} of the invoice.
+     */
+    public PaymentStatus getPaymentStatus() {
+        return paymentStatus.get();
+    }
+
+    /**
+     * Sets the payment status of the invoice. This field is required.
+     *
+     * @param paymentStatus The {@link PaymentStatus} to set. Must not be {@code null}.
+     * @throws NullPointerException if {@code paymentStatus} is {@code null}.
+     */
+    public void setPaymentStatus(PaymentStatus paymentStatus) {
+        this.paymentStatus.set(Objects.requireNonNull(paymentStatus, "Payment status cannot be null."));
+    }
+
+    /**
      * Retrieves the active status of the invoice.
      *
      * @return {@code true} if the invoice is active, {@code false} if it's inactive/logically deleted.
@@ -512,7 +550,7 @@ public class Invoice {
      *
      * @return The {@link LocalDateTime} of deletion, or {@code null} if the invoice is active.
      */
-    public LocalDateTime getDeletedAt() { // New getter
+    public LocalDateTime getDeletedAt() {
         return deletedAt.get();
     }
 
@@ -521,7 +559,7 @@ public class Invoice {
      *
      * @param deletedAt The {@link LocalDateTime} to set as the deletion timestamp. Can be {@code null}.
      */
-    public void setDeletedAt(LocalDateTime deletedAt) { // New setter
+    public void setDeletedAt(LocalDateTime deletedAt) {
         this.deletedAt.set(deletedAt);
     }
 
@@ -562,7 +600,7 @@ public class Invoice {
      * @return A formatted string representing the invoice's billing period, or {@code null} if {@code periodLabel} is {@code null}.
      */
     public String getFormattedPeriodLabel() {
-        YearMonth currentPeriodLabel = getPeriodLabel(); // Access via getter
+        YearMonth currentPeriodLabel = getPeriodLabel();
         if (currentPeriodLabel == null) {
             return null;
         }
@@ -577,23 +615,24 @@ public class Invoice {
      * </p>
      * <p>
      * The format includes the invoice ID, vehicle ID, invoice date, due date,
-     * formatted billing period, invoice type, active status, deleted timestamp, and notes.
+     * formatted billing period, invoice type, payment status, active status, deleted timestamp, and notes.
      * </p>
      *
      * @return A string in the format:
-     * "Invoice{invoiceID=..., vehicleID=..., invoiceType=..., invoiceDate=..., dueDate=..., periodLabel=..., isActive=..., deletedAt=..., notes=...}"
+     * "Invoice{invoiceID=..., vehicleID=..., invoiceType=..., invoiceDate=..., dueDate=..., periodLabel=..., paymentStatus=..., isActive=..., deletedAt=..., notes=...}"
      */
     @Override
     public String toString() {
         return "Invoice{" +
                 "invoiceID=" + getInvoiceID() +
-                ", vehicleID=" + (getVehicle() != null ? getVehicle().getVehicleID() : "null") + // Reordered
+                ", vehicleID=" + (getVehicle() != null ? getVehicle().getVehicleID() : "null") +
                 ", invoiceType=" + getInvoiceType() +
                 ", invoiceDate=" + getInvoiceDate() +
                 ", dueDate=" + getDueDate() +
                 ", periodLabel=" + getFormattedPeriodLabel() +
+                ", paymentStatus=" + getPaymentStatus() + // Added new field
                 ", isActive=" + getIsActive() +
-                ", deletedAt=" + getDeletedAt() + // Added new field
+                ", deletedAt=" + getDeletedAt() +
                 ", notes='" + getNotes() + '\'' +
                 '}';
     }
