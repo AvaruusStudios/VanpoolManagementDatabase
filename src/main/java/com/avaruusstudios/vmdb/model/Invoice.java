@@ -330,7 +330,7 @@ public class Invoice {
      * @throws IllegalStateException    if the ID has already been assigned to this object.
      * @throws IllegalArgumentException if the provided ID is {@code null} or non-positive.
      */
-    void _setInvoiceID(Integer id) { // Package-private for DAO use only
+    public void _setInvoiceID(Integer id) { // Package-private for DAO use only
         if (this.invoiceID.get() != null) {
             throw new IllegalStateException("Invoice ID cannot be changed once set.");
         }
