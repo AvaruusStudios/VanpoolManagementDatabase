@@ -286,7 +286,7 @@ public class LineItem {
      * @throws IllegalStateException    if the ID has already been assigned to this object.
      * @throws IllegalArgumentException if the provided ID is {@code null} or non-positive.
      */
-    void _setInvoiceItemID(Integer id) { // Package-private for DAO use only
+    public void _setInvoiceItemID(Integer id) { // Package-private for DAO use only
         if (this.invoiceItemID.get() != null) {
             throw new IllegalStateException("Invoice Item ID cannot be changed once set.");
         }

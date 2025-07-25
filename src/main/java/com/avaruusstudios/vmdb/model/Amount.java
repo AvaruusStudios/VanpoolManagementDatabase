@@ -111,7 +111,7 @@ public final class Amount {
      *
      * @return The {@link BigDecimal} value representing the benefit due component.
      */
-    public BigDecimal getBenefitDue() {
+    public BigDecimal getBenefitAmountDue() {
         return benefitDue;
     }
 
@@ -122,7 +122,7 @@ public final class Amount {
      *
      * @return The {@link BigDecimal} value representing the personal due component.
      */
-    public BigDecimal getPersonalDue() {
+    public BigDecimal getPersonalAmountDue() {
         return personalDue;
     }
 
