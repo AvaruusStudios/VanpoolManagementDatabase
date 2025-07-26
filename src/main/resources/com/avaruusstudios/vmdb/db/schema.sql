@@ -101,6 +101,8 @@ CREATE TABLE Transactions (
     TransactionDate TEXT NOT NULL,                                          -- Date of the Transaction
     Amount NUMERIC NOT NULL,                                                -- Transaction Amount
     PaymentMethod TEXT,                                                     -- Method of Payment for the Transaction
+    IsActive INTEGER NOT NULL DEFAULT 1,
+    DeletedAt TEXT DEFAULT NULL,
     Notes TEXT,                                                             -- Contextual Notes about the Transaction
     FOREIGN KEY (CategoryID_FK) REFERENCES Categories(CategoryID),
     FOREIGN KEY (InvoiceID_FK) REFERENCES Invoices(InvoiceID)
