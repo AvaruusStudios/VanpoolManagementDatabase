@@ -105,15 +105,6 @@ public class TransactionImplementation implements TransactionDataAccess {
     }
 
     /**
-     * Constructs a new {@code TransactionImplementation}.
-     * This class adheres to the convention of not having an explicit constructor for dependency injection.
-     * Related objects (Category, Invoice) are fully populated directly from the joined ResultSet in read operations.
-     */
-    public TransactionImplementation() {
-        // Empty constructor as per convention.
-    }
-
-    /**
      * <p>
      * Maps a row from a {@link ResultSet} to a fully populated {@link Transaction} object.
      * This private helper method centralizes the logic for converting raw database
