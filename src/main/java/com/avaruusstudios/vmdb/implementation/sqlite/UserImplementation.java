@@ -216,7 +216,7 @@ public class UserImplementation implements UserDataAccess {
             stmt.setString(3, user.getLastName());
             stmt.setString(4, user.getEmail());
             stmt.setString(5, user.getRole().getDbValue()); // Convert enum to string for DB
-            stmt.setInt(6, user.setIsActive() ? 1 : 0); // true = 1, false = 0
+            stmt.setInt(6, user.isActive() ? 1 : 0); // true = 1, false = 0
             stmt.setString(7, user.getDeletedAt() != null ? user.getDeletedAt().format(CUSTOM_DATETIME_FORMATTER) : null);
             stmt.setString(8, user.getDateCreated() != null ? user.getDateCreated().format(CUSTOM_DATETIME_FORMATTER) : null);
 
@@ -415,7 +415,7 @@ public class UserImplementation implements UserDataAccess {
             stmt.setString(3, user.getLastName());
             stmt.setString(4, user.getEmail());
             stmt.setString(5, user.getRole().getDbValue());
-            stmt.setInt(6, user.setIsActive() ? 1 : 0);
+            stmt.setInt(6, user.isActive() ? 1 : 0);
             stmt.setString(7, user.getDeletedAt() != null ? user.getDeletedAt().format(CUSTOM_DATETIME_FORMATTER) : null);
             stmt.setString(8, user.getDateCreated() != null ? user.getDateCreated().format(CUSTOM_DATETIME_FORMATTER) : null);
             stmt.setInt(9, user.getUserId()); // WHERE clause
