@@ -259,7 +259,7 @@ public class EventLog {
      * @throws IllegalStateException if the ID has already been assigned to this object.
      * @throws IllegalArgumentException if the provided ID is {@code null} or non-positive.
      */
-    void _setEventID(Integer id) { // Package-private for DAO use only
+    public void _setEventID(Integer id) { // Package-private for DAO use only
         if (this.eventID.get() != null) {
             throw new IllegalStateException("Event ID cannot be changed once set.");
         }
