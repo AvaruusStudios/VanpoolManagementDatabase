@@ -148,7 +148,7 @@ public class User {
         setLastName(lastName);
         setEmail(email);
         setRole(role);
-        setActive(isActive);
+        setIsActive(isActive);
         setDeletedAt(deletedAt); // Set new property
         setDateCreated(dateCreated);
     }
@@ -460,7 +460,7 @@ public class User {
      *
      * @param active {@code true} to activate the account, {@code false} to deactivate.
      */
-    public void setActive(boolean active) {
+    public void setIsActive(boolean active) {
         this.isActive.set(active);
     }
 
