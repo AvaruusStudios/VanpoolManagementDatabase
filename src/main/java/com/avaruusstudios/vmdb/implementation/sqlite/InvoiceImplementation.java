@@ -70,14 +70,23 @@ public class InvoiceImplementation implements InvoiceDataAccess {
     private static final DateTimeFormatter CUSTOM_PERIOD_LABEL_FORMATTER = DateTimeFormatter.ofPattern("MMM yyyy"); // Corrected to match "MMM YYYY" format
 
     // SQL Query Constants
+    /** SQL query to insert a new invoice record. */
     private static final String SQL_CREATE_INVOICE_RECORD;
+    /** SQL query to read an invoice record by its ID. */
     private static final String SQL_READ_INVOICE_RECORD;
+    /** SQL query to read all invoice records. */
     private static final String SQL_READ_ALL_INVOICE_RECORD;
+    /** SQL query to count all invoice records. */
     private static final String SQL_COUNT_INVOICE_RECORD;
+    /** SQL query to check if an invoice record exists by its ID. */
     private static final String SQL_EXISTS_INVOICE_BY_ID;
+    /** SQL query to update an existing invoice record. */
     private static final String SQL_UPDATE_INVOICE_RECORD;
+    /** SQL query to soft-delete an invoice record (set IsActive to 0 and DeletedAt). */
     private static final String SQL_DELETE_INVOICE_SOFT;
+    /** SQL query to find invoices within a specified date range. */
     private static final String SQL_FIND_INVOICES_BY_DATE_RANGE;
+    /** SQL query to find invoices by their invoice type. */
     private static final String SQL_FIND_INVOICES_BY_INVOICE_TYPE;
 
 
