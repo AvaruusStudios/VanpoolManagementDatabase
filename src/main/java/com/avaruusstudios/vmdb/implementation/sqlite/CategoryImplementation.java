@@ -222,9 +222,7 @@ public class CategoryImplementation implements CategoryDataAccess {
     // --- Interface Implementations ---
 
     /**
-     * <p>
-     * Inserts a new record of the specified entity into the database.
-     * </p>
+     * {@inheritDoc}
      *
      * <p>
      * This method enforces the business rule:
@@ -233,11 +231,6 @@ public class CategoryImplementation implements CategoryDataAccess {
      * <li>If {@link CategoryType#EXPENSE} or {@link CategoryType#CREDIT}, {@link Participant} must NOT be specified.</li>
      * </ul>
      * </p>
-     *
-     * @param category The category object to be created and persisted.
-     * @return The created entity object, which will include a database-generated primary key.
-     * @throws DatabaseAccessException if a database access error occurs, if constraints are violated,
-     * or if business rules for participant association are violated.
      */
     @Override
     public Category createRecord(Category category) throws DatabaseAccessException {
@@ -289,13 +282,10 @@ public class CategoryImplementation implements CategoryDataAccess {
     }
 
     /**
+     * {@inheritDoc}
      * <p>
-     * Deletes a record of the entity from the database based on its primary key.
      * This method performs a soft-delete by updating `IsActive` and `DeletedAt` fields.
      * </p>
-     *
-     * @param id The primary key of the category record to soft-delete.
-     * @throws DatabaseAccessException if a database access error occurs during the deletion process.
      */
     @Override
     public void deleteRecord(Integer id) throws DatabaseAccessException {
@@ -321,13 +311,7 @@ public class CategoryImplementation implements CategoryDataAccess {
     }
 
     /**
-     * <p>
-     * Retrieves a single record of the entity from the database based on its primary key.
-     * </p>
-     *
-     * @param id The primary key of the category record to retrieve.
-     * @return An {@code Optional<Category>} containing the entity object if found; otherwise, an empty {@code Optional}.
-     * @throws DatabaseAccessException if a database access error occurs during the retrieval process.
+     * {@inheritDoc}
      */
     @Override
     public Optional<Category> readRecord(Integer id) throws DatabaseAccessException {
@@ -354,12 +338,7 @@ public class CategoryImplementation implements CategoryDataAccess {
     }
 
     /**
-     * <p>
-     * Retrieves all records of the entity from the database.
-     * </p>
-     *
-     * @return A {@code List<Category>} containing all entity objects. Returns an empty list if no records are present.
-     * @throws DatabaseAccessException if a database access error occurs during the retrieval process.
+     * {@inheritDoc}
      */
     @Override
     public List<Category> readRecordAll() throws DatabaseAccessException {
@@ -381,12 +360,7 @@ public class CategoryImplementation implements CategoryDataAccess {
     }
 
     /**
-     * <p>
-     * Counts the total number of records for the specific entity type in the database.
-     * </p>
-     *
-     * @return The total count of records. Returns {@code 0} if no records are found.
-     * @throws DatabaseAccessException if a database access error occurs during the counting process.
+     * {@inheritDoc}
      */
     @Override
     public long countRecord() throws DatabaseAccessException {
@@ -407,13 +381,7 @@ public class CategoryImplementation implements CategoryDataAccess {
     }
 
     /**
-     * <p>
-     * Checks if a record of the entity with the specified primary key exists in the database.
-     * </p>
-     *
-     * @param id The primary key of the category record to check for existence.
-     * @return {@code true} if a record with the specified ID exists; {@code false} otherwise.
-     * @throws DatabaseAccessException if a database access error occurs during the check.
+     * {@inheritDoc}
      */
     @Override
     public boolean existsById(Integer id) throws DatabaseAccessException {
@@ -435,9 +403,7 @@ public class CategoryImplementation implements CategoryDataAccess {
     }
 
     /**
-     * <p>
-     * Updates an existing record of the entity in the database.
-     * </p>
+     * {@inheritDoc}
      *
      * <p>
      * This method enforces the business rule:
@@ -446,10 +412,6 @@ public class CategoryImplementation implements CategoryDataAccess {
      * <li>If {@link CategoryType#EXPENSE} or {@link CategoryType#CREDIT}, {@link Participant} must NOT be specified.</li>
      * </ul>
      * </p>
-     *
-     * @param category The category object with its primary key set and updated values.
-     * @throws DatabaseAccessException if a database access error occurs, if no record is found to update,
-     * or if business rules for participant association are violated.
      */
     @Override
     public void updateRecord(Category category) throws DatabaseAccessException {
@@ -486,14 +448,7 @@ public class CategoryImplementation implements CategoryDataAccess {
     }
 
     /**
-     * <p>
-     * Retrieves a list of {@link Category} records filtered by their {@link CategoryType}.
-     * </p>
-     *
-     * @param type The {@link CategoryType} to filter by.
-     * @return A {@link List} of {@link Category} objects matching the given type.
-     * Returns an empty list if no categories are found for the type.
-     * @throws DatabaseAccessException If a database access error occurs during retrieval.
+     * {@inheritDoc}
      */
     @Override
     public List<Category> findCategoriesByType(CategoryType type) throws DatabaseAccessException { // Renamed method
@@ -519,14 +474,7 @@ public class CategoryImplementation implements CategoryDataAccess {
     }
 
     /**
-     * <p>
-     * Retrieves a list of all distinct {@link CategoryType}s present in the database.
-     * This is useful for populating UI elements like dropdown menus.
-     * </p>
-     *
-     * @return A {@link List} of distinct {@link CategoryType} enums.
-     * Returns an empty list if no categories are present in the database.
-     * @throws DatabaseAccessException If a database access error occurs during retrieval.
+     * {@inheritDoc}
      */
     @Override
     public List<CategoryType> findUniqueCategoryTypes() throws DatabaseAccessException { // Renamed method
