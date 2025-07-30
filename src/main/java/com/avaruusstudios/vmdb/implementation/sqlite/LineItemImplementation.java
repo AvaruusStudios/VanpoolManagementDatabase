@@ -235,7 +235,7 @@ public class LineItemImplementation implements LineItemDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public List<LineItem> findUnpaidByParticipantId(Integer participantId) throws DatabaseAccessException {
+    public List<LineItem> findUnpaidLineItemsByParticipantId(Integer participantId) throws DatabaseAccessException {
         List<LineItem> lineItems = new ArrayList<>();
         Objects.requireNonNull(participantId, "Participant ID cannot be null for finding unpaid line items.");
         try (Connection conn = DatabaseManager.getConnection();
