@@ -46,7 +46,7 @@ public interface EventLogDataAccess extends ReadDataAccess<EventLog, Integer>, C
      * @return A {@link List} of {@link EventLog} objects for the specified user. Returns an empty list if no logs are found.
      * @throws DatabaseAccessException If a database access error occurs during retrieval.
      */
-    List<EventLog> findByUserId(Integer userId) throws DatabaseAccessException;
+    List<EventLog> findByUser(Integer userId) throws DatabaseAccessException;
 
     /**
      * <p>
@@ -61,7 +61,7 @@ public interface EventLogDataAccess extends ReadDataAccess<EventLog, Integer>, C
      * @return A {@link List} of {@link EventLog} objects matching the specified type. Returns an empty list if no logs are found.
      * @throws DatabaseAccessException If a database access error occurs during retrieval.
      */
-    List<EventLog> findByEventType(EventType eventType) throws DatabaseAccessException;
+    List<EventLog> findByType(EventType eventType) throws DatabaseAccessException;
 
     /**
      * <p>
@@ -76,5 +76,5 @@ public interface EventLogDataAccess extends ReadDataAccess<EventLog, Integer>, C
      * @return A {@link List} of {@link EventLog} objects where the event's table name matches. Returns an empty list if no logs are found.
      * @throws DatabaseAccessException If a database access error occurs during retrieval.
      */
-    List<EventLog> findByTableName(String tableName) throws DatabaseAccessException;
+    List<EventLog> findByTable(String tableName) throws DatabaseAccessException;
 }

@@ -404,7 +404,7 @@ public class EventLogImplementation implements EventLogDataAccess {
      * @throws NullPointerException    If the provided `userId` is {@code null}.
      */
     @Override
-    public List<EventLog> findByUserId(Integer userId) throws DatabaseAccessException {
+    public List<EventLog> findByUser(Integer userId) throws DatabaseAccessException {
         Objects.requireNonNull(userId, "User ID cannot be null for event log search by user.");
         List<EventLog> eventLogs = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
@@ -442,7 +442,7 @@ public class EventLogImplementation implements EventLogDataAccess {
      * @throws NullPointerException    If the provided `eventType` is {@code null}.
      */
     @Override
-    public List<EventLog> findByEventType(EventType eventType) throws DatabaseAccessException {
+    public List<EventLog> findByType(EventType eventType) throws DatabaseAccessException {
         Objects.requireNonNull(eventType, "Event type cannot be null for event log search by event type.");
         List<EventLog> eventLogs = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
@@ -480,7 +480,7 @@ public class EventLogImplementation implements EventLogDataAccess {
      * @throws NullPointerException    If the provided `tableName` is {@code null}.
      */
     @Override // This method is now correctly overriding the interface method
-    public List<EventLog> findByTableName(String tableName) throws DatabaseAccessException {
+    public List<EventLog> findByTable(String tableName) throws DatabaseAccessException {
         Objects.requireNonNull(tableName, "Table name cannot be null for event log search by table name.");
         List<EventLog> eventLogs = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
