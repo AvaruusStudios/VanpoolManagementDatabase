@@ -60,5 +60,5 @@ public interface LocationDataAccess extends ReadDataAccess<Location, Integer>,
      * empty {@link Optional} if no location exists with the given name.
      * @throws DatabaseAccessException If a database access error occurs during the lookup.
      */
-    Optional<Location> findByLocationName(String locationName) throws DatabaseAccessException;
+    Optional<Location> findByName(String locationName) throws DatabaseAccessException;
 }

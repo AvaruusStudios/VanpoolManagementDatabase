@@ -204,7 +204,7 @@ public class LocationImplementation implements LocationDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public Optional<Location> findByLocationName(String locationName) throws DatabaseAccessException {
+    public Optional<Location> findByName(String locationName) throws DatabaseAccessException {
         Objects.requireNonNull(locationName, "Location name cannot be null for lookup.");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_SELECT_LOCATION_BY_NAME)) {
