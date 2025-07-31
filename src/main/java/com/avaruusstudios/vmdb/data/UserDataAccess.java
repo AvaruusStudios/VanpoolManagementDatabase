@@ -53,7 +53,7 @@ public interface UserDataAccess extends ReadDataAccess<User, Integer>,
      * @return An {@code Optional<User>} containing the user if found, or an empty {@code Optional} if not.
      * @throws DatabaseAccessException if a database access error occurs during the retrieval process.
      */
-    Optional<User> getUserByWindowsUsername(String windowsUsername) throws DatabaseAccessException;
+    Optional<User> findUserByWindowsUsername(String windowsUsername) throws DatabaseAccessException;
 
     /**
      * Retrieves a list of {@link User} entities from the database that belong to a specific role.
@@ -63,6 +63,6 @@ public interface UserDataAccess extends ReadDataAccess<User, Integer>,
      * Returns an empty list if no users are found for the given role.
      * @throws DatabaseAccessException if a database access error occurs during the retrieval process.
      */
-    List<User> getUsersByRole(Role role) throws DatabaseAccessException;
+    List<User> findUsersByRole(Role role) throws DatabaseAccessException;
 
 }

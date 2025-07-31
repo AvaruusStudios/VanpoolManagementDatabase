@@ -439,7 +439,7 @@ public class UserImplementation implements UserDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public Optional<User> getUserByWindowsUsername(String windowsUsername) throws DatabaseAccessException {
+    public Optional<User> findUserByWindowsUsername(String windowsUsername) throws DatabaseAccessException {
         Objects.requireNonNull(windowsUsername, "Windows username cannot be null for lookup.");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_SELECT_USER_BY_WINDOWS_USERNAME)) {
@@ -466,7 +466,7 @@ public class UserImplementation implements UserDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public List<User> getUsersByRole(Role role) throws DatabaseAccessException {
+    public List<User> findUsersByRole(Role role) throws DatabaseAccessException {
         Objects.requireNonNull(role, "Role cannot be null for finding users by role.");
         List<User> users = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
