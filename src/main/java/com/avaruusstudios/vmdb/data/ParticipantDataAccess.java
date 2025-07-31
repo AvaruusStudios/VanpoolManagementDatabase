@@ -58,7 +58,7 @@ public interface ParticipantDataAccess extends ReadDataAccess<Participant, Integ
      * @return The count of active participants.
      * @throws DatabaseAccessException If a database access error occurs during counting.
      */
-    long countActiveParticipants() throws DatabaseAccessException;
+    long countActive() throws DatabaseAccessException;
     /**
      * <p>
      * Retrieves a list of all participants who are currently marked as active.
@@ -68,7 +68,7 @@ public interface ParticipantDataAccess extends ReadDataAccess<Participant, Integ
      * if no active participants are found.
      * @throws DatabaseAccessException If a database access error occurs during retrieval.
      */
-    List<Participant> findActiveParticipants() throws DatabaseAccessException;
+    List<Participant> findActive() throws DatabaseAccessException;
     /**
      * <p>
      * Retrieves a list of participants associated with a specific program.

@@ -587,7 +587,7 @@ public class ParticipantImplementation implements ParticipantDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public long countActiveParticipants() throws DatabaseAccessException {
+    public long countActive() throws DatabaseAccessException {
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_COUNT_ACTIVE_PARTICIPANTS);
              ResultSet rs = stmt.executeQuery()) {
@@ -608,7 +608,7 @@ public class ParticipantImplementation implements ParticipantDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public List<Participant> findActiveParticipants() throws DatabaseAccessException {
+    public List<Participant> findActive() throws DatabaseAccessException {
         List<Participant> participants = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_SELECT_ACTIVE_PARTICIPANTS);
