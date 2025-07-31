@@ -451,7 +451,7 @@ public class VehicleImplementation implements VehicleDataAccess {
      * It specifically uses the `VehicleNumber` field for lookup, which is an internal asset tracking number.
      */
     @Override
-    public Optional<Vehicle> findByVehicleNumber(String vehicleNumber) throws DatabaseAccessException {
+    public Optional<Vehicle> findByNumber(String vehicleNumber) throws DatabaseAccessException {
         Objects.requireNonNull(vehicleNumber, "Vehicle number cannot be null for lookup.");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_SELECT_VEHICLE_BY_VEHICLE_NUMBER)) { // Using SQL for vehicle number
@@ -482,7 +482,7 @@ public class VehicleImplementation implements VehicleDataAccess {
      * </p>
      */
     @Override
-    public Optional<Vehicle> findByLicensePlate(String licensePlate) throws DatabaseAccessException {
+    public Optional<Vehicle> findByPlate(String licensePlate) throws DatabaseAccessException {
         Objects.requireNonNull(licensePlate, "License plate cannot be null for lookup.");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_SELECT_VEHICLE_BY_LICENSE_PLATE)) {
@@ -515,7 +515,7 @@ public class VehicleImplementation implements VehicleDataAccess {
      * </p>
      */
     @Override
-    public Optional<Vehicle> findByActiveVehicle() throws DatabaseAccessException {
+    public Optional<Vehicle> findActive() throws DatabaseAccessException {
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_SELECT_ACTIVE_VEHICLE)) {
 

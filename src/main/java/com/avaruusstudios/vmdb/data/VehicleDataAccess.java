@@ -50,7 +50,7 @@ public interface VehicleDataAccess extends ReadDataAccess<Vehicle, Integer>,
      * empty {@link Optional} if no vehicle exists with the given vehicle number.
      * @throws DatabaseAccessException If a database access error occurs during the lookup.
      */
-    Optional<Vehicle> findByVehicleNumber(String vehicleNumber) throws DatabaseAccessException;
+    Optional<Vehicle> findByNumber(String vehicleNumber) throws DatabaseAccessException;
     /**
      * <p>
      * Finds a {@link Vehicle} record by its unique License Plate
@@ -61,7 +61,7 @@ public interface VehicleDataAccess extends ReadDataAccess<Vehicle, Integer>,
      * empty {@link Optional} if no vehicle exists with the given license plate
      * @throws DatabaseAccessException if a database access error occurs during the lookup
      */
-    Optional<Vehicle> findByLicensePlate(String licensePlate) throws DatabaseAccessException;
+    Optional<Vehicle> findByPlate(String licensePlate) throws DatabaseAccessException;
     /**
      * <p>
      * Retrieves the single active {@link Vehicle} record from the database.
@@ -72,7 +72,7 @@ public interface VehicleDataAccess extends ReadDataAccess<Vehicle, Integer>,
      * or an empty {@link Optional} if no active vehicle is found.
      * @throws DatabaseAccessException If a database access error occurs during retrieval.
      */
-    Optional<Vehicle> findByActiveVehicle() throws DatabaseAccessException;
+    Optional<Vehicle> findActive() throws DatabaseAccessException;
     /**
      * <p>
      * Retrieves a list of {@link Vehicle} records that match the specified make.
