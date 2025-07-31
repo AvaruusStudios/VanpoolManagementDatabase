@@ -11,7 +11,7 @@ import java.util.Objects;
  * <p>
  * Represents a single vehicle within the Vanpool Management System.
  * This class captures essential operational details about a vehicle, including its identifying number,
- * physical attributes (make, model, year, capacity), lease terms, active status, financial discount,
+ * physical attributes (make, model, manufactureYear, passengerCapacity), lease terms, active status, financial discount,
  * and soft deletion timestamp.
  * </p>
  *
@@ -45,6 +45,11 @@ public class Vehicle {
      */
     private final StringProperty vehicleNumber;
     /**
+     * The license plate of the vehicle.
+     * This field is **required** (corresponds to {@code LicensePlate TEXT NOT NULL} in the database).
+     */
+    private final StringProperty licensePlate;
+    /**
      * The make or manufacturer of the vehicle (e.g., "Toyota", "Ford").
      * This field is optional (corresponds to {@code Make TEXT} in the database).
      */
@@ -55,15 +60,15 @@ public class Vehicle {
      */
     private final StringProperty model;
     /**
-     * The manufacturing year of the vehicle.
-     * This field is optional (corresponds to {@code Year INTEGER} in the database).
+     * The manufacturing manufactureYear of the vehicle.
+     * This field is optional (corresponds to {@code ManufactureYear INTEGER} in the database).
      */
-    private final IntegerProperty year;
+    private final IntegerProperty manufactureYear;
     /**
-     * The maximum seating capacity of the vehicle, excluding the driver.
-     * This field is **required** (corresponds to {@code Capacity INTEGER NOT NULL} in the database).
+     * The maximum seating passengerCapacity of the vehicle, excluding the driver.
+     * This field is **required** (corresponds to {@code PassengerCapacity INTEGER NOT NULL} in the database).
      */
-    private final IntegerProperty capacity;
+    private final IntegerProperty passengerCapacity;
     /**
      * The start date of the vehicle's lease agreement.
      * This field is **required** (corresponds to {@code LeaseStartDate TEXT NOT NULL} in the database).
@@ -102,11 +107,12 @@ public class Vehicle {
      * Initializes properties with default values (null for ID, empty strings, current date for lease start, etc.).
      * The {@code vehicleID} is set to {@code null} to explicitly indicate that
      * this vehicle has not yet been assigned a unique ID by the database.
-     * Mandatory fields like {@code vehicleNumber}, {@code capacity}, {@code leaseStartDate}, {@code isActive}, and {@code discount}
+     * Mandatory fields like {@code vehicleNumber}, {@code passengerCapacity}, {@code licensePlate}, {@code leaseStartDate}, {@code isActive}, and {@code discount}
      * are initialized to sensible defaults to ensure valid state as per schema.
      */
     public Vehicle() {
-        this(null, "", null, null, 0, 1, LocalDate.now(), null, BigDecimal.ZERO, true, null, null);
+        // Updated constructor call to include licensePlate
+        this(null, "", null, null, 0, 1, "UNKNOWN", LocalDate.now(), null, BigDecimal.ZERO, true, null, null);
     }
 
     /**
@@ -119,8 +125,9 @@ public class Vehicle {
      * @param vehicleNumber The unique vehicle identifier issued by the rental agency or internal system. Must not be null or empty.
      * @param make          The make or manufacturer of the vehicle. Can be null or empty.
      * @param model         The model of the vehicle. Can be null or empty.
-     * @param year          The manufacturing year of the vehicle. Can be 0 or null if unknown, but typically validated for reasonable range.
-     * @param capacity      The seating capacity of the vehicle. Must be a positive integer.
+     * @param manufactureYear The manufacturing year of the vehicle. Can be 0 or null if unknown, but typically validated for reasonable range.
+     * @param passengerCapacity The seating capacity of the vehicle. Must be a positive integer.
+     * @param licensePlate  The license plate of the vehicle. Must not be null or empty.
      * @param leaseStartDate The start date of the lease. Must not be null.
      * @param leaseEndDate  The end date of the lease. Can be null, but if present, must be after {@code leaseStartDate}.
      * @param discount      The discount amount for the vehicle. Must not be null and non-negative.
@@ -130,15 +137,16 @@ public class Vehicle {
      * @throws IllegalArgumentException if any mandatory field is invalid (e.g., null, empty, bad format, out of range).
      * @throws IllegalStateException    if `vehicleID` is attempted to be changed once set.
      */
-    public Vehicle(Integer vehicleID, String vehicleNumber, String make, String model, Integer year, int capacity,
-                   LocalDate leaseStartDate, LocalDate leaseEndDate, BigDecimal discount, boolean isActive,
+    public Vehicle(Integer vehicleID, String vehicleNumber, String make, String model, Integer manufactureYear, int passengerCapacity,
+                   String licensePlate, LocalDate leaseStartDate, LocalDate leaseEndDate, BigDecimal discount, boolean isActive,
                    LocalDateTime deletedAt, String notes) {
         this.vehicleID = new SimpleObjectProperty<>(this, "vehicleID", vehicleID);
         this.vehicleNumber = new SimpleStringProperty(this, "vehicleNumber");
         this.make = new SimpleStringProperty(this, "make");
         this.model = new SimpleStringProperty(this, "model");
-        this.year = new SimpleIntegerProperty(this, "year");
-        this.capacity = new SimpleIntegerProperty(this, "capacity");
+        this.manufactureYear = new SimpleIntegerProperty(this, "manufactureYear");
+        this.passengerCapacity = new SimpleIntegerProperty(this, "passengerCapacity");
+        this.licensePlate = new SimpleStringProperty(this, "licensePlate"); // Initialize new property
         this.leaseStartDate = new SimpleObjectProperty<>(this, "leaseStartDate");
         this.leaseEndDate = new SimpleObjectProperty<>(this, "leaseEndDate");
         this.discount = new SimpleObjectProperty<>(this, "discount");
@@ -150,8 +158,9 @@ public class Vehicle {
         setVehicleNumber(vehicleNumber);
         setMake(make);
         setModel(model);
-        setYear(year);
-        setCapacity(capacity);
+        setManufactureYear(manufactureYear);
+        setPassengerCapacity(passengerCapacity);
+        setLicensePlate(licensePlate); // Set the new property
         setLeaseStartDate(leaseStartDate);
         setLeaseEndDate(leaseEndDate);
         setDiscount(discount);
@@ -170,8 +179,9 @@ public class Vehicle {
      * @param vehicleNumber The unique vehicle identifier issued by the rental agency or internal system. Must not be null or empty.
      * @param make          The make or manufacturer of the vehicle. Can be null or empty.
      * @param model         The model of the vehicle. Can be null or empty.
-     * @param year          The manufacturing year of the vehicle. Can be 0 or null if unknown, but typically validated for reasonable range.
-     * @param capacity      The seating capacity of the vehicle. Must be a positive integer.
+     * @param manufactureYear The manufacturing year of the vehicle. Can be 0 or null if unknown, but typically validated for reasonable range.
+     * @param passengerCapacity The seating capacity of the vehicle. Must be a positive integer.
+     * @param licensePlate  The license plate of the vehicle. Must not be null or empty.
      * @param leaseStartDate The start date of the lease. Must not be null.
      * @param leaseEndDate  The end date of the lease. Can be null, but if present, must be after {@code leaseStartDate}.
      * @param discount      The discount amount for the vehicle. Must not be null and non-negative.
@@ -179,10 +189,11 @@ public class Vehicle {
      * @param notes         Optional notes about the vehicle. Can be {@code null}.
      * @throws IllegalArgumentException if any mandatory field is invalid.
      */
-    public Vehicle(String vehicleNumber, String make, String model, Integer year, int capacity,
-                   LocalDate leaseStartDate, LocalDate leaseEndDate, BigDecimal discount, boolean isActive, String notes) {
+    public Vehicle(String vehicleNumber, String make, String model, Integer manufactureYear, int passengerCapacity,
+                   String licensePlate, LocalDate leaseStartDate, LocalDate leaseEndDate, BigDecimal discount, boolean isActive, String notes) {
         // Delegate to the full constructor with null for vehicleID and deletedAt for a new entity
-        this(null, vehicleNumber, make, model, year, capacity, leaseStartDate, leaseEndDate, discount, isActive, null, notes);
+        // Updated constructor call to include licensePlate
+        this(null, vehicleNumber, make, model, manufactureYear, passengerCapacity, licensePlate, leaseStartDate, leaseEndDate, discount, isActive, null, notes);
     }
 
     // --- JavaFX Property Accessors ---
@@ -213,6 +224,16 @@ public class Vehicle {
     }
 
     /**
+     * Retrieves the {@link StringProperty} for the vehicle's license plate.
+     * This property corresponds to the {@code LicensePlate} column in the database.
+     *
+     * @return The {@link StringProperty} for {@code licensePlate}.
+     */
+    public StringProperty licensePlateProperty() {
+        return licensePlate;
+    }
+
+    /**
      * Retrieves the {@link StringProperty} for the vehicle's make or manufacturer.
      * This property corresponds to the {@code Make} column in the database.
      *
@@ -233,23 +254,23 @@ public class Vehicle {
     }
 
     /**
-     * Retrieves the {@link IntegerProperty} for the vehicle's manufacturing year.
-     * This property corresponds to the {@code Year} column in the database.
+     * Retrieves the {@link IntegerProperty} for the vehicle's manufacturing manufactureYear.
+     * This property corresponds to the {@code ManufactureYear} column in the database.
      *
-     * @return The {@link IntegerProperty} for {@code year}.
+     * @return The {@link IntegerProperty} for {@code manufactureYear}.
      */
-    public IntegerProperty yearProperty() {
-        return year;
+    public IntegerProperty manufactureYearProperty() {
+        return manufactureYear;
     }
 
     /**
-     * Retrieves the {@link IntegerProperty} for the vehicle's seating capacity.
-     * This property corresponds to the {@code Capacity} column in the database.
+     * Retrieves the {@link IntegerProperty} for the vehicle's seating passengerCapacity.
+     * This property corresponds to the {@code PassengerCapacity} column in the database.
      *
-     * @return The {@link IntegerProperty} for {@code capacity}.
+     * @return The {@link IntegerProperty} for {@code passengerCapacity}.
      */
-    public IntegerProperty capacityProperty() {
-        return capacity;
+    public IntegerProperty passengerCapacityProperty() {
+        return passengerCapacity;
     }
 
     /**
@@ -339,7 +360,7 @@ public class Vehicle {
      * @throws IllegalStateException    if the ID has already been assigned to this object.
      * @throws IllegalArgumentException if the provided ID is {@code null} or non-positive.
      */
-    public void _setVehicleID(Integer id) { // <--- CHANGED TO PUBLIC
+    public void _setVehicleID(Integer id) {
         if (this.vehicleID.get() != null) {
             throw new IllegalStateException("Vehicle ID cannot be changed once set.");
         }
@@ -374,6 +395,33 @@ public class Vehicle {
             throw new IllegalArgumentException("Vehicle number cannot be null or empty.");
         }
         this.vehicleNumber.set(vehicleNumber.trim());
+    }
+
+    /**
+     * Retrieves the license plate of the vehicle.
+     * Corresponds to the {@code LicensePlate} column in the database.
+     *
+     * @return The license plate as a {@link String}. Will not be {@code null} or empty after trimming.
+     */
+    public String getLicensePlate() {
+        return licensePlate.get();
+    }
+
+    /**
+     * Sets the license plate of the vehicle.
+     * <p>
+     * The input string will be trimmed of leading/trailing whitespace.
+     * This field is mandatory and cannot be set to {@code null} or an empty string.
+     * </p>
+     *
+     * @param licensePlate The license plate to set.
+     * @throws IllegalArgumentException if the provided license plate is {@code null} or empty after trimming.
+     */
+    public void setLicensePlate(String licensePlate) {
+        if (licensePlate == null || licensePlate.trim().isEmpty()) {
+            throw new IllegalArgumentException("License plate cannot be null or empty.");
+        }
+        this.licensePlate.set(licensePlate.trim());
     }
 
     /**
@@ -423,69 +471,69 @@ public class Vehicle {
     }
 
     /**
-     * Retrieves the manufacturing year of the vehicle.
-     * Corresponds to the {@code Year} column in the database.
+     * Retrieves the manufacturing manufactureYear of the vehicle.
+     * Corresponds to the {@code ManufactureYear} column in the database.
      *
-     * @return The manufacturing year as an {@link Integer}, or {@code 0} if not set.
+     * @return The manufacturing manufactureYear as an {@link Integer}, or {@code 0} if not set.
      */
-    public Integer getYear() {
-        return year.get();
+    public Integer getManufactureYear() {
+        return manufactureYear.get();
     }
 
     /**
-     * Sets the manufacturing year of the vehicle.
+     * Sets the manufacturing manufactureYear of the vehicle.
      * <p>
-     * The year must be a positive value if specified. It cannot be before the year 2000 and cannot be in the future
+     * The input manufactureYear must be a positive value if specified. It cannot be before the year 2000 and cannot be in the future
      * relative to the current year (allowing current year + 1 for new models).
      * This field is optional. If setting to {@code null} or 0, it will be stored as 0.
      * </p>
      *
-     * @param year The manufacturing year to set. Can be {@code null} or 0. If a positive value,
+     * @param manufactureYear The manufacturing manufactureYear to set. Can be {@code null} or 0. If a positive value,
      * must not be before 2000 and not in the far future.
-     * @throws IllegalArgumentException if the year is before 2000 or in the future.
+     * @throws IllegalArgumentException if the manufactureYear is before 2000 or in the future.
      */
-    public void setYear(Integer year) {
-        if (year != null && year > 0) { // Only validate if a positive year is provided
+    public void setManufactureYear(Integer manufactureYear) {
+        if (manufactureYear != null && manufactureYear > 0) { // Only validate if a positive manufactureYear is provided
             final int MIN_ALLOWED_YEAR = 2000;
             int currentYear = LocalDate.now().getYear();
 
-            if (year < MIN_ALLOWED_YEAR) {
-                throw new IllegalArgumentException("Vehicle year cannot be before " + MIN_ALLOWED_YEAR + ".");
+            if (manufactureYear < MIN_ALLOWED_YEAR) {
+                throw new IllegalArgumentException("Vehicle manufactureYear cannot be before " + MIN_ALLOWED_YEAR + ".");
             }
 
-            if (year > currentYear + 1) { // Allowing next year for new models
-                throw new IllegalArgumentException("Vehicle year cannot be in the far future. Max allowed: " + (currentYear + 1));
+            if (manufactureYear > currentYear + 1) { // Allowing next year for new models
+                throw new IllegalArgumentException("Vehicle manufactureYear cannot be in the far future. Max allowed: " + (currentYear + 1));
             }
         }
-        // If year is null or <= 0, it will be stored as 0 (for IntegerProperty simplicity)
-        this.year.set(year == null ? 0 : year);
+        // If manufactureYear is null or <= 0, it will be stored as 0 (for IntegerProperty simplicity)
+        this.manufactureYear.set(manufactureYear == null ? 0 : manufactureYear);
     }
 
     /**
-     * Retrieves the maximum seating capacity of the vehicle.
-     * Corresponds to the {@code Capacity} column in the database.
+     * Retrieves the maximum seating passengerCapacity of the vehicle.
+     * Corresponds to the {@code PassengerCapacity} column in the database.
      *
-     * @return The capacity as an {@code int}.
+     * @return The passengerCapacity as an {@code int}.
      */
-    public int getCapacity() {
-        return capacity.get();
+    public int getPassengerCapacity() {
+        return passengerCapacity.get();
     }
 
     /**
-     * Sets the maximum seating capacity of the vehicle.
+     * Sets the maximum seating passengerCapacity of the vehicle.
      * <p>
-     * The capacity must be a positive integer (e.g., a vehicle must be able to seat at least one person beyond the driver).
+     * The passengerCapacity must be a positive integer (e.g., a vehicle must be able to seat at least one person beyond the driver).
      * This field is mandatory.
      * </p>
      *
-     * @param capacity The seating capacity to set. Must be a positive value.
-     * @throws IllegalArgumentException if the capacity is less than or equal to 0.
+     * @param passengerCapacity The seating passengerCapacity to set. Must be a positive value.
+     * @throws IllegalArgumentException if the passengerCapacity is less than or equal to 0.
      */
-    public void setCapacity(int capacity) {
-        if (capacity <= 0) {
-            throw new IllegalArgumentException("Vehicle capacity must be a positive value.");
+    public void setPassengerCapacity(int passengerCapacity) {
+        if (passengerCapacity <= 0) {
+            throw new IllegalArgumentException("Vehicle passengerCapacity must be a positive value.");
         }
-        this.capacity.set(capacity);
+        this.passengerCapacity.set(passengerCapacity);
     }
 
     /**
@@ -648,12 +696,12 @@ public class Vehicle {
      * a concise summary of the vehicle's key attributes.
      * </p>
      * <p>
-     * The format includes the vehicle ID, vehicle number, make, model, year,
-     * capacity, lease dates, discount, active status, deletion timestamp, and notes.
+     * The format includes the vehicle ID, vehicle number, make, model, manufactureYear,
+     * passengerCapacity, licensePlate, lease dates, discount, active status, deletion timestamp, and notes.
      * </p>
      *
      * @return A string in the format:
-     * "Vehicle{ID=..., VehicleNumber='...', Make='...', Model='...', Year=..., Capacity=..., LeaseStartDate=..., LeaseEndDate=..., Discount=..., IsActive=..., DeletedAt=..., Notes='...'}"
+     * "Vehicle{ID=..., VehicleNumber='...', Make='...', Model='...', ManufactureYear=..., PassengerCapacity=..., LicensePlate='...', LeaseStartDate=..., LeaseEndDate=..., Discount=..., IsActive=..., DeletedAt=..., Notes='...'}"
      */
     @Override
     public String toString() {
@@ -662,13 +710,14 @@ public class Vehicle {
                 ", vehicleNumber='" + getVehicleNumber() + '\'' +
                 ", make='" + getMake() + '\'' +
                 ", model='" + getModel() + '\'' +
-                ", year=" + getYear() +
-                ", capacity=" + getCapacity() +
+                ", manufactureYear=" + getManufactureYear() +
+                ", passengerCapacity=" + getPassengerCapacity() +
+                ", licensePlate='" + getLicensePlate() + '\'' + // Added licensePlate to toString
                 ", leaseStartDate=" + getLeaseStartDate() +
                 ", leaseEndDate=" + getLeaseEndDate() +
                 ", discount=" + getDiscount() +
                 ", isActive=" + isActive() +
-                ", deletedAt=" + getDeletedAt() + // Added back
+                ", deletedAt=" + getDeletedAt() +
                 ", notes='" + getNotes() + '\'' +
                 '}';
     }
@@ -677,12 +726,12 @@ public class Vehicle {
      * <p>
      * Indicates whether some other object is "equal to" this one.
      * The comparison is based primarily on the unique {@code vehicleID}.
+     * If {@code vehicleID} is null for both, it falls back to comparing `vehicleNumber` and `licensePlate`
+     * to identify unpersisted entities before database assignment.
      * </p>
      * <p>
      * This method adheres to the general contract of the {@link Object#equals(Object)} method,
-     * ensuring consistency with hash-based collections. It correctly handles cases where
-     * {@code vehicleID} might be {@code null} for unpersisted entities, in which case
-     * it falls back to object identity comparison ({@code super.equals(o)}).
+     * ensuring consistency with hash-based collections.
      * </p>
      *
      * @param o The reference object with which to compare.
@@ -693,11 +742,16 @@ public class Vehicle {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Vehicle that = (Vehicle) o;
-        // Equality is based on the primary key (vehicleID), safely handling null Integer
-        if (getVehicleID() == null || that.getVehicleID() == null) {
-            return super.equals(o); // If IDs are null, fall back to object identity
+
+        // If both vehicles have an ID, compare by ID
+        if (getVehicleID() != null && that.getVehicleID() != null) {
+            return Objects.equals(getVehicleID(), that.getVehicleID());
         }
-        return Objects.equals(getVehicleID(), that.getVehicleID());
+
+        // If IDs are not present for both (i.e., new/unpersisted objects),
+        // compare by unique business keys: vehicleNumber and licensePlate
+        return Objects.equals(getVehicleNumber(), that.getVehicleNumber()) &&
+                Objects.equals(getLicensePlate(), that.getLicensePlate());
     }
 
     /**
@@ -707,15 +761,14 @@ public class Vehicle {
      * </p>
      * <p>
      * The hash code is generated based on the unique {@code vehicleID}. If {@code vehicleID}
-     * is {@code null} (for unpersisted entities), it falls back to the default hash code
-     * provided by {@code super.hashCode()}, ensuring consistency with {@code equals()}
-     * for unpersisted objects as well.
+     * is {@code null} (for unpersisted entities), it uses the hash of `vehicleNumber` and `licensePlate`
+     * to maintain consistency with the {@code equals()} method.
      * </p>
      *
      * @return A hash code value for this object.
      */
     @Override
     public int hashCode() {
-        return (getVehicleID() == null) ? super.hashCode() : Objects.hash(getVehicleID());
+        return (getVehicleID() == null) ? Objects.hash(getVehicleNumber(), getLicensePlate()) : Objects.hash(getVehicleID());
     }
 }

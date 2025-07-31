@@ -2,6 +2,7 @@
 CREATE TABLE Vehicles (
     VehicleID INTEGER PRIMARY KEY AUTOINCREMENT,        -- Vehicle Identifier
     VehicleNumber TEXT NOT NULL,                        -- Vehicle Number issues by Rental Agency
+    LicensePlate TEXT,
     Make TEXT,                                          -- Vehicle Make
     Model TEXT,                                         -- Vehicle Model
     Year INTEGER,                                       -- Vehicle Year
