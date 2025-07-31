@@ -59,8 +59,5 @@ public interface InvoiceDataAccess extends ReadDataAccess<Invoice, Integer>,
      * Returns an empty list if no invoices are found with that type.
      * @throws DatabaseAccessException If a database access error occurs during retrieval.
      */
-    List<Invoice> findByInvoiceType(String invoiceType) throws DatabaseAccessException;
-
-    // Removed: List<Invoice> findByStatus(String status) - renamed to findByInvoiceType
-    // Removed previously: List<Invoice> findByParticipantId(Integer participantId)
+    List<Invoice> findByType(String invoiceType) throws DatabaseAccessException;
 }

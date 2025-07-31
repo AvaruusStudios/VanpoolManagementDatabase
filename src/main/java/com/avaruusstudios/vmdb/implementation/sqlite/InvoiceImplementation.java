@@ -225,7 +225,7 @@ public class InvoiceImplementation implements InvoiceDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public List<Invoice> findByInvoiceType(String invoiceType) throws DatabaseAccessException {
+    public List<Invoice> findByType(String invoiceType) throws DatabaseAccessException {
         List<Invoice> invoices = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_FIND_INVOICES_BY_INVOICE_TYPE)) {
