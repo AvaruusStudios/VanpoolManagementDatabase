@@ -185,7 +185,7 @@ public class LineItemImplementation implements LineItemDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public List<LineItem> findByInvoiceId(Integer invoiceId) throws DatabaseAccessException {
+    public List<LineItem> findByInvoice(Integer invoiceId) throws DatabaseAccessException {
         List<LineItem> lineItems = new ArrayList<>();
         Objects.requireNonNull(invoiceId, "Invoice ID cannot be null for finding line items.");
         try (Connection conn = DatabaseManager.getConnection();
@@ -210,7 +210,7 @@ public class LineItemImplementation implements LineItemDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public List<LineItem> findByParticipantId(Integer participantId) throws DatabaseAccessException {
+    public List<LineItem> findByParticipant(Integer participantId) throws DatabaseAccessException {
         List<LineItem> lineItems = new ArrayList<>();
         Objects.requireNonNull(participantId, "Participant ID cannot be null for finding line items.");
         try (Connection conn = DatabaseManager.getConnection();
@@ -235,7 +235,7 @@ public class LineItemImplementation implements LineItemDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public List<LineItem> findUnpaidLineItemsByParticipantId(Integer participantId) throws DatabaseAccessException {
+    public List<LineItem> findUnpaidByParticipant(Integer participantId) throws DatabaseAccessException {
         List<LineItem> lineItems = new ArrayList<>();
         Objects.requireNonNull(participantId, "Participant ID cannot be null for finding unpaid line items.");
         try (Connection conn = DatabaseManager.getConnection();
@@ -260,7 +260,7 @@ public class LineItemImplementation implements LineItemDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public void deleteByInvoiceId(Integer invoiceId) throws DatabaseAccessException {
+    public void deleteByInvoice(Integer invoiceId) throws DatabaseAccessException {
         Objects.requireNonNull(invoiceId, "Invoice ID cannot be null for deleting line items.");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_DELETE_LINE_ITEMS_BY_INVOICE_ID)) {

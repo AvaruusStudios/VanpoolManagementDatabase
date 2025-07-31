@@ -49,7 +49,7 @@ public interface LineItemDataAccess extends ReadDataAccess<LineItem, Integer>,
      * Returns an empty list if no line items are found for the invoice.
      * @throws DatabaseAccessException If a database access error occurs during retrieval.
      */
-    List<LineItem> findByInvoiceId(Integer invoiceId) throws DatabaseAccessException;
+    List<LineItem> findByInvoice(Integer invoiceId) throws DatabaseAccessException;
 
     /**
      * <p>
@@ -61,7 +61,7 @@ public interface LineItemDataAccess extends ReadDataAccess<LineItem, Integer>,
      * Returns an empty list if no line items are found for the participant.
      * @throws DatabaseAccessException If a database access error occurs during retrieval.
      */
-    List<LineItem> findByParticipantId(Integer participantId) throws DatabaseAccessException;
+    List<LineItem> findByParticipant(Integer participantId) throws DatabaseAccessException;
 
     /**
      * <p>
@@ -73,7 +73,7 @@ public interface LineItemDataAccess extends ReadDataAccess<LineItem, Integer>,
      * Returns an empty list if no unpaid line items are found.
      * @throws DatabaseAccessException If a database access error occurs during retrieval.
      */
-    List<LineItem> findUnpaidLineItemsByParticipantId(Integer participantId) throws DatabaseAccessException;
+    List<LineItem> findUnpaidByParticipant(Integer participantId) throws DatabaseAccessException;
 
     /**
      * <p>
@@ -85,5 +85,5 @@ public interface LineItemDataAccess extends ReadDataAccess<LineItem, Integer>,
      * @param invoiceId The ID of the invoice whose line items are to be deleted.
      * @throws DatabaseAccessException If a database access error occurs during deletion.
      */
-    void deleteByInvoiceId(Integer invoiceId) throws DatabaseAccessException;
+    void deleteByInvoice(Integer invoiceId) throws DatabaseAccessException;
 }
