@@ -451,7 +451,7 @@ public class CategoryImplementation implements CategoryDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public List<Category> findCategoriesByType(CategoryType type) throws DatabaseAccessException { // Renamed method
+    public List<Category> findByType(CategoryType type) throws DatabaseAccessException { // Renamed method
         Objects.requireNonNull(type, "CategoryType cannot be null for finding categories by type.");
         List<Category> categories = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
@@ -477,7 +477,7 @@ public class CategoryImplementation implements CategoryDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public List<CategoryType> findUniqueCategoryTypes() throws DatabaseAccessException { // Renamed method
+    public List<CategoryType> findDistinctTypes() throws DatabaseAccessException { // Renamed method
         List<CategoryType> distinctTypes = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_FIND_DISTINCT_CATEGORY_TYPES);

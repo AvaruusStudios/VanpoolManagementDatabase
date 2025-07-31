@@ -51,7 +51,7 @@ public interface CategoryDataAccess extends ReadDataAccess<Category, Integer>,
      * @return A {@link List} of unique {@link CategoryType} enums. Returns an empty list if no categories are present.
      * @throws DatabaseAccessException If a database access error occurs during retrieval.
      */
-    List<CategoryType> findUniqueCategoryTypes() throws DatabaseAccessException;
+    List<CategoryType> findDistinctTypes() throws DatabaseAccessException;
 
     /**
      * <p>
@@ -71,5 +71,5 @@ public interface CategoryDataAccess extends ReadDataAccess<Category, Integer>,
      * Returns an empty list if no categories are found for the given type.
      * @throws DatabaseAccessException If a database access error occurs during retrieval.
      */
-    List<Category> findCategoriesByType(CategoryType categoryType) throws DatabaseAccessException;
+    List<Category> findByType(CategoryType categoryType) throws DatabaseAccessException;
 }
