@@ -1,4 +1,4 @@
-package com.avaruusstudios.vmdb.data;
+package com.avaruusstudios.vmdb.dao;
 
 import com.avaruusstudios.vmdb.model.Participant;
 import com.avaruusstudios.vmdb.model.Program;

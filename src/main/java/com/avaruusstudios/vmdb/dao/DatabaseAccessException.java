@@ -1,4 +1,4 @@
-package com.avaruusstudios.vmdb.data; // Changed package to 'data'
+package com.avaruusstudios.vmdb.dao; // Changed package to 'data'
 
 /**
  * <p>

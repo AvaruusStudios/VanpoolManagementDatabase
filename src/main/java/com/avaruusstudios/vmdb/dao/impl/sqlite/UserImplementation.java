@@ -1,15 +1,15 @@
-package com.avaruusstudios.vmdb.implementation.sqlite;
+package com.avaruusstudios.vmdb.dao.impl.sqlite;
 
 import com.avaruusstudios.vmdb.db.DatabaseManager;
 import com.avaruusstudios.vmdb.db.QueryLoader;
 import com.avaruusstudios.vmdb.model.User;
 import com.avaruusstudios.vmdb.model.Role;
-import com.avaruusstudios.vmdb.data.UserDataAccess;
-import com.avaruusstudios.vmdb.data.DeleteDataAccess;
-import com.avaruusstudios.vmdb.data.UpdateDataAccess;
-import com.avaruusstudios.vmdb.data.CreateDataAccess;
-import com.avaruusstudios.vmdb.data.ReadDataAccess;
-import com.avaruusstudios.vmdb.data.DatabaseAccessException;
+import com.avaruusstudios.vmdb.dao.UserDataAccess;
+import com.avaruusstudios.vmdb.dao.DeleteDataAccess;
+import com.avaruusstudios.vmdb.dao.UpdateDataAccess;
+import com.avaruusstudios.vmdb.dao.CreateDataAccess;
+import com.avaruusstudios.vmdb.dao.ReadDataAccess;
+import com.avaruusstudios.vmdb.dao.DatabaseAccessException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

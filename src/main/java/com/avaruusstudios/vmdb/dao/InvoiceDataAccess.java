@@ -1,4 +1,4 @@
-package com.avaruusstudios.vmdb.data;
+package com.avaruusstudios.vmdb.dao;
 
 import com.avaruusstudios.vmdb.model.Invoice;
 import java.time.LocalDate;

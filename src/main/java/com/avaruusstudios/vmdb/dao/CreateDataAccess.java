@@ -1,4 +1,4 @@
-package com.avaruusstudios.vmdb.data;
+package com.avaruusstudios.vmdb.dao;
 
 /**
  * <p>

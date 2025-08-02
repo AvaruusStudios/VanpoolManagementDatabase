@@ -23,7 +23,7 @@ import java.sql.SQLException;
  * </p>
  *
  * @see Database
- * @see com.avaruusstudios.vmdb.data.GenericDao
+ * @see com.avaruusstudios.vmdb.dao.GenericDao
  */
 public class DatabaseManager {
 

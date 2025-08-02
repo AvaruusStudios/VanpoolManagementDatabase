@@ -1,7 +1,7 @@
-package com.avaruusstudios.vmdb.implementation.sqlite;
+package com.avaruusstudios.vmdb.dao.impl.sqlite;
 
-import com.avaruusstudios.vmdb.data.DatabaseAccessException;
-import com.avaruusstudios.vmdb.data.LineItemDataAccess;
+import com.avaruusstudios.vmdb.dao.DatabaseAccessException;
+import com.avaruusstudios.vmdb.dao.LineItemDataAccess;
 import com.avaruusstudios.vmdb.db.DatabaseManager; // Assuming a DatabaseManager class exists
 import com.avaruusstudios.vmdb.db.QueryLoader;
 import com.avaruusstudios.vmdb.model.Amount;

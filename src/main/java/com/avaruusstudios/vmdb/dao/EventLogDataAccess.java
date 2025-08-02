@@ -1,4 +1,4 @@
-package com.avaruusstudios.vmdb.data;
+package com.avaruusstudios.vmdb.dao;
 
 import com.avaruusstudios.vmdb.model.EventLog;
 import com.avaruusstudios.vmdb.model.EventType;

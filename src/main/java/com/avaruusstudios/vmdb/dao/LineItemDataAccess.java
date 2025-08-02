@@ -1,4 +1,4 @@
-package com.avaruusstudios.vmdb.data;
+package com.avaruusstudios.vmdb.dao;
 
 import com.avaruusstudios.vmdb.model.LineItem; // Assuming your LineItem POJO is here
 import com.avaruusstudios.vmdb.model.Invoice; // Added import for Invoice, as it's @see'd now
