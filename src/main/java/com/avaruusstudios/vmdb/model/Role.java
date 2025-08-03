@@ -33,6 +33,18 @@ public enum Role {
      */
     ADMIN("Admin", true, false),
     /**
+     * Represents a user or participant responsible for organizing and managing vanpool details.
+     * This role may absorb rounding differences in financial calculations.
+     * Stored in DB as "COORDINATOR". Applicable as both a System and Participant Role.
+     */
+    COORDINATOR("Coordinator", true, true),
+    /**
+     * Represents a participant designated as an assistant to the Coordinator.
+     * This role may absorb rounding differences in financial calculations.
+     * Stored in DB as "ASSISTANT". Applicable as both a System and Participant Role.
+     */
+    ASSISTANT("Assistant", true, true),
+    /**
      * Represents a user responsible for financial transactions, billing, and reporting.
      * This role may absorb rounding differences in financial calculations.
      * Stored in DB as "TREASURER". Applicable as both a System and Participant Role.
@@ -44,21 +56,15 @@ public enum Role {
      */
     USER("User", true, false),
     /**
-     * Represents a user or participant responsible for organizing and managing vanpool details.
-     * This role may absorb rounding differences in financial calculations.
-     * Stored in DB as "COORDINATOR". Applicable as both a System and Participant Role.
-     */
-    COORDINATOR("Coordinator", true, true),
-    /**
      * Represents a standard participant in a vanpool with no special administrative or driving duties.
      * Stored in DB as "PARTICIPANT". Primarily a Participant Role.
      */
-    PARTICIPANT("Participant", false, true),
-    /**
-     * Represents a participant designated as a primary or secondary driver of the van.
-     * Stored in DB as "DRIVER". Primarily a Participant Role.
-     */
-    DRIVER("Driver", false, true);
+    PARTICIPANT("Participant", false, true);
+//    /**
+//     * Represents a participant designated as a primary or secondary driver of the van.
+//     * Stored in DB as "DRIVER". Primarily a Participant Role.
+//     */
+//    DRIVER("Driver", false, true);
 
     // --- Fields ---
     /**
