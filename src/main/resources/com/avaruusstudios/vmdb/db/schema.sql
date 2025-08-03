@@ -38,7 +38,7 @@ CREATE TABLE Participants (
     FirstName TEXT NOT NULL,                                                                            -- Participant First Name
     MiddleName TEXT,                                                                                    -- Participant Middle Name
     LastName TEXT NOT NULL,                                                                             -- Participant Last Name
-    Email TEXT NOT NULL,                                                                                -- Participant Email Address
+    Email TEXT UNIQUE NOT NULL,                                                                                -- Participant Email Address
     Phone TEXT,                                                                                         -- Participant Phone Number
     DistanceMiles NUMERIC NOT NULL,                                                                     -- Distance in Miles from Pickup Location to Drop-Off Location
     JoinDate TEXT NOT NULL,                                                                             -- Date Participant Joined the Vanpoool
