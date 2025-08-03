@@ -1,8 +1,8 @@
 -- 🚐 Vehicles
 CREATE TABLE Vehicles (
     VehicleID INTEGER PRIMARY KEY AUTOINCREMENT,        -- Vehicle Identifier
-    VehicleNumber TEXT NOT NULL,                        -- Vehicle Number issues by Rental Agency
-    LicensePlate TEXT,
+    VehicleNumber TEXT UNIQUE NOT NULL,                        -- Vehicle Number issues by Rental Agency
+    LicensePlate TEXT UNIQUE NOT NULL,
     Make TEXT,                                          -- Vehicle Make
     Model TEXT,                                         -- Vehicle Model
     Year INTEGER,                                       -- Vehicle Year
@@ -87,7 +87,7 @@ CREATE TABLE Categories (
     CategoryID INTEGER PRIMARY KEY AUTOINCREMENT,                                       -- Category Identifier
     ParticipantID_FK INTEGER,                                                           -- Participant Identifier (Foreign Key) Ties a Participant to a Category Name
     CategoryType TEXT NOT NULL CHECK (CategoryType IN ('INCOME', 'EXPENSE', 'CREDIT', 'NONE')), -- Category Types
-    CategoryName TEXT NOT NULL,                                                         -- Category Names
+    CategoryName TEXT UNIQUE NOT NULL,                                                         -- Category Names
     Description TEXT,                                                                   -- Category Long Descriptions
     IsActive INTEGER NOT NULL DEFAULT 1,                                                -- 1=True, 0=False
     DeletedAt TEXT DEFAULT NULL,
