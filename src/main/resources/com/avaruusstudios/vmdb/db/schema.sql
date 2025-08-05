@@ -44,7 +44,6 @@ CREATE TABLE Participants (
     JoinDate TEXT NOT NULL,                                                                             -- Date Participant Joined the Vanpoool
     Program TEXT NOT NULL CHECK (Program IN ('TRANSPORTATION_INCENTIVE_PROGRAM', 'DAILY', 'NONE')),     -- Program the Participant is associated with
     BenefitAmount NUMERIC DEFAULT 0,                                                                    -- Benefit Amount the Participant receives each month
-    Role TEXT DEFAULT 'PARTICIPANT' CHECK (Role IN ('PARTICIPANT', 'COORDINATOR')),                     -- The role withing the vanpool
     IsActive INTEGER NOT NULL DEFAULT 1,                                                                -- 1=True, 0=False
     DeletedAt TEXT DEFAULT NULL,
     Notes TEXT,                                                                                         -- Contextual Notes about the Participant
@@ -125,12 +124,11 @@ CREATE TABLE EventLog (
 -- 👤 Users
 CREATE TABLE Users (
     UserID INTEGER PRIMARY KEY AUTOINCREMENT,       -- User Identifier
-    WindowsUsername VARCHAR(255) UNIQUE NOT NULL,   -- System Username (Not sure this is required.  Was using this in Microsoft Access)
-    FirstName VARCHAR(255),                         -- First Name of the User
-    MiddleName VARCHAR(255),                        -- Middle Name of the User
-    LastName VARCHAR(255),                          -- Last Name of the User
-    Email VARCHAR(255),                             -- Email Address of the User
-    UserRole VARCHAR(50) NOT NULL,                  -- User Role (e.g., "ADMIN", "TREASURER", "USER", "COORDINATOR")
+    WindowsUsername TEXT UNIQUE NOT NULL,   -- System Username (Not sure this is required.  Was using this in Microsoft Access)
+    FirstName TEXT,                         -- First Name of the User
+    MiddleName TEXT,                        -- Middle Name of the User
+    LastName TEXT,                          -- Last Name of the User
+    Email TEXT,                             -- Email Address of the User
     IsActive INTEGER NOT NULL DEFAULT 1,            -- 1 for TRUE, 0 for FALSE
     DeletedAt TEXT DEFAULT NULL,
     DateCreated TEXT DEFAULT CURRENT_TIMESTAMP      -- SQLite uses TEXT for DATETIME and CURRENT_TIMESTAMP
