@@ -87,7 +87,7 @@ CREATE TABLE Categories (
     CategoryID INTEGER PRIMARY KEY AUTOINCREMENT,                                       -- Category Identifier
     ParticipantID_FK INTEGER,                                                           -- Participant Identifier (Foreign Key) Ties a Participant to a Category Name
     CategoryType TEXT NOT NULL CHECK (CategoryType IN ('INCOME', 'EXPENSE', 'CREDIT', 'NONE')), -- Category Types
-    CategoryName TEXT UNIQUE NOT NULL,                                                         -- Category Names
+    CategoryName TEXT NOT NULL,                                                         -- Category Names
     Description TEXT,                                                                   -- Category Long Descriptions
     IsActive INTEGER NOT NULL DEFAULT 1,                                                -- 1=True, 0=False
     DeletedAt TEXT DEFAULT NULL,
@@ -135,3 +135,5 @@ CREATE TABLE Users (
     DeletedAt TEXT DEFAULT NULL,
     DateCreated TEXT DEFAULT CURRENT_TIMESTAMP      -- SQLite uses TEXT for DATETIME and CURRENT_TIMESTAMP
 );
+
+CREATE INDEX idx_categories_categoryname_participantid ON Categories (CategoryName, ParticipantID_FK);
