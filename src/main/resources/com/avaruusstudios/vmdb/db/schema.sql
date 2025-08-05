@@ -136,4 +136,28 @@ CREATE TABLE Users (
     DateCreated TEXT DEFAULT CURRENT_TIMESTAMP      -- SQLite uses TEXT for DATETIME and CURRENT_TIMESTAMP
 );
 
+-- 🎭 Roles (A static lookup table for all available roles)
+CREATE TABLE Roles (
+    RoleID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Role TEXT UNIQUE NOT NULL
+);
+
+-- 👤 User Roles (Join table linking Users to Roles)
+CREATE TABLE UserRoles (
+    UserID_FK INTEGER NOT NULL,
+    RoleID_FK INTEGER NOT NULL,
+    FOREIGN KEY (UserID_FK) REFERENCES Users(UserID),
+    FOREIGN KEY (RoleID_FK) REFERENCES Roles(RoleID),
+    UNIQUE (UserID_FK, RoleID_FK)
+);
+
+-- 👥 Participant Roles (Join table linking Participants to Roles)
+CREATE TABLE ParticipantRoles (
+    ParticipantID_FK INTEGER NOT NULL,
+    RoleID_FK INTEGER NOT NULL,
+    FOREIGN KEY (ParticipantID_FK) REFERENCES Participants(ParticipantID),
+    FOREIGN KEY (RoleID_FK) REFERENCES Roles(RoleID),
+    UNIQUE (ParticipantID_FK, RoleID_FK)
+);
+
 CREATE INDEX idx_categories_categoryname_participantid ON Categories (CategoryName, ParticipantID_FK);
