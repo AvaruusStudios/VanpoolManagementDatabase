@@ -32,9 +32,9 @@ package com.avaruusstudios.vmdb.dao;
  * that rely on the entity's unique identifier for deletion.
  *
  * @author AvaruusStudios
- * @version 1.0 // This version refers to the state of this specific interface's public contract
+ * @version 1.1 // Incremented due to a public contract change
  * Created On: 2025-07-14 // Assuming original creation date for the content of this file
- * Updated On: 2025-07-20 // Current date of modification
+ * Updated On: 2025-08-29 // Current date of modification; return type changed from void to boolean
  */
 public interface DeleteDataAccess<K> {
 
@@ -60,8 +60,9 @@ public interface DeleteDataAccess<K> {
      *
      * @param id The primary key (of type {@code K}, typically {@code Integer}) of the
      * entity record to delete. This uniquely identifies the record to be removed.
+     * @return {@code true} if the record was successfully deleted (or soft-deleted); {@code false} otherwise.
      * @throws DatabaseAccessException if a database access error occurs during the deletion process.
      * The underlying {@code SQLException} will be wrapped.
      */
-    void deleteRecord(K id) throws DatabaseAccessException;
+    boolean deleteRecord(K id) throws DatabaseAccessException;
 }

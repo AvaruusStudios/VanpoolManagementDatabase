@@ -21,9 +21,9 @@ package com.avaruusstudios.vmdb.dao;
  * This represents the domain model object that the DAO will update and interact with.
  *
  * @author AvaruusStudios
- * @version 1.0 // This version refers to the state of this specific interface's public contract
+ * @version 1.1 // Incremented due to a public contract change
  * Created On: 2025-07-14 // Assuming original creation date for the content of this file
- * Updated On: 2025-07-20 // Current date of modification
+ * Updated On: 2025-08-29 // Current date of modification; return type changed from void to T
  */
 public interface UpdateDataAccess<T> {
 
@@ -42,10 +42,11 @@ public interface UpdateDataAccess<T> {
      *
      * @param entity The entity object (instance of type {@code T}) with its primary key
      * set and updated values for other fields.
+     * @return The updated entity object after the operation is complete.
      * @throws DatabaseAccessException if a database access error occurs during the update process,
      * if no record with the given primary key is found to update,
      * or if the update operation otherwise fails (e.g., due to constraints).
      * The underlying {@code SQLException} will be wrapped.
      */
-    void updateRecord(T entity) throws DatabaseAccessException;
+    T updateRecord(T entity) throws DatabaseAccessException;
 }
