@@ -5,10 +5,6 @@ import com.avaruusstudios.vmdb.db.QueryLoader;
 import com.avaruusstudios.vmdb.model.User;
 import com.avaruusstudios.vmdb.model.Role;
 import com.avaruusstudios.vmdb.dao.UserDataAccess;
-import com.avaruusstudios.vmdb.dao.DeleteDataAccess;
-import com.avaruusstudios.vmdb.dao.UpdateDataAccess;
-import com.avaruusstudios.vmdb.dao.CreateDataAccess;
-import com.avaruusstudios.vmdb.dao.ReadDataAccess;
 import com.avaruusstudios.vmdb.dao.DatabaseAccessException;
 
 import org.slf4j.Logger;
@@ -31,7 +27,7 @@ import java.util.Optional;
  * <p>
  * Concrete implementation of the {@link UserDataAccess} interface for managing
  * {@link User} data in an SQLite database. This class fully implements all generic
- * CRUD and read operations inherited via {@link DeleteDataAccess}, along with
+ * CRUD and read operations inherited via {@link com.avaruusstudios.vmdb.dao.DeleteDataAccess}, along with
  * specific queries for {@code User} entities (e.g., finding by Windows username or role).
  * </p>
  *
@@ -63,7 +59,7 @@ import java.util.Optional;
  * @author AvaruusStudios
  * @version 1.0
  * Created On: 2025-07-14
- * Updated On: 2025-07-14
+ * Updated On: 2025-08-29
  *
  * @see UserDataAccess
  * @see User
@@ -71,10 +67,6 @@ import java.util.Optional;
  * @see DatabaseManager
  * @see QueryLoader
  * @see DatabaseAccessException
- * @see DeleteDataAccess
- * @see CreateDataAccess
- * @see ReadDataAccess
- * @see UpdateDataAccess
  */
 public class UserImplementation implements UserDataAccess {
 
@@ -220,7 +212,6 @@ public class UserImplementation implements UserDataAccess {
             stmt.setString(7, user.getDeletedAt() != null ? user.getDeletedAt().format(CUSTOM_DATETIME_FORMATTER) : null);
             stmt.setString(8, user.getDateCreated() != null ? user.getDateCreated().format(CUSTOM_DATETIME_FORMATTER) : null);
 
-
             logger.debug("Executing insert user query for WindowsUsername: {}", user.getWindowsUsername());
             int affectedRows = stmt.executeUpdate();
 
@@ -248,23 +239,9 @@ public class UserImplementation implements UserDataAccess {
 
     /**
      * {@inheritDoc}
-     *
-     * <p>
-     * For this application, implementations of this method are expected to perform a
-     * **soft-delete** rather than physically removing the record from the database.
-     * This typically involves updating an `IsActive` flag to `0` and/or setting a
-     * `DeletedAt` timestamp to the current time. This strategy preserves data integrity
-     * for historical, auditing, and referential purposes, and allows for potential recovery.
-     * </p>
-     *
-     * <p>
-     * If no record matches the provided ID, the operation will typically complete
-     * without throwing an error, but no rows will be affected. Implementations
-     * might log a warning or return a boolean indicating success if desired.
-     * </p>
      */
     @Override
-    public void deleteRecord(Integer id) throws DatabaseAccessException {
+    public boolean deleteRecord(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "User ID cannot be null for deletion.");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_DELETE_USER_SOFT)) {
@@ -277,8 +254,10 @@ public class UserImplementation implements UserDataAccess {
 
             if (affectedRows == 0) {
                 logger.warn("No user found with ID: {} for soft-deletion.", id);
+                return false;
             } else {
                 logger.info("Successfully soft-deleted user with ID: {}", id);
+                return true;
             }
         } catch (SQLException e) {
             logger.error("Error soft-deleting user record with ID {}: {}", id, e.getMessage(), e);
@@ -288,12 +267,6 @@ public class UserImplementation implements UserDataAccess {
 
     /**
      * {@inheritDoc}
-     *
-     * <p>
-     * The result is wrapped in an {@code Optional<User>} to clearly indicate whether
-     * an entity matching the given ID was found. This prevents {@code NullPointerExceptions}
-     * and encourages explicit handling of cases where the record might not exist.
-     * </p>
      */
     @Override
     public Optional<User> readRecord(Integer id) throws DatabaseAccessException {
@@ -321,12 +294,6 @@ public class UserImplementation implements UserDataAccess {
 
     /**
      * {@inheritDoc}
-     *
-     * <p>
-     * The order of the returned records is dependent on the underlying database and
-     * the SQL query used by the concrete implementation (e.g., if no specific
-     * ORDER BY clause is applied, the order might not be guaranteed).
-     * </p>
      */
     @Override
     public List<User> readRecordAll() throws DatabaseAccessException {
@@ -392,16 +359,9 @@ public class UserImplementation implements UserDataAccess {
 
     /**
      * {@inheritDoc}
-     *
-     * <p>
-     * For the update operation to succeed, the {@code user} object passed as a parameter
-     * *must* have its primary key field set. This ID is used to identify which existing
-     * record in the database should be updated. All other fields in the {@code user}
-     * object will be used to update the corresponding columns in the database.
-     * </p>
      */
     @Override
-    public void updateRecord(User user) throws DatabaseAccessException {
+    public User updateRecord(User user) throws DatabaseAccessException {
         Objects.requireNonNull(user, "User object cannot be null for update.");
         Objects.requireNonNull(user.getUserId(), "User ID must not be null for update.");
         Objects.requireNonNull(user.getWindowsUsername(), "WindowsUsername cannot be null for user update.");
@@ -428,6 +388,7 @@ public class UserImplementation implements UserDataAccess {
                 throw new DatabaseAccessException("User with ID " + user.getUserId() + " not found for update.");
             } else {
                 logger.info("Successfully updated user with ID: {}", user.getUserId());
+                return user; // Return the updated object
             }
         } catch (SQLException e) {
             logger.error("Error updating user record with ID {}: {}", user.getUserId(), e.getMessage(), e);
