@@ -101,6 +101,11 @@ public class Vehicle {
      * (corresponds to {@code Notes TEXT} in the database).
      */
     private final StringProperty notes;
+    /**
+     * The timestamp indicating when the vehicle record was created.
+     * This field is **required** (corresponds to {@code DateCreated TEXT DEFAULT CURRENT_TIMESTAMP} in the database).
+     */
+    private final ObjectProperty<LocalDateTime> dateCreated;
 
     /**
      * Default constructor for creating a new, unpersisted {@code Vehicle} object.
@@ -112,7 +117,7 @@ public class Vehicle {
      */
     public Vehicle() {
         // Updated constructor call to include licensePlate
-        this(null, "", null, null, 0, 1, "UNKNOWN", LocalDate.now(), null, BigDecimal.ZERO, true, null, null);
+        this(null, "", null, null, 0, 1, "UNKNOWN", LocalDate.now(), null, BigDecimal.ZERO, true, null, null, null);
     }
 
     /**
@@ -134,12 +139,13 @@ public class Vehicle {
      * @param isActive      Boolean flag indicating active status.
      * @param deletedAt     The {@link LocalDateTime} timestamp when the vehicle was logically deleted, or {@code null} if active.
      * @param notes         Optional notes about the vehicle. Can be {@code null}.
+     * @param dateCreated   The {@link LocalDateTime} timestamp when the vehicle record was created. Cannot be {@code null}.
      * @throws IllegalArgumentException if any mandatory field is invalid (e.g., null, empty, bad format, out of range).
      * @throws IllegalStateException    if `vehicleID` is attempted to be changed once set.
      */
     public Vehicle(Integer vehicleID, String vehicleNumber, String make, String model, Integer manufactureYear, int passengerCapacity,
                    String licensePlate, LocalDate leaseStartDate, LocalDate leaseEndDate, BigDecimal discount, boolean isActive,
-                   LocalDateTime deletedAt, String notes) {
+                   LocalDateTime deletedAt, String notes, LocalDateTime dateCreated) {
         this.vehicleID = new SimpleObjectProperty<>(this, "vehicleID", vehicleID);
         this.vehicleNumber = new SimpleStringProperty(this, "vehicleNumber");
         this.make = new SimpleStringProperty(this, "make");
@@ -153,6 +159,7 @@ public class Vehicle {
         this.isActive = new SimpleBooleanProperty(this, "isActive");
         this.deletedAt = new SimpleObjectProperty<>(this, "deletedAt");
         this.notes = new SimpleStringProperty(this, "notes");
+        this.dateCreated = new SimpleObjectProperty<>(this, "dateCreated");
 
         // Setters will apply validation
         setVehicleNumber(vehicleNumber);
@@ -167,6 +174,7 @@ public class Vehicle {
         setIsActive(isActive);
         setDeletedAt(deletedAt);
         setNotes(notes);
+        _setDateCreated(dateCreated); // Note the use of the private setter for the immutable field
     }
 
     /**
@@ -191,9 +199,9 @@ public class Vehicle {
      */
     public Vehicle(String vehicleNumber, String make, String model, Integer manufactureYear, int passengerCapacity,
                    String licensePlate, LocalDate leaseStartDate, LocalDate leaseEndDate, BigDecimal discount, boolean isActive, String notes) {
-        // Delegate to the full constructor with null for vehicleID and deletedAt for a new entity
-        // Updated constructor call to include licensePlate
-        this(null, vehicleNumber, make, model, manufactureYear, passengerCapacity, licensePlate, leaseStartDate, leaseEndDate, discount, isActive, null, notes);
+        // Delegate to the full constructor with null for vehicleID, deletedAt, and dateCreated for a new entity
+        // The dateCreated will be handled by the database
+        this(null, vehicleNumber, make, model, manufactureYear, passengerCapacity, licensePlate, leaseStartDate, leaseEndDate, discount, isActive, null, notes, null);
     }
 
     // --- JavaFX Property Accessors ---
@@ -331,6 +339,16 @@ public class Vehicle {
      */
     public StringProperty notesProperty() {
         return notes;
+    }
+
+    /**
+     * Retrieves the {@link ObjectProperty} for the creation timestamp of the vehicle.
+     * This property corresponds to the {@code DateCreated} column in the database.
+     *
+     * @return The {@link ObjectProperty} for {@code dateCreated}.
+     */
+    public ObjectProperty<LocalDateTime> dateCreatedProperty() {
+        return dateCreated;
     }
 
     // --- Value Getters and Setters ---
@@ -687,6 +705,34 @@ public class Vehicle {
         this.notes.set((notes == null) ? null : notes.trim());
     }
 
+    /**
+     * Retrieves the timestamp when the vehicle record was created.
+     *
+     * @return The {@link LocalDateTime} of creation.
+     */
+    public LocalDateTime getDateCreated() {
+        return dateCreated.get();
+    }
+
+    /**
+     * Sets the timestamp when the vehicle record was created.
+     * <p>
+     * This method is designed for use by the DAO when reading a record from the database.
+     * The value is immutable once set.
+     * </p>
+     *
+     * @param dateCreated The {@link LocalDateTime} to set as the creation timestamp.
+     */
+    public void _setDateCreated(LocalDateTime dateCreated) {
+        if (this.dateCreated.get() != null) {
+            throw new IllegalStateException("Date created cannot be changed once set.");
+        }
+        if (dateCreated == null) {
+            throw new IllegalArgumentException("Date created cannot be null.");
+        }
+        ((SimpleObjectProperty<LocalDateTime>) this.dateCreated).set(dateCreated);
+    }
+
     // --- Utility Methods ---
 
     /**
@@ -719,6 +765,7 @@ public class Vehicle {
                 ", isActive=" + isActive() +
                 ", deletedAt=" + getDeletedAt() +
                 ", notes='" + getNotes() + '\'' +
+                ", dateCreated=" + getDateCreated() +
                 '}';
     }
 
