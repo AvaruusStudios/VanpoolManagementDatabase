@@ -52,6 +52,7 @@ public class Database {
     private static final String DATABASE_FILE = "vanpool.db";
     private static final String JDBC_URL = "jdbc:sqlite:" + DATABASE_FILE; // Still needed for initial connection in createDatabase
     private static final String SCHEMA_FILEPATH = "/com/avaruusstudios/vmdb/db/schema.sql";
+    private static final String DATA_MANIPULATION_FILEPATH = "/com/avaruusstudios/vmdb/db/data.sql";
 
     /**
      * Static initializer block to ensure the SQLite JDBC driver is loaded when the class is initialized.
@@ -104,6 +105,7 @@ public class Database {
                 if (connection != null) {
                     logger.info("Database '{}' created successfully.", DATABASE_FILE);
                     executeSchema(connection);
+                    executeData(connection);
                 }
             } catch (SQLException e) {
                 logDatabaseError(
@@ -131,35 +133,26 @@ public class Database {
      */
     private static void executeSchema(Connection connection) {
         logger.info("Executing database schema from {}...", SCHEMA_FILEPATH);
-        try (InputStream inputStream = Database.class.getResourceAsStream(SCHEMA_FILEPATH);
-             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-
+        try (InputStream inputStream = Database.class.getResourceAsStream(SCHEMA_FILEPATH)) {
             if (inputStream == null) {
                 String errorMsg = "Error: Could not find schema file at " + SCHEMA_FILEPATH;
-                logDatabaseError(
-                        null,
-                        ErrorCode.DB_SCHEMA_EXECUTION_ERROR,
-                        errorMsg,
-                        "Database.executeSchema()",
-                        null
-                );
                 throw new DatabaseInitializationException(errorMsg);
             }
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+                String sqlStatements = reader.lines().collect(Collectors.joining("\n"));
+                String[] individualStatements = sqlStatements.split(";\\s*\\n?");
 
-            String sqlStatements = reader.lines().collect(Collectors.joining("\n"));
-            String[] individualStatements = sqlStatements.split(";\\s*\\n?");
-
-            try (Statement statement = connection.createStatement()) {
-                for (String sql : individualStatements) {
-                    String trimmedSql = sql.trim();
-                    if (!trimmedSql.isEmpty()) {
-                        logger.debug("Executing SQL: {}", trimmedSql);
-                        statement.executeUpdate(trimmedSql);
+                try (Statement statement = connection.createStatement()) {
+                    for (String sql : individualStatements) {
+                        String trimmedSql = sql.trim();
+                        if (!trimmedSql.isEmpty()) {
+                            logger.debug("Executing SQL: {}", trimmedSql);
+                            statement.executeUpdate(trimmedSql);
+                        }
                     }
                 }
+                logger.info("Database schema executed successfully.");
             }
-            logger.info("Database schema executed successfully.");
-
         } catch (IOException e) {
             String errorMsg = "Error reading schema file '" + SCHEMA_FILEPATH + "': " + e.getMessage();
             logDatabaseError(
@@ -182,6 +175,61 @@ public class Database {
             throw new DatabaseInitializationException(errorMsg, e);
         }
     }
+
+    /**
+     * <p>
+     * Executes the SQL statements contained in the `data.sql` classpath resource.
+     * This method is typically called only when the database is first created.
+     * </p>
+     *
+     * @param connection The active {@link Connection} to the database for data execution.
+     * @throws DatabaseInitializationException If an error occurs while reading the data file or executing SQL.
+     */
+    private static void executeData(Connection connection) {
+        logger.info("Executing database data from {}...", DATA_MANIPULATION_FILEPATH);
+        try (InputStream inputStream = Database.class.getResourceAsStream(DATA_MANIPULATION_FILEPATH)) {
+            if (inputStream == null) {
+                String errorMsg = "Error: Could not find data file at " + DATA_MANIPULATION_FILEPATH;
+                throw new DatabaseInitializationException(errorMsg);
+            }
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+                String sqlStatements = reader.lines().collect(Collectors.joining("\n"));
+                String[] individualStatements = sqlStatements.split(";\\s*\\n?");
+
+                try (Statement statement = connection.createStatement()) {
+                    for (String sql : individualStatements) {
+                        String trimmedSql = sql.trim();
+                        if (!trimmedSql.isEmpty()) {
+                            logger.debug("Executing SQL: {}", trimmedSql);
+                            statement.executeUpdate(trimmedSql);
+                        }
+                    }
+                }
+                logger.info("Database data executed successfully.");
+            }
+        } catch (IOException e) {
+            String errorMsg = "Error reading data file '" + DATA_MANIPULATION_FILEPATH + "': " + e.getMessage();
+            logDatabaseError(
+                    null,
+                    ErrorCode.FILE_IO_ERROR,
+                    errorMsg,
+                    "Database.executeData()",
+                    e
+            );
+            throw new DatabaseInitializationException(errorMsg, e);
+        } catch (SQLException e) {
+            String errorMsg = "Error executing data SQL (SQLState: " + e.getSQLState() + ", ErrorCode: " + e.getErrorCode() + "): " + e.getMessage();
+            logDatabaseError(
+                    null,
+                    ErrorCode.UNKNOWN_SQL_ERROR,
+                    errorMsg,
+                    "Database.executeData()",
+                    e
+            );
+            throw new DatabaseInitializationException(errorMsg, e);
+        }
+    }
+
 
     /**
      * Logs database-related errors to the application's logger and creates an {@link EventLog} entry.
