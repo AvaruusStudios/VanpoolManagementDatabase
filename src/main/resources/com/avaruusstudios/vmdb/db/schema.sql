@@ -12,7 +12,8 @@ CREATE TABLE Vehicles (
     Discount NUMERIC DEFAULT 0,                         -- Discount amount
     IsActive INTEGER NOT NULL DEFAULT 1,                -- 1=True, 0=False
     DeletedAt TEXT DEFAULT NULL,
-    Notes TEXT                                          -- Contextual Notes about the Vehicle
+    Notes TEXT,                                          -- Contextual Notes about the Vehicle
+    DateCreated TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 📍 Locations
@@ -27,7 +28,8 @@ CREATE TABLE Locations (
     Longitude REAL,                                     -- Location Longitude
     IsActive INTEGER NOT NULL DEFAULT 1,                -- 1=True, 0=False
     DeletedAt TEXT DEFAULT NULL,
-    Notes TEXT                                          -- Contextual Notes about the Location
+    Notes TEXT,                                          -- Contextual Notes about the Location
+    DateCreated TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 👥 Participants
@@ -47,6 +49,7 @@ CREATE TABLE Participants (
     IsActive INTEGER NOT NULL DEFAULT 1,                                                                -- 1=True, 0=False
     DeletedAt TEXT DEFAULT NULL,
     Notes TEXT,                                                                                         -- Contextual Notes about the Participant
+    DateCreated TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (PickUpLocationID_FK) REFERENCES Locations(LocationID),
     FOREIGN KEY (DropOffLocationID_FK) REFERENCES Locations(LocationID)
 );
@@ -63,6 +66,7 @@ CREATE TABLE Invoices (
     IsActive INTEGER NOT NULL DEFAULT 1,                                                         -- 1=True, 0=False
     DeletedAt TEXT DEFAULT NULL,
     Notes TEXT,                                                                                  -- Contextual Notes about the Invoice
+    DateCreated TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (VehicleID_FK) REFERENCES Vehicles(VehicleID)
 );
 
@@ -77,6 +81,7 @@ CREATE TABLE LineItems (
     IsActive INTEGER NOT NULL DEFAULT 1,                                    -- 1=True, 0=False
     DeletedAt TEXT DEFAULT NULL,
     Notes TEXT,                                                             -- Contextual Notes about the Invoice Item
+    DateCreated TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (InvoiceID_FK) REFERENCES Invoices(InvoiceID),
     FOREIGN KEY (ParticipantID_FK) REFERENCES Participants(ParticipantID)
 );
@@ -90,6 +95,7 @@ CREATE TABLE Categories (
     Description TEXT,                                                                   -- Category Long Descriptions
     IsActive INTEGER NOT NULL DEFAULT 1,                                                -- 1=True, 0=False
     DeletedAt TEXT DEFAULT NULL,
+    DateCreated TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (ParticipantID_FK) REFERENCES Participants(ParticipantID)
 );
 
@@ -104,6 +110,7 @@ CREATE TABLE Transactions (
     IsActive INTEGER NOT NULL DEFAULT 1,
     DeletedAt TEXT DEFAULT NULL,
     Notes TEXT,                                                             -- Contextual Notes about the Transaction
+    DateCreated TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (CategoryID_FK) REFERENCES Categories(CategoryID),
     FOREIGN KEY (InvoiceID_FK) REFERENCES Invoices(InvoiceID)
 );
@@ -118,6 +125,7 @@ CREATE TABLE EventLog (
     RecordID INTEGER,                                                                               -- Record ID of the event happened to
     ErrorCode TEXT,                                                                                 -- Error Code of the event as a TEXT
     Description TEXT,                                                                               -- Description of the event
+    DateCreated TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (UserID_FK) REFERENCES Users(UserID)
 );
 
