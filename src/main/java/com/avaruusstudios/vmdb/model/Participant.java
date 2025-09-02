@@ -3,7 +3,7 @@ package com.avaruusstudios.vmdb.model;
 import javafx.beans.property.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime; // New import for deletedAt
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -24,13 +24,14 @@ import java.util.regex.Pattern;
  * last name ({@code LastName TEXT NOT NULL}), email ({@code Email TEXT NOT NULL UNIQUE}), phone ({@code Phone TEXT NOT NULL}),
  * distance traveled ({@code DistanceMiles REAL NOT NULL}), join date ({@code JoinDate TEXT NOT NULL}),
  * active status ({@code IsActive INTEGER NOT NULL}), a timestamp for logical deletion ({@code DeletedAt TEXT DEFAULT NULL}),
+ * a timestamp for record creation ({@code DateCreated TEXT DEFAULT CURRENT_TIMESTAMP}),
  * and any contextual notes ({@code Notes TEXT}).
  * </p>
  *
  * @author AvaruusStudios
  * @version 1.1
  * Created On: 2025-07-11
- * Updated On: 2025-07-12
+ * Updated On: 2025-09-01
  *
  * @see Location
  * @see Program
@@ -122,12 +123,18 @@ public class Participant {
      * This field is optional and can be {@code null} if the participant is active.
      * Corresponds to {@code DeletedAt TEXT DEFAULT NULL} in the database.
      */
-    private final ObjectProperty<LocalDateTime> deletedAt; // New field from schema
+    private final ObjectProperty<LocalDateTime> deletedAt;
     /**
      * Optional free-form text for additional notes or administrative comments pertaining to this participant.
      * (corresponds to {@code Notes TEXT} in the database).
      */
     private final StringProperty notes;
+    /**
+     * The timestamp indicating when the participant record was created.
+     * This field is **required** (corresponds to {@code DateCreated TEXT DEFAULT CURRENT_TIMESTAMP} in the database).
+     */
+    private final ObjectProperty<LocalDateTime> dateCreated;
+
     /**
      * A regular expression pattern used for basic validation of email addresses.
      * This pattern checks for a typical email structure (e.g., `name@domain.com`).
@@ -149,7 +156,7 @@ public class Participant {
     public Participant() {
         // Default to active, notes as empty string, deletedAt as null
         this(null, new Location(), new Location(), "", "", "", "", "",
-                BigDecimal.ZERO, LocalDate.now(), true, Program.NONE, BigDecimal.ZERO, Role.PARTICIPANT, null, "");
+                BigDecimal.ZERO, LocalDate.now(), true, Program.NONE, BigDecimal.ZERO, Role.PARTICIPANT, null, "", null);
     }
 
     /**
@@ -174,6 +181,7 @@ public class Participant {
      * @param role            The {@link Role} of the participant within the vanpool. Must not be null.
      * @param deletedAt       The {@link LocalDateTime} when the participant was logically deleted, or {@code null} if active.
      * @param notes           Optional free-form notes. Can be null.
+     * @param dateCreated     The {@link LocalDateTime} when the participant was created. Can be {@code null} for new records.
      *
      * @throws IllegalArgumentException if any mandatory argument is invalid (e.g., null, empty, bad format, out of range).
      * @throws IllegalStateException    if `participantID` is attempted to be changed once set.
@@ -181,7 +189,7 @@ public class Participant {
     public Participant(Integer participantID, Location pickUpLocation, Location dropOffLocation,
                        String firstName, String middleName, String lastName, String email, String phone,
                        BigDecimal distanceMiles, LocalDate joinDate, boolean isActive,
-                       Program program, BigDecimal benefitAmount, Role role, LocalDateTime deletedAt, String notes) {
+                       Program program, BigDecimal benefitAmount, Role role, LocalDateTime deletedAt, String notes, LocalDateTime dateCreated) {
         this.participantID = new SimpleObjectProperty<>(this, "participantID", participantID);
         this.pickUpLocation = new SimpleObjectProperty<>(this, "pickUpLocation");
         this.dropOffLocation = new SimpleObjectProperty<>(this, "dropOffLocation");
@@ -196,8 +204,9 @@ public class Participant {
         this.program = new SimpleObjectProperty<>(this, "program");
         this.benefitAmount = new SimpleObjectProperty<>(this, "benefitAmount");
         this.role = new SimpleObjectProperty<>(this, "role");
-        this.deletedAt = new SimpleObjectProperty<>(this, "deletedAt"); // Initialize new property
+        this.deletedAt = new SimpleObjectProperty<>(this, "deletedAt");
         this.notes = new SimpleStringProperty(this, "notes");
+        this.dateCreated = new SimpleObjectProperty<>(this, "dateCreated");
 
 
         setPickUpLocation(pickUpLocation);
@@ -213,7 +222,8 @@ public class Participant {
         setProgram(program);
         setBenefitAmount(benefitAmount);
         setRole(role);
-        setDeletedAt(deletedAt); // Set new property
+        setDeletedAt(deletedAt);
+        _setDateCreated(dateCreated);
         setNotes(notes);
     }
 
@@ -244,11 +254,11 @@ public class Participant {
                        String firstName, String middleName, String lastName, String email, String phone,
                        BigDecimal distanceMiles, LocalDate joinDate, boolean isActive,
                        Program program, BigDecimal benefitAmount, Role role, String notes) {
-        // Calls the full constructor with participantID as null and deletedAt as null
+        // Calls the full constructor with participantID as null, deletedAt as null, and dateCreated as null
         this(null, pickUpLocation, dropOffLocation,
                 firstName, middleName, lastName, email, phone,
                 distanceMiles, joinDate, isActive,
-                program, benefitAmount, role, null, notes);
+                program, benefitAmount, role, null, notes, null);
     }
 
     // --- JavaFX Property Accessors ---
@@ -406,7 +416,7 @@ public class Participant {
      *
      * @return The {@link ObjectProperty} for {@code deletedAt}.
      */
-    public ObjectProperty<LocalDateTime> deletedAtProperty() { // New property accessor
+    public ObjectProperty<LocalDateTime> deletedAtProperty() {
         return deletedAt;
     }
 
@@ -418,6 +428,16 @@ public class Participant {
      */
     public StringProperty notesProperty() {
         return notes;
+    }
+
+    /**
+     * Retrieves the {@link ObjectProperty} for the creation timestamp of the participant.
+     * This property corresponds to the {@code DateCreated} column in the database.
+     *
+     * @return The {@link ObjectProperty} for {@code dateCreated}.
+     */
+    public ObjectProperty<LocalDateTime> dateCreatedProperty() {
+        return dateCreated;
     }
 
     // --- Value Getters and Setters ---
@@ -831,7 +851,7 @@ public class Participant {
      *
      * @return The {@link LocalDateTime} of deletion, or {@code null} if the participant is active.
      */
-    public LocalDateTime getDeletedAt() { // New getter
+    public LocalDateTime getDeletedAt() {
         return deletedAt.get();
     }
 
@@ -840,7 +860,7 @@ public class Participant {
      *
      * @param deletedAt The {@link LocalDateTime} to set as the deletion timestamp. Can be {@code null}.
      */
-    public void setDeletedAt(LocalDateTime deletedAt) { // New setter
+    public void setDeletedAt(LocalDateTime deletedAt) {
         this.deletedAt.set(deletedAt);
     }
 
@@ -866,6 +886,34 @@ public class Participant {
         this.notes.set((notes == null) ? null : notes.trim());
     }
 
+    /**
+     * Retrieves the timestamp when the participant record was created.
+     *
+     * @return The {@link LocalDateTime} of creation.
+     */
+    public LocalDateTime getDateCreated() {
+        return dateCreated.get();
+    }
+
+    /**
+     * Sets the timestamp when the participant record was created.
+     * <p>
+     * This method is designed for use by the DAO when reading a record from the database.
+     * The value is immutable once set.
+     * </p>
+     *
+     * @param dateCreated The {@link LocalDateTime} to set as the creation timestamp.
+     */
+    public void _setDateCreated(LocalDateTime dateCreated) {
+        if (this.dateCreated.get() != null) {
+            throw new IllegalStateException("Date created cannot be changed once set.");
+        }
+        if (dateCreated == null) {
+            throw new IllegalArgumentException("Date created cannot be null.");
+        }
+        ((SimpleObjectProperty<LocalDateTime>) this.dateCreated).set(dateCreated);
+    }
+
     // --- Utility Methods ---
 
     /**
@@ -879,7 +927,7 @@ public class Participant {
      * </p>
      *
      * @return A string in the format:
-     * "Participant{ID=..., FirstName=..., LastName=..., Program=..., isActive=..., deletedAt=...}"
+     * "Participant{ID=..., FirstName=..., LastName=..., Program=..., isActive=..., deletedAt=..., dateCreated=...}"
      */
     @Override
     public String toString() {
@@ -889,7 +937,8 @@ public class Participant {
                 ", lastName='" + getLastName() + '\'' +
                 ", program=" + getProgram() +
                 ", isActive=" + getIsActive() +
-                ", deletedAt=" + getDeletedAt() + // Added new field
+                ", deletedAt=" + getDeletedAt() +
+                ", dateCreated=" + getDateCreated() +
                 '}';
     }
 
