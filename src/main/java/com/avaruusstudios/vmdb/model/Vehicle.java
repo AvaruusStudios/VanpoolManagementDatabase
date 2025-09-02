@@ -25,7 +25,7 @@ import java.util.Objects;
  * @author AvaruusStudios
  * @version 1.4
  * Created On: 2025-07-11
- * Updated On: 2025-07-12
+ * Updated On: 2025-09-01
  *
  * @see Transaction
  */
