@@ -7,7 +7,6 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -23,15 +22,16 @@ import java.util.Objects;
  * <p>
  * A singular invoice contains metadata such as its unique identifier, the date it was prepared,
  * its due date, the billing period it covers, the associated {@link Vehicle} object, its
- * {@link InvoiceType}, its {@link PaymentStatus}, any relevant notes, and its active status for soft deletion.
+ * {@link InvoiceType}, its {@link PaymentStatus}, any relevant notes, its active status for soft deletion,
+ * and an immutable timestamp for its creation date.
  * This object structure directly reflects the schema used for the {@code Invoices} table in the SQLite database to track billing records, where
  * {@code VehicleID_FK} and {@code InvoiceType} are now represented by embedded objects.
  * </p>
  *
  * @author AvaruusStudios
- * @version 1.1
+ * @version 1.2
  * Created On: 2025-07-11
- * Updated On: 2025-07-25 (Added PaymentStatus field)
+ * Updated On: 2025-09-02 (Added DateCreated field)
  *
  * @see Vehicle
  * @see InvoiceType
@@ -99,6 +99,11 @@ public class Invoice {
      */
     private final ObjectProperty<LocalDateTime> deletedAt;
     /**
+     * The timestamp indicating when the invoice record was created.
+     * This field is **required** (corresponds to {@code DateCreated TEXT DEFAULT CURRENT_TIMESTAMP} in the database).
+     */
+    private final ObjectProperty<LocalDateTime> dateCreated;
+    /**
      * Optional free-form text for additional notes or administrative comments specific to this location.
      * (corresponds to {@code Notes TEXT} in the database).
      */
@@ -115,7 +120,7 @@ public class Invoice {
      */
     public Invoice() {
         // Default to active, notes as empty string, deletedAt as null, paymentStatus as UNPAID
-        this(null, null, null, LocalDate.now(), LocalDate.now().plusDays(7), null, PaymentStatus.UNPAID, true, null, "");
+        this(null, null, null, LocalDate.now(), LocalDate.now().plusDays(7), null, PaymentStatus.UNPAID, true, null, null, "");
     }
 
     /**
@@ -133,15 +138,16 @@ public class Invoice {
      * @param paymentStatus The {@link PaymentStatus} of the invoice. Must not be {@code null}.
      * @param isActive      The active status of the invoice (true for active, false for inactive/deleted).
      * @param deletedAt     The {@link LocalDateTime} when the invoice was logically deleted, or {@code null} if active.
+     * @param dateCreated   The {@link LocalDateTime} when the invoice was created. Can be {@code null} for new records.
      * @param notes         Any optional notes or additional information about the invoice. Can be {@code null}.
      * @throws NullPointerException     if `invoiceID` (for existing invoices), `vehicle`, `invoiceType`, `invoiceDate`, `dueDate`, `periodLabel`, or `paymentStatus` are {@code null}.
      * @throws IllegalArgumentException if date or period label validations fail (e.g., invoice date in future, due date out of range, period label mismatch).
      * @throws IllegalStateException    if dependencies for `periodLabel` validation (like `invoiceType` or `invoiceDate`) are not set when `setPeriodLabel` is called.
      */
     public Invoice(Integer invoiceID, Vehicle vehicle, InvoiceType invoiceType, LocalDate invoiceDate,
-                   LocalDate dueDate, YearMonth periodLabel, PaymentStatus paymentStatus, Boolean isActive, LocalDateTime deletedAt, String notes) {
+                   LocalDate dueDate, YearMonth periodLabel, PaymentStatus paymentStatus, Boolean isActive, LocalDateTime deletedAt, LocalDateTime dateCreated, String notes) {
         // Initialize immutable ID property first
-        this.invoiceID = new SimpleObjectProperty<>(this, "invoiceID", Objects.requireNonNull(invoiceID, "Invoice ID cannot be null for an existing invoice."));
+        this.invoiceID = new SimpleObjectProperty<>(this, "invoiceID", invoiceID);
 
         // Initialize mutable properties in schema order
         this.vehicle = new SimpleObjectProperty<>(this, "vehicle");
@@ -152,10 +158,12 @@ public class Invoice {
         this.paymentStatus = new SimpleObjectProperty<>(this, "paymentStatus"); // Initialize new property
         this.isActive = new SimpleBooleanProperty(this, "isActive");
         this.deletedAt = new SimpleObjectProperty<>(this, "deletedAt");
+        this.dateCreated = new SimpleObjectProperty<>(this, "dateCreated");
         this.notes = new SimpleStringProperty(this, "notes");
 
 
         // Set dependencies first using their setters with validation
+        _setInvoiceID(invoiceID); // Use package-private setter for ID to allow for nulls during creation
         setVehicle(vehicle);
         setInvoiceType(invoiceType);
         setInvoiceDate(invoiceDate);
@@ -165,6 +173,7 @@ public class Invoice {
         setPaymentStatus(paymentStatus); // Set new property
         setIsActive(isActive);
         setDeletedAt(deletedAt);
+        _setDateCreated(dateCreated);
         setNotes(notes);
     }
 
@@ -186,8 +195,8 @@ public class Invoice {
      */
     public Invoice(Vehicle vehicle, InvoiceType invoiceType, LocalDate invoiceDate,
                    LocalDate dueDate, YearMonth periodLabel, String notes) {
-        // Calls the full constructor with invoiceID as null, isActive as true, deletedAt as null, and paymentStatus as UNPAID (default for new entities)
-        this(null, vehicle, invoiceType, invoiceDate, dueDate, periodLabel, PaymentStatus.UNPAID, true, null, notes);
+        // Calls the full constructor with invoiceID as null, isActive as true, deletedAt as null, dateCreated as null, and paymentStatus as UNPAID (default for new entities)
+        this(null, vehicle, invoiceType, invoiceDate, dueDate, periodLabel, PaymentStatus.UNPAID, true, null, null, notes);
 
         // Additional Rule for convenience constructor: InvoiceDate MUST BE == CURRENT DATE at time of creation for new invoices.
         Objects.requireNonNull(invoiceDate, "Invoice date cannot be null for new invoice."); // Redundant but for clarity
@@ -291,6 +300,16 @@ public class Invoice {
      */
     public ObjectProperty<LocalDateTime> deletedAtProperty() {
         return deletedAt;
+    }
+
+    /**
+     * Retrieves the {@link ObjectProperty} for the creation timestamp of the invoice.
+     * This property corresponds to the {@code DateCreated} column in the database.
+     *
+     * @return The {@link ObjectProperty} for {@code dateCreated}.
+     */
+    public ObjectProperty<LocalDateTime> dateCreatedProperty() {
+        return dateCreated;
     }
 
     /**
@@ -564,11 +583,10 @@ public class Invoice {
     }
 
     /**
-     * Retrieves any optional notes or remarks associated with this invoice.
-     * This might include details about special charges, payment instructions, or administrative comments.
+     * Retrieves any additional notes or administrative comments for the participant.
      * Corresponds to the {@code Notes} column in the database.
      *
-     * @return A string containing the notes, or {@code null} if no notes are present.
+     * @return The notes string, or {@code null} if no notes are present.
      */
     public String getNotes() {
         return notes.get();
@@ -583,6 +601,34 @@ public class Invoice {
      */
     public void setNotes(String notes) {
         this.notes.set((notes != null) ? notes.strip() : null);
+    }
+
+    /**
+     * Retrieves the timestamp when the invoice record was created.
+     *
+     * @return The {@link LocalDateTime} of creation.
+     */
+    public LocalDateTime getDateCreated() {
+        return dateCreated.get();
+    }
+
+    /**
+     * Sets the timestamp when the invoice record was created.
+     * <p>
+     * This method is designed for use by the DAO when reading a record from the database.
+     * The value is immutable once set.
+     * </p>
+     *
+     * @param dateCreated The {@link LocalDateTime} to set as the creation timestamp.
+     */
+    public void _setDateCreated(LocalDateTime dateCreated) {
+        if (this.dateCreated.get() != null) {
+            throw new IllegalStateException("Date created cannot be changed once set.");
+        }
+        if (dateCreated == null) {
+            throw new IllegalArgumentException("Date created cannot be null.");
+        }
+        ((SimpleObjectProperty<LocalDateTime>) this.dateCreated).set(dateCreated);
     }
 
     // --- Utility Methods ---
@@ -619,7 +665,7 @@ public class Invoice {
      * </p>
      *
      * @return A string in the format:
-     * "Invoice{invoiceID=..., vehicleID=..., invoiceType=..., invoiceDate=..., dueDate=..., periodLabel=..., paymentStatus=..., isActive=..., deletedAt=..., notes=...}"
+     * "Invoice{invoiceID=..., vehicleID=..., invoiceType=..., invoiceDate=..., dueDate=..., periodLabel=..., paymentStatus=..., isActive=..., deletedAt=..., dateCreated=..., notes=...}"
      */
     @Override
     public String toString() {
@@ -633,6 +679,7 @@ public class Invoice {
                 ", paymentStatus=" + getPaymentStatus() + // Added new field
                 ", isActive=" + getIsActive() +
                 ", deletedAt=" + getDeletedAt() +
+                ", dateCreated=" + getDateCreated() +
                 ", notes='" + getNotes() + '\'' +
                 '}';
     }
