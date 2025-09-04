@@ -7,7 +7,6 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -25,8 +24,6 @@ import java.util.Objects;
  * and the involved participant ({@code ParticipantID_FK INTEGER NOT NULL}),
  * the composite {@link Amount} representing benefit ({@code BenefitPayment NUMERIC NOT NULL}) and personal payments ({@code PersonalPayment NUMERIC NOT NULL}),
  * a flag indicating the official payment status ({@code IsPaid INTEGER NOT NULL DEFAULT 0}),
- * an active status for soft deletion ({@code IsActive INTEGER NOT NULL DEFAULT 1}),
- * a timestamp for logical deletion ({@code DeletedAt TEXT DEFAULT NULL}),
  * and a timestamp for its creation date ({@code DateCreated TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP}).
  * It is designed to support data binding with JavaFX UI components, making it suitable for a responsive desktop application.
  * </p>
@@ -34,7 +31,7 @@ import java.util.Objects;
  * @author AvaruusStudios
  * @version 1.2
  * Created On: 2025-07-11
- * Updated On: 2025-09-03 (Added DateCreated field)
+ * Updated On: 2025-09-03
  *
  * @see Invoice
  * @see Participant
@@ -86,20 +83,6 @@ public class LineItem {
     private final BooleanProperty isPaid;
 
     /**
-     * A flag indicating whether the line item is currently active or has been logically deleted/deactivated.
-     * (corresponds to {@code IsActive INTEGER NOT NULL DEFAULT 1} in the database).
-     * `true` (1) for active, `false` (0) for inactive.
-     */
-    private final BooleanProperty isActive;
-
-    /**
-     * The timestamp when the line item was logically deleted or deactivated.
-     * This field is optional and can be {@code null} if the line item is active.
-     * Corresponds to {@code DeletedAt TEXT DEFAULT NULL} in the database.
-     */
-    private final ObjectProperty<LocalDateTime> deletedAt;
-
-    /**
      * The timestamp indicating when the line item record was created.
      * This field is **required** (corresponds to {@code DateCreated TEXT DEFAULT CURRENT_TIMESTAMP} in the database).
      */
@@ -120,7 +103,7 @@ public class LineItem {
      * via reflection (e.g., ORMs, JSON deserializers) before populating their fields.
      */
     public LineItem() {
-        this(null, null, null, BigDecimal.ZERO, BigDecimal.ZERO, false, true, null, null, null);
+        this(null, null, null, BigDecimal.ZERO, BigDecimal.ZERO, false, null, null);
     }
 
 
@@ -136,15 +119,13 @@ public class LineItem {
      * @param benefitPayment The benefit payment amount. Must be non-negative.
      * @param personalPayment The personal payment amount. Must be non-negative.
      * @param isPaid The paid status of the line item (true for paid, false for unpaid).
-     * @param isActive The active status of the line item (true for active, false for inactive/deleted).
-     * @param deletedAt The {@link LocalDateTime} when the line item was logically deleted, or {@code null} if active.
      * @param dateCreated The {@link LocalDateTime} when the line item was created. Can be {@code null} for new records.
      * @param notes Any optional notes or additional information about the line item. Can be {@code null}.
      * @throws NullPointerException if any required parameters are {@code null}.
      * @throws IllegalArgumentException if payments are negative.
      */
     public LineItem(Integer lineItemID, Invoice invoice, Participant participant, BigDecimal benefitPayment,
-                    BigDecimal personalPayment, Boolean isPaid, Boolean isActive, LocalDateTime deletedAt, LocalDateTime dateCreated, String notes) {
+                    BigDecimal personalPayment, Boolean isPaid, LocalDateTime dateCreated, String notes) {
         // Initialize immutable ID property first
         this.lineItemID = new SimpleObjectProperty<>(this, "lineItemID", lineItemID);
 
@@ -154,21 +135,16 @@ public class LineItem {
         this.benefitPayment = new SimpleObjectProperty<>(this, "benefitPayment");
         this.personalPayment = new SimpleObjectProperty<>(this, "personalPayment");
         this.isPaid = new SimpleBooleanProperty(this, "isPaid");
-        this.isActive = new SimpleBooleanProperty(this, "isActive");
-        this.deletedAt = new SimpleObjectProperty<>(this, "deletedAt");
         this.dateCreated = new SimpleObjectProperty<>(this, "dateCreated");
         this.notes = new SimpleStringProperty(this, "notes");
 
-
         // Set properties with validation
-        _setLineItemID(lineItemID); // Use package-private setter for ID to allow for nulls during creation
+        _setLineItemID(lineItemID); // Use public setter for ID to allow for nulls during creation
         setInvoice(invoice);
         setParticipant(participant);
         setBenefitPayment(benefitPayment);
         setPersonalPayment(personalPayment);
         setIsPaid(isPaid);
-        setIsActive(isActive);
-        setDeletedAt(deletedAt);
         _setDateCreated(dateCreated);
         setNotes(notes);
     }
@@ -189,145 +165,118 @@ public class LineItem {
      */
     public LineItem(Invoice invoice, Participant participant, BigDecimal benefitPayment, BigDecimal personalPayment, String notes) {
         // Calls the full constructor with lineItemID as null, isPaid as false, isActive as true, deletedAt as null, and dateCreated as null
-        this(null, invoice, participant, benefitPayment, personalPayment, false, true, null, null, notes);
+        this(null, invoice, participant, benefitPayment, personalPayment, false, null, notes);
     }
-
 
     // --- JavaFX Property Accessor Methods ---
 
     /**
-     * Retrieves the read-only property for the line item's unique ID.
-     * This property represents the {@code LineItemID} column in the database.
-     * <p>
-     * As this property is {@code ReadOnlyObjectProperty}, its value cannot be
-     * changed directly after initial assignment, enforcing the immutability
-     * of the primary key for persisted entities.
-     * </p>
+     * Retrieves the read-only JavaFX {@link ReadOnlyObjectProperty} for the line item's unique ID.
+     * This property is typically used for data binding in UI components where the ID should not be changed.
      *
-     * @return The {@link ReadOnlyObjectProperty} for {@code lineItemID}.
+     * @return The {@link ReadOnlyObjectProperty} for the line item ID.
      */
     public ReadOnlyObjectProperty<Integer> lineItemIDProperty() {
         return lineItemID;
     }
 
     /**
-     * Retrieves the {@link ObjectProperty} for the associated {@link Invoice} object.
-     * This property represents the foreign key relationship to the {@code Invoices} table.
+     * Retrieves the JavaFX {@link ObjectProperty} for the associated {@link Invoice}.
+     * This property allows for data binding to the line item's parent invoice.
      *
-     * @return The {@link ObjectProperty} for {@code invoice}.
+     * @return The {@link ObjectProperty} for the invoice.
      */
     public ObjectProperty<Invoice> invoiceProperty() {
         return invoice;
     }
 
     /**
-     * Retrieves the {@link ObjectProperty} for the associated {@link Participant} object.
-     * This property represents the foreign key relationship to the {@code Participants} table.
+     * Retrieves the JavaFX {@link ObjectProperty} for the associated {@link Participant}.
+     * This property allows for data binding to the line item's participant.
      *
-     * @return The {@link ObjectProperty} for {@code participant}.
+     * @return The {@link ObjectProperty} for the participant.
      */
     public ObjectProperty<Participant> participantProperty() {
         return participant;
     }
 
     /**
-     * Retrieves the {@link ObjectProperty} for the benefit payment amount.
-     * This property represents the {@code BenefitPayment} column in the database.
+     * Retrieves the JavaFX {@link ObjectProperty} for the benefit payment amount.
+     * This property allows for data binding to the benefit payment.
      *
-     * @return The {@link ObjectProperty} for {@code benefitPayment}.
+     * @return The {@link ObjectProperty} for the benefit payment amount.
      */
     public ObjectProperty<BigDecimal> benefitPaymentProperty() {
         return benefitPayment;
     }
 
     /**
-     * Retrieves the {@link ObjectProperty} for the personal payment amount.
-     * This property represents the {@code PersonalPayment} column in the database.
+     * Retrieves the JavaFX {@link ObjectProperty} for the personal payment amount.
+     * This property allows for data binding to the personal payment.
      *
-     * @return The {@link ObjectProperty} for {@code personalPayment}.
+     * @return The {@link ObjectProperty} for the personal payment amount.
      */
     public ObjectProperty<BigDecimal> personalPaymentProperty() {
         return personalPayment;
     }
 
     /**
-     * Retrieves the {@link BooleanProperty} for the paid status of the line item.
-     * This property corresponds to the {@code IsPaid} column in the database.
+     * Retrieves the JavaFX {@link BooleanProperty} for the paid status.
+     * This property allows for data binding to the paid status flag.
      *
-     * @return The {@link BooleanProperty} for {@code isPaid}.
+     * @return The {@link BooleanProperty} for the paid status.
      */
     public BooleanProperty isPaidProperty() {
         return isPaid;
     }
 
     /**
-     * Retrieves the {@link BooleanProperty} for the active status of the line item.
-     * This property corresponds to the {@code IsActive} column in the database.
+     * Retrieves the JavaFX {@link ObjectProperty} for the creation timestamp.
+     * This is a read-only property to ensure the creation date cannot be changed.
      *
-     * @return The {@link BooleanProperty} for {@code isActive}.
-     */
-    public BooleanProperty isActiveProperty() {
-        return isActive;
-    }
-
-    /**
-     * Retrieves the {@link ObjectProperty} for the deletion timestamp of the line item.
-     * This property corresponds to the {@code DeletedAt} column in the database.
-     *
-     * @return The {@link ObjectProperty} for {@code deletedAt}.
-     */
-    public ObjectProperty<LocalDateTime> deletedAtProperty() {
-        return deletedAt;
-    }
-
-    /**
-     * Retrieves the {@link ObjectProperty} for the creation timestamp of the line item.
-     * This property corresponds to the {@code DateCreated} column in the database.
-     *
-     * @return The {@link ObjectProperty} for {@code dateCreated}.
+     * @return The {@link ObjectProperty} for the creation date.
      */
     public ObjectProperty<LocalDateTime> dateCreatedProperty() {
         return dateCreated;
     }
 
     /**
-     * Retrieves the {@link StringProperty} for any optional notes associated with this line item.
-     * This property corresponds to the {@code Notes} column in the database.
+     * Retrieves the JavaFX {@link StringProperty} for the line item's notes.
+     * This property allows for data binding to the notes field.
      *
-     * @return The {@link StringProperty} for {@code notes}.
+     * @return The {@link StringProperty} for the notes.
      */
     public StringProperty notesProperty() {
         return notes;
     }
 
-
     // --- Value Getters and Setters ---
 
     /**
-     * Retrieves the unique identifier for this line item.
-     * For new, unpersisted line items, this will be {@code null}.
-     * Corresponds to the {@code LineItemID} column in the database.
+     * Retrieves the unique identifier of the line item.
      *
-     * @return The {@link Integer} primary key used to identify this line item record, or {@code null} if not yet assigned.
+     * @return The integer ID of the line item, or {@code null} if not yet persisted.
      */
     public Integer getLineItemID() {
         return lineItemID.get();
     }
 
     /**
-     * Sets the unique ID for this line item. This method is designed to be package-private
-     * and is primarily for use by data access objects (DAOs) when an ID is generated
-     * by the database upon insertion.
      * <p>
-     * It includes a check to prevent the ID from being modified once it has been set,
-     * ensuring the immutability of the primary key.
+     * Sets the unique identifier for the line item. This method is public and intended for
+     * use by the Data Access Layer (DAO) when an object is loaded from or saved to the database.
+     * </p>
+     * <p>
+     * This method follows the convention of a leading underscore to indicate its special purpose:
+     * it should only be called once when an object's ID is assigned, and it enforces that
+     * the ID cannot be changed once set.
      * </p>
      *
-     * @param id The unique integer ID assigned by the database.
-     * @throws IllegalStateException    if the ID has already been assigned to this object.
-     * @throws IllegalArgumentException if the provided ID is {@code null} or non-positive.
+     * @param id The integer ID to be set.
+     * @throws IllegalStateException if the ID has already been set.
+     * @throws IllegalArgumentException if the ID is null or non-positive.
      */
-    public void _setLineItemID(Integer id) { // Package-private for DAO use only
+    public void _setLineItemID(Integer id) { // Public for DAO use
         if (this.lineItemID.get() != null) {
             throw new IllegalStateException("LineItem ID cannot be changed once set.");
         }
@@ -338,38 +287,38 @@ public class LineItem {
     }
 
     /**
-     * Retrieves the {@link Invoice} object to which this line item belongs.
+     * Retrieves the {@link Invoice} associated with this line item.
      *
-     * @return The associated {@link Invoice} object.
+     * @return The {@link Invoice} object.
      */
     public Invoice getInvoice() {
         return invoice.get();
     }
 
     /**
-     * Sets the {@link Invoice} object to which this line item belongs.
+     * Sets the associated {@link Invoice} for this line item.
      *
-     * @param invoice The {@link Invoice} object to associate with this line item. Must not be {@code null}.
-     * @throws NullPointerException if {@code invoice} is {@code null}.
+     * @param invoice The {@link Invoice} to set.
+     * @throws NullPointerException if the invoice is {@code null}.
      */
     public void setInvoice(Invoice invoice) {
         this.invoice.set(Objects.requireNonNull(invoice, "Invoice cannot be null."));
     }
 
     /**
-     * Retrieves the {@link Participant} object associated with this line item.
+     * Retrieves the {@link Participant} associated with this line item.
      *
-     * @return The associated {@link Participant} object.
+     * @return The {@link Participant} object.
      */
     public Participant getParticipant() {
         return participant.get();
     }
 
     /**
-     * Sets the {@link Participant} object associated with this line item.
+     * Sets the associated {@link Participant} for this line item.
      *
-     * @param participant The {@link Participant} object to associate with this line item. Must not be {@code null}.
-     * @throws NullPointerException if {@code participant} is {@code null}.
+     * @param participant The {@link Participant} to set.
+     * @throws NullPointerException if the participant is {@code null}.
      */
     public void setParticipant(Participant participant) {
         this.participant.set(Objects.requireNonNull(participant, "Participant cannot be null."));
@@ -378,18 +327,18 @@ public class LineItem {
     /**
      * Retrieves the benefit payment amount for the line item.
      *
-     * @return The {@link BigDecimal} representing the benefit payment amount.
+     * @return The {@link BigDecimal} benefit payment.
      */
     public BigDecimal getBenefitPayment() {
         return benefitPayment.get();
     }
 
     /**
-     * Sets the benefit payment amount for the line item.
+     * Sets the benefit payment amount for this line item.
      *
-     * @param benefitPayment The {@link BigDecimal} amount to set. Must be non-negative.
-     * @throws NullPointerException     if {@code benefitPayment} is {@code null}.
-     * @throws IllegalArgumentException if {@code benefitPayment} is negative.
+     * @param benefitPayment The {@link BigDecimal} amount to set.
+     * @throws NullPointerException if the payment is {@code null}.
+     * @throws IllegalArgumentException if the payment amount is negative.
      */
     public void setBenefitPayment(BigDecimal benefitPayment) {
         Objects.requireNonNull(benefitPayment, "Benefit payment cannot be null.");
@@ -402,18 +351,18 @@ public class LineItem {
     /**
      * Retrieves the personal payment amount for the line item.
      *
-     * @return The {@link BigDecimal} representing the personal payment amount.
+     * @return The {@link BigDecimal} personal payment.
      */
     public BigDecimal getPersonalPayment() {
         return personalPayment.get();
     }
 
     /**
-     * Sets the personal payment amount for the line item.
+     * Sets the personal payment amount for this line item.
      *
-     * @param personalPayment The {@link BigDecimal} amount to set. Must be non-negative.
-     * @throws NullPointerException     if {@code personalPayment} is {@code null}.
-     * @throws IllegalArgumentException if {@code personalPayment} is negative.
+     * @param personalPayment The {@link BigDecimal} amount to set.
+     * @throws NullPointerException if the payment is {@code null}.
+     * @throws IllegalArgumentException if the payment amount is negative.
      */
     public void setPersonalPayment(BigDecimal personalPayment) {
         Objects.requireNonNull(personalPayment, "Personal payment cannot be null.");
@@ -426,60 +375,23 @@ public class LineItem {
     /**
      * Retrieves the paid status of the line item.
      *
-     * @return {@code true} if the line item has been paid, {@code false} otherwise.
+     * @return {@code true} if the line item is paid, {@code false} otherwise.
      */
     public boolean getIsPaid() {
         return isPaid.get();
     }
 
     /**
-     * Sets the paid status of the line item.
+     * Sets the paid status for this line item.
      *
-     * @param isPaid {@code true} to mark the line item as paid, {@code false} otherwise.
+     * @param isPaid The boolean paid status to set.
      */
     public void setIsPaid(boolean isPaid) {
         this.isPaid.set(isPaid);
     }
 
     /**
-     * Retrieves the active status of the line item.
-     *
-     * @return {@code true} if the line item is active, {@code false} if it's inactive/logically deleted.
-     */
-    public boolean getIsActive() {
-        return isActive.get();
-    }
-
-    /**
-     * Sets the active status of the line item.
-     *
-     * @param isActive {@code true} to mark the line item as active, {@code false} for inactive/logically deleted.
-     */
-    public void setIsActive(boolean isActive) {
-        this.isActive.set(isActive);
-    }
-
-    /**
-     * Retrieves the timestamp when the line item was logically deleted or deactivated.
-     * Corresponds to the {@code DeletedAt} column in the database.
-     *
-     * @return The {@link LocalDateTime} of deletion, or {@code null} if the line item is active.
-     */
-    public LocalDateTime getDeletedAt() {
-        return deletedAt.get();
-    }
-
-    /**
-     * Sets the timestamp when the line item was logically deleted or deactivated.
-     *
-     * @param deletedAt The {@link LocalDateTime} to set as the deletion timestamp. Can be {@code null}.
-     */
-    public void setDeletedAt(LocalDateTime deletedAt) {
-        this.deletedAt.set(deletedAt);
-    }
-
-    /**
-     * Retrieves the timestamp when the line item record was created.
+     * Retrieves the creation date of the line item record.
      *
      * @return The {@link LocalDateTime} of creation.
      */
@@ -488,13 +400,19 @@ public class LineItem {
     }
 
     /**
-     * Sets the timestamp when the line item record was created.
      * <p>
-     * This method is designed for use by the DAO when reading a record from the database.
-     * The value is immutable once set.
+     * Sets the creation date for the line item. This method is public and intended for
+     * use by the Data Access Layer (DAO) when an object is loaded from or saved to the database.
+     * </p>
+     * <p>
+     * This method follows the convention of a leading underscore to indicate its special purpose:
+     * it should only be called once when an object's date is assigned, and it enforces that
+     * the date cannot be changed once set.
      * </p>
      *
-     * @param dateCreated The {@link LocalDateTime} to set as the creation timestamp.
+     * @param dateCreated The {@link LocalDateTime} to be set.
+     * @throws IllegalStateException if the date created has already been set.
+     * @throws IllegalArgumentException if the date created is null.
      */
     public void _setDateCreated(LocalDateTime dateCreated) {
         if (this.dateCreated.get() != null) {
@@ -507,21 +425,18 @@ public class LineItem {
     }
 
     /**
-     * Retrieves any additional notes or administrative comments for the line item.
-     * Corresponds to the {@code Notes} column in the database.
+     * Retrieves the notes associated with the line item.
      *
-     * @return The notes string, or {@code null} if no notes are present.
+     * @return The notes as a {@link String}, or {@code null} if no notes exist.
      */
     public String getNotes() {
         return notes.get();
     }
 
     /**
-     * Sets additional notes or internal comments for this line item.
-     * If the provided notes are not {@code null}, leading and trailing whitespace will be stripped.
-     * Corresponds to the {@code Notes} column in the database.
+     * Sets the notes for the line item.
      *
-     * @param notes The string containing notes to set. Can be {@code null}.
+     * @param notes The notes {@link String} to set. Can be {@code null}.
      */
     public void setNotes(String notes) {
         this.notes.set((notes != null) ? notes.strip() : null);
@@ -537,11 +452,11 @@ public class LineItem {
      * </p>
      * <p>
      * The format includes the line item ID, invoice ID, participant ID,
-     * benefit and personal payment amounts, paid and active status, and notes.
+     * benefit and personal payment amounts, paid and notes.
      * </p>
      *
      * @return A string in the format:
-     * "LineItem{lineItemID=..., invoiceID=..., participantID=..., benefitPayment=..., personalPayment=..., isPaid=..., isActive=..., deletedAt=..., dateCreated=..., notes=...}"
+     * "LineItem{lineItemID=..., invoiceID=..., participantID=..., benefitPayment=..., personalPayment=..., isPaid=..., dateCreated=..., notes=...}"
      */
     @Override
     public String toString() {
@@ -552,8 +467,6 @@ public class LineItem {
                 ", benefitPayment=" + getBenefitPayment() +
                 ", personalPayment=" + getPersonalPayment() +
                 ", isPaid=" + getIsPaid() +
-                ", isActive=" + getIsActive() +
-                ", deletedAt=" + getDeletedAt() +
                 ", dateCreated=" + getDateCreated() +
                 ", notes='" + getNotes() + '\'' +
                 '}';
