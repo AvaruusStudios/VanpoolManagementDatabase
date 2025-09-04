@@ -63,8 +63,6 @@ CREATE TABLE Invoices (
     DueDate TEXT NOT NULL,                                                                       -- Date the Participants are required to pay their share of the Invoice
     PeriodLabel TEXT NOT NULL,                                                                   -- Coverage period of the Invoice (eg. MMM YYYY)
     PaymentStatus TEXT NOT NULL DEFAULT 'UNPAID' CHECK (PaymentStatus IN ('UNPAID', 'PARTIALLY_PAID', 'PAID', 'OVERDUE', 'CANCELLED')), -- Payment status of the Invoice
-    IsActive INTEGER NOT NULL DEFAULT 1,                                                         -- 1=True, 0=False
-    DeletedAt TEXT DEFAULT NULL,
     Notes TEXT,                                                                                  -- Contextual Notes about the Invoice
     DateCreated TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (VehicleID_FK) REFERENCES Vehicles(VehicleID)
@@ -78,8 +76,6 @@ CREATE TABLE LineItems (
     BenefitPayment NUMERIC NOT NULL,                                        -- The amount the Participant is required to pay to their Benefit Card
     PersonalPayment NUMERIC NOT NULL,                                       -- The amount the Participant is required to pay to their personal credit card
     IsPaid INTEGER NOT NULL DEFAULT 0,                                      -- Did the Participant make their payment?
-    IsActive INTEGER NOT NULL DEFAULT 1,                                    -- 1=True, 0=False
-    DeletedAt TEXT DEFAULT NULL,
     Notes TEXT,                                                             -- Contextual Notes about the Invoice Item
     DateCreated TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (InvoiceID_FK) REFERENCES Invoices(InvoiceID),
