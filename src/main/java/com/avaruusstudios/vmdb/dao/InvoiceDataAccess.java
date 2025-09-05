@@ -33,7 +33,8 @@ import java.util.List;
  */
 public interface InvoiceDataAccess extends ReadDataAccess<Invoice, Integer>,
         CreateDataAccess<Invoice>,
-        UpdateDataAccess<Invoice> {
+        UpdateDataAccess<Invoice>,
+        DeleteDataAccess<Integer> {
     /**
      * <p>
      * Retrieves a list of {@link Invoice} records that fall within a specified date range

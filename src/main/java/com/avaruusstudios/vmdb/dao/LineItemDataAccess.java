@@ -36,7 +36,8 @@ import java.util.List;
  */
 public interface LineItemDataAccess extends ReadDataAccess<LineItem, Integer>,
         CreateDataAccess<LineItem>,
-        UpdateDataAccess<LineItem> {
+        UpdateDataAccess<LineItem>,
+        DeleteDataAccess<Integer> {
 
     /**
      * <p>
