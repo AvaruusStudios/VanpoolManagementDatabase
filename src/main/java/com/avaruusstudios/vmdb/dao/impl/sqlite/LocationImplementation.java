@@ -268,7 +268,7 @@ public class LocationImplementation implements LocationDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public Location createRecord(Location location) throws DatabaseAccessException {
+    public Location create(Location location) throws DatabaseAccessException {
         Objects.requireNonNull(location, "Location object cannot be null for creation.");
         if (location.getLocationID() != null) {
             throw new IllegalArgumentException("Location ID must be null for new location creation (auto-generated).");
@@ -342,7 +342,7 @@ public class LocationImplementation implements LocationDataAccess {
      * </p>
      */
     @Override
-    public void deleteRecord(Integer id) throws DatabaseAccessException {
+    public void delete(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "Location ID cannot be null for deletion.");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_DELETE_LOCATION_SOFT)) {
@@ -374,7 +374,7 @@ public class LocationImplementation implements LocationDataAccess {
      * </p>
      */
     @Override
-    public Optional<Location> readRecord(Integer id) throws DatabaseAccessException {
+    public Optional<Location> read(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "Location ID cannot be null for reading.");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_READ_LOCATION_RECORD)) {
@@ -407,7 +407,7 @@ public class LocationImplementation implements LocationDataAccess {
      * </p>
      */
     @Override
-    public List<Location> readRecordAll() throws DatabaseAccessException {
+    public List<Location> readAll() throws DatabaseAccessException {
         List<Location> locations = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_READ_ALL_LOCATION_RECORDS);
@@ -429,7 +429,7 @@ public class LocationImplementation implements LocationDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public long countRecord() throws DatabaseAccessException {
+    public long count() throws DatabaseAccessException {
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_COUNT_LOCATION_RECORDS);
              ResultSet rs = stmt.executeQuery()) {
@@ -479,7 +479,7 @@ public class LocationImplementation implements LocationDataAccess {
      * </p>
      */
     @Override
-    public void updateRecord(Location location) throws DatabaseAccessException {
+    public void update(Location location) throws DatabaseAccessException {
         Objects.requireNonNull(location, "Location object cannot be null for update.");
         Objects.requireNonNull(location.getLocationID(), "Location ID must not be null for update.");
 

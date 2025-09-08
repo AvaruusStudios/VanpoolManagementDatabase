@@ -64,5 +64,5 @@ public interface DeleteDataAccess<K> {
      * @throws DatabaseAccessException if a database access error occurs during the deletion process.
      * The underlying {@code SQLException} will be wrapped.
      */
-    boolean deleteRecord(K id) throws DatabaseAccessException;
+    boolean delete(K id) throws DatabaseAccessException;
 }

@@ -48,5 +48,5 @@ public interface UpdateDataAccess<T> {
      * or if the update operation otherwise fails (e.g., due to constraints).
      * The underlying {@code SQLException} will be wrapped.
      */
-    T updateRecord(T entity) throws DatabaseAccessException;
+    T update(T entity) throws DatabaseAccessException;
 }

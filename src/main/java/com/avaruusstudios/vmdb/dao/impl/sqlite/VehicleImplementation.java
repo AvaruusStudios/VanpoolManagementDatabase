@@ -205,7 +205,7 @@ public class VehicleImplementation implements VehicleDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public Vehicle createRecord(Vehicle vehicle) throws DatabaseAccessException {
+    public Vehicle create(Vehicle vehicle) throws DatabaseAccessException {
         Objects.requireNonNull(vehicle, "Vehicle object cannot be null for creation.");
         if (vehicle.getVehicleID() != null) {
             throw new IllegalArgumentException("Vehicle ID must be null for new vehicle creation (auto-generated).");
@@ -271,7 +271,7 @@ public class VehicleImplementation implements VehicleDataAccess {
      * </p>
      */
     @Override
-    public void deleteRecord(Integer id) throws DatabaseAccessException {
+    public void delete(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "Vehicle ID cannot be null for deletion.");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_DELETE_VEHICLE_SOFT)) {
@@ -303,7 +303,7 @@ public class VehicleImplementation implements VehicleDataAccess {
      * </p>
      */
     @Override
-    public Optional<Vehicle> readRecord(Integer id) throws DatabaseAccessException {
+    public Optional<Vehicle> read(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "Vehicle ID cannot be null for reading.");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_READ_VEHICLE_RECORD)) {
@@ -336,7 +336,7 @@ public class VehicleImplementation implements VehicleDataAccess {
      * </p>
      */
     @Override
-    public List<Vehicle> readRecordAll() throws DatabaseAccessException {
+    public List<Vehicle> readAll() throws DatabaseAccessException {
         List<Vehicle> vehicles = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_READ_ALL_VEHICLE_RECORDS);
@@ -358,7 +358,7 @@ public class VehicleImplementation implements VehicleDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public long countRecord() throws DatabaseAccessException {
+    public long count() throws DatabaseAccessException {
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_COUNT_VEHICLE_RECORDS);
              ResultSet rs = stmt.executeQuery()) {
@@ -408,7 +408,7 @@ public class VehicleImplementation implements VehicleDataAccess {
      * </p>
      */
     @Override
-    public void updateRecord(Vehicle vehicle) throws DatabaseAccessException {
+    public void update(Vehicle vehicle) throws DatabaseAccessException {
         Objects.requireNonNull(vehicle, "Vehicle object cannot be null for update.");
         Objects.requireNonNull(vehicle.getVehicleID(), "Vehicle ID must not be null for update.");
         Objects.requireNonNull(vehicle.getMake(), "Make cannot be null for vehicle update.");
