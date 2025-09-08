@@ -197,7 +197,7 @@ public class TransactionImplementation implements TransactionDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public Transaction createRecord(Transaction transaction) throws DatabaseAccessException {
+    public Transaction create(Transaction transaction) throws DatabaseAccessException {
         Objects.requireNonNull(transaction, "Transaction object cannot be null for creation.");
         if (transaction.getTransactionID() != null) {
             throw new IllegalArgumentException("Transaction ID must be null for new transaction creation (auto-generated).");
@@ -258,7 +258,7 @@ public class TransactionImplementation implements TransactionDataAccess {
      * </p>
      */
     @Override
-    public void deleteRecord(Integer id) throws DatabaseAccessException {
+    public void delete(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "Transaction ID cannot be null for deletion.");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_DELETE_TRANSACTION_SOFT)) {
@@ -290,7 +290,7 @@ public class TransactionImplementation implements TransactionDataAccess {
      * </p>
      */
     @Override
-    public Optional<Transaction> readRecord(Integer id) throws DatabaseAccessException {
+    public Optional<Transaction> read(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "Transaction ID cannot be null for reading.");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_READ_TRANSACTION_RECORD)) {
@@ -323,7 +323,7 @@ public class TransactionImplementation implements TransactionDataAccess {
      * </p>
      */
     @Override
-    public List<Transaction> readRecordAll() throws DatabaseAccessException {
+    public List<Transaction> readAll() throws DatabaseAccessException {
         List<Transaction> transactions = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_READ_ALL_TRANSACTION_RECORD);
@@ -345,7 +345,7 @@ public class TransactionImplementation implements TransactionDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public long countRecord() throws DatabaseAccessException {
+    public long count() throws DatabaseAccessException {
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_COUNT_TRANSACTION_RECORD);
              ResultSet rs = stmt.executeQuery()) {
@@ -395,7 +395,7 @@ public class TransactionImplementation implements TransactionDataAccess {
      * </p>
      */
     @Override
-    public void updateRecord(Transaction transaction) throws DatabaseAccessException {
+    public void update(Transaction transaction) throws DatabaseAccessException {
         Objects.requireNonNull(transaction, "Transaction object cannot be null for update.");
         Objects.requireNonNull(transaction.getTransactionID(), "Transaction ID must not be null for update.");
 

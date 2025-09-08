@@ -233,7 +233,7 @@ public class CategoryImplementation implements CategoryDataAccess {
      * </p>
      */
     @Override
-    public Category createRecord(Category category) throws DatabaseAccessException {
+    public Category create(Category category) throws DatabaseAccessException {
         Objects.requireNonNull(category, "Category object cannot be null for creation.");
         Objects.requireNonNull(category.getCategoryType(), "Category type cannot be null for creation.");
         Objects.requireNonNull(category.getCategoryName(), "Category name cannot be null for creation.");
@@ -288,7 +288,7 @@ public class CategoryImplementation implements CategoryDataAccess {
      * </p>
      */
     @Override
-    public void deleteRecord(Integer id) throws DatabaseAccessException {
+    public void delete(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "Category ID cannot be null for deletion.");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_DELETE_CATEGORY_SOFT)) {
@@ -314,7 +314,7 @@ public class CategoryImplementation implements CategoryDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public Optional<Category> readRecord(Integer id) throws DatabaseAccessException {
+    public Optional<Category> read(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "Category ID cannot be null for reading.");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_READ_CATEGORY_RECORD)) {
@@ -341,7 +341,7 @@ public class CategoryImplementation implements CategoryDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public List<Category> readRecordAll() throws DatabaseAccessException {
+    public List<Category> readAll() throws DatabaseAccessException {
         List<Category> categories = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_READ_ALL_CATEGORY_RECORD);
@@ -363,7 +363,7 @@ public class CategoryImplementation implements CategoryDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public long countRecord() throws DatabaseAccessException {
+    public long count() throws DatabaseAccessException {
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_COUNT_CATEGORY_RECORD);
              ResultSet rs = stmt.executeQuery()) {
@@ -414,7 +414,7 @@ public class CategoryImplementation implements CategoryDataAccess {
      * </p>
      */
     @Override
-    public void updateRecord(Category category) throws DatabaseAccessException {
+    public void update(Category category) throws DatabaseAccessException {
         Objects.requireNonNull(category, "Category object cannot be null for update.");
         Objects.requireNonNull(category.getCategoryID(), "Category ID must not be null for update.");
         Objects.requireNonNull(category.getCategoryType(), "Category type cannot be null for update.");

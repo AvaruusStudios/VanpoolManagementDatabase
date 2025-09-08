@@ -56,7 +56,7 @@ public interface ReadDataAccess<T, K> {
      * @throws DatabaseAccessException if a database access error occurs during the retrieval process.
      * The underlying {@code SQLException} will be wrapped.
      */
-    Optional<T> readRecord(K id) throws DatabaseAccessException;
+    Optional<T> read(K id) throws DatabaseAccessException;
 
     /**
      * <p>
@@ -76,7 +76,7 @@ public interface ReadDataAccess<T, K> {
      * @throws DatabaseAccessException if a database access error occurs during the retrieval process.
      * The underlying {@code SQLException} will be wrapped.
      */
-    List<T> readRecordAll() throws DatabaseAccessException;
+    List<T> readAll() throws DatabaseAccessException;
 
     /**
      * <p>
@@ -90,12 +90,12 @@ public interface ReadDataAccess<T, K> {
      * @throws DatabaseAccessException if a database access error occurs during the counting process.
      * The underlying {@code SQLException} will be wrapped.
      */
-    long countRecord() throws DatabaseAccessException;
+    long count() throws DatabaseAccessException;
 
     /**
      * <p>
      * Checks if a record of the entity with the specified primary key exists in the database.
-     * This method is more efficient than {@link #readRecord(Object)} when only
+     * This method is more efficient than {@link #read(Object)} when only
      * existence needs to be verified, as it avoids fetching the entire entity object.
      * </p>
      *

@@ -192,7 +192,7 @@ public class UserImplementation implements UserDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public User createRecord(User user) throws DatabaseAccessException {
+    public User create(User user) throws DatabaseAccessException {
         Objects.requireNonNull(user, "User object cannot be null for creation.");
         if (user.getUserId() != null) {
             throw new IllegalArgumentException("User ID must be null for new user creation (auto-generated).");
@@ -241,7 +241,7 @@ public class UserImplementation implements UserDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public boolean deleteRecord(Integer id) throws DatabaseAccessException {
+    public boolean delete(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "User ID cannot be null for deletion.");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_DELETE_USER_SOFT)) {
@@ -269,7 +269,7 @@ public class UserImplementation implements UserDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public Optional<User> readRecord(Integer id) throws DatabaseAccessException {
+    public Optional<User> read(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "User ID cannot be null for reading.");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_READ_USER_RECORD)) {
@@ -296,7 +296,7 @@ public class UserImplementation implements UserDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public List<User> readRecordAll() throws DatabaseAccessException {
+    public List<User> readAll() throws DatabaseAccessException {
         List<User> users = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_READ_ALL_USER_RECORDS);
@@ -318,7 +318,7 @@ public class UserImplementation implements UserDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public long countRecord() throws DatabaseAccessException {
+    public long count() throws DatabaseAccessException {
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_COUNT_USER_RECORDS);
              ResultSet rs = stmt.executeQuery()) {
@@ -361,7 +361,7 @@ public class UserImplementation implements UserDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public User updateRecord(User user) throws DatabaseAccessException {
+    public User update(User user) throws DatabaseAccessException {
         Objects.requireNonNull(user, "User object cannot be null for update.");
         Objects.requireNonNull(user.getUserId(), "User ID must not be null for update.");
         Objects.requireNonNull(user.getWindowsUsername(), "WindowsUsername cannot be null for user update.");

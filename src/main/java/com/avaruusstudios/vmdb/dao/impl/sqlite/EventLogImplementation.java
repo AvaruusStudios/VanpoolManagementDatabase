@@ -203,7 +203,7 @@ public class EventLogImplementation implements EventLogDataAccess {
      * @throws IllegalArgumentException If the `eventLog` object already has a non-null `EventID`.
      */
     @Override
-    public EventLog createRecord(EventLog eventLog) throws DatabaseAccessException {
+    public EventLog create(EventLog eventLog) throws DatabaseAccessException {
         Objects.requireNonNull(eventLog, "EventLog object cannot be null for creation.");
         if (eventLog.getEventID() != null) {
             throw new IllegalArgumentException("EventLog ID must be null for new event log creation (auto-generated).");
@@ -277,7 +277,7 @@ public class EventLogImplementation implements EventLogDataAccess {
      * @throws NullPointerException    If the provided `id` is {@code null}.
      */
     @Override
-    public Optional<EventLog> readRecord(Integer id) throws DatabaseAccessException {
+    public Optional<EventLog> read(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "EventLog ID cannot be null for reading.");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_READ_EVENT_LOG_RECORD)) {
@@ -313,7 +313,7 @@ public class EventLogImplementation implements EventLogDataAccess {
      * @throws DatabaseAccessException If a database access error occurs during the read operation.
      */
     @Override
-    public List<EventLog> readRecordAll() throws DatabaseAccessException {
+    public List<EventLog> readAll() throws DatabaseAccessException {
         List<EventLog> eventLogs = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_READ_ALL_EVENT_LOG_RECORD);
@@ -341,7 +341,7 @@ public class EventLogImplementation implements EventLogDataAccess {
      * @throws DatabaseAccessException If a database access error occurs during the count operation.
      */
     @Override
-    public long countRecord() throws DatabaseAccessException {
+    public long count() throws DatabaseAccessException {
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_COUNT_EVENT_LOG_RECORD);
              ResultSet rs = stmt.executeQuery()) {

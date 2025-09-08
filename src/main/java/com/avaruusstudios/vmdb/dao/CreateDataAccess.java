@@ -50,5 +50,5 @@ public interface CreateDataAccess<T> {
      * or if the creation operation otherwise fails. The underlying
      * {@code SQLException} will be wrapped within this custom exception.
      */
-    T createRecord(T entity) throws DatabaseAccessException;
+    T create(T entity) throws DatabaseAccessException;
 }
