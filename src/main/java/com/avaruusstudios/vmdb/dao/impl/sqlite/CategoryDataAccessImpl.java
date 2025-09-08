@@ -24,7 +24,7 @@ import java.util.Optional;
 
 /**
  * <p>
- * {@code CategoryImplementation} provides a concrete implementation of the {@link CategoryDataAccess}
+ * {@code CategoryDataAccessImpl} provides a concrete implementation of the {@link CategoryDataAccess}
  * interface, specifically designed for SQLite databases. This class handles all CRUD (Create, Read, Update, Delete)
  * and specialized data access operations for {@link Category} entities.
  * </p>
@@ -48,11 +48,11 @@ import java.util.Optional;
  * @see Category
  * @see DatabaseManager
  */
-public class CategoryImplementation implements CategoryDataAccess {
+public class CategoryDataAccessImpl implements CategoryDataAccess {
     /**
-     * SLF4J Logger for logging informational messages, warnings, and errors within the {@code CategoryImplementation} class.
+     * SLF4J Logger for logging informational messages, warnings, and errors within the {@code CategoryDataAccessImpl} class.
      */
-    private static final Logger logger = LoggerFactory.getLogger(CategoryImplementation.class);
+    private static final Logger logger = LoggerFactory.getLogger(CategoryDataAccessImpl.class);
 
     /**
      * DateTimeFormatter for parsing and formatting `LocalDate` objects to/from database strings in "yyyy-MM-dd" format.
@@ -84,9 +84,9 @@ public class CategoryImplementation implements CategoryDataAccess {
             SQL_FIND_CATEGORIES_BY_TYPE = QueryLoader.getQuery("category/selectCategoriesByType.sql");
             SQL_FIND_DISTINCT_CATEGORY_TYPES = QueryLoader.getQuery("category/selectDistinctCategoryTypes.sql");
 
-            logger.info("All SQL queries for CategoryImplementation loaded successfully.");
+            logger.info("All SQL queries for CategoryDataAccessImpl loaded successfully.");
         } catch (IllegalArgumentException e) {
-            logger.error("Failed to load one or more SQL queries for CategoryImplementation. Check .sql files and paths.", e);
+            logger.error("Failed to load one or more SQL queries for CategoryDataAccessImpl. Check .sql files and paths.", e);
             throw new ExceptionInInitializerError(e);
         }
     }
@@ -288,7 +288,7 @@ public class CategoryImplementation implements CategoryDataAccess {
      * </p>
      */
     @Override
-    public void delete(Integer id) throws DatabaseAccessException {
+    public boolean delete(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "Category ID cannot be null for deletion.");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_DELETE_CATEGORY_SOFT)) {
@@ -301,8 +301,10 @@ public class CategoryImplementation implements CategoryDataAccess {
 
             if (affectedRows == 0) {
                 logger.warn("No category found with ID: {} for soft-deletion.", id);
+                return false;
             } else {
                 logger.info("Successfully soft-deleted category with ID: {}", id);
+                return true;
             }
         } catch (SQLException e) {
             logger.error("Error soft-deleting category record with ID {}: {}", id, e.getMessage(), e);
@@ -414,7 +416,7 @@ public class CategoryImplementation implements CategoryDataAccess {
      * </p>
      */
     @Override
-    public void update(Category category) throws DatabaseAccessException {
+    public Category update(Category category) throws DatabaseAccessException {
         Objects.requireNonNull(category, "Category object cannot be null for update.");
         Objects.requireNonNull(category.getCategoryID(), "Category ID must not be null for update.");
         Objects.requireNonNull(category.getCategoryType(), "Category type cannot be null for update.");
@@ -437,6 +439,7 @@ public class CategoryImplementation implements CategoryDataAccess {
                 throw new DatabaseAccessException("Category with ID " + category.getCategoryID() + " not found for update.");
             } else {
                 logger.info("Successfully updated category with ID: {}", category.getCategoryID());
+                return category;
             }
         } catch (SQLException e) {
             logger.error("Error updating category record with ID {}: {}", category.getCategoryID(), e.getMessage(), e);
