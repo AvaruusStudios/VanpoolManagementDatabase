@@ -77,12 +77,12 @@ import java.util.Optional;
  * @see UpdateDataAccess
  * @see DeleteDataAccess
  */
-public class LocationImplementation implements LocationDataAccess {
+public class LocationDataAccessImpl implements LocationDataAccess {
 
     /**
      * SLF4J logger for logging informational messages, warnings, and errors within the {@code LocationImplementation} class.
      */
-    private static final Logger logger = LoggerFactory.getLogger(LocationImplementation.class);
+    private static final Logger logger = LoggerFactory.getLogger(LocationDataAccessImpl.class);
 
     /**
      * <p>
@@ -342,7 +342,7 @@ public class LocationImplementation implements LocationDataAccess {
      * </p>
      */
     @Override
-    public void delete(Integer id) throws DatabaseAccessException {
+    public boolean delete(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "Location ID cannot be null for deletion.");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_DELETE_LOCATION_SOFT)) {
@@ -355,8 +355,10 @@ public class LocationImplementation implements LocationDataAccess {
 
             if (affectedRows == 0) {
                 logger.warn("No location found with ID: {} for soft-deletion.", id);
+                return false;
             } else {
                 logger.info("Successfully soft-deleted location with ID: {}", id);
+                return true;
             }
         } catch (SQLException e) {
             logger.error("Error soft-deleting location record with ID {}: {}", id, e.getMessage(), e);
@@ -479,7 +481,7 @@ public class LocationImplementation implements LocationDataAccess {
      * </p>
      */
     @Override
-    public void update(Location location) throws DatabaseAccessException {
+    public Location update(Location location) throws DatabaseAccessException {
         Objects.requireNonNull(location, "Location object cannot be null for update.");
         Objects.requireNonNull(location.getLocationID(), "Location ID must not be null for update.");
 
@@ -517,6 +519,7 @@ public class LocationImplementation implements LocationDataAccess {
                 throw new DatabaseAccessException("Location with ID " + location.getLocationID() + " not found for update.");
             } else {
                 logger.info("Successfully updated location with ID: {}", location.getLocationID());
+                return location;
             }
         } catch (SQLException e) {
             logger.error("Error updating location record with ID {}: {}", location.getLocationID(), e.getMessage(), e);
