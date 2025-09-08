@@ -83,7 +83,7 @@ public class UserServiceImpl implements UserService {
         if (existingUser.isPresent()) {
             return null;
         }
-        return userDataAccess.createRecord(user);
+        return userDataAccess.create(user);
     }
 
     /**
@@ -98,7 +98,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public User findUserById(Integer id) {
-        Optional<User> userOptional = userDataAccess.readRecord(id);
+        Optional<User> userOptional = userDataAccess.read(id);
         return userOptional.orElse(null);
     }
 
@@ -112,7 +112,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public List<User> findAllUsers() {
-        return userDataAccess.readRecordAll(); // FIX: Changed method name
+        return userDataAccess.readAll(); // FIX: Changed method name
     }
 
     /**
@@ -146,7 +146,7 @@ public class UserServiceImpl implements UserService {
             return null;
         }
 
-        return userDataAccess.updateRecord(user); // FIX: Now returns a User object
+        return userDataAccess.update(user); // FIX: Now returns a User object
     }
 
     /**
@@ -170,7 +170,7 @@ public class UserServiceImpl implements UserService {
         if (!userDataAccess.existsById(id)) {
             return false;
         }
-        return userDataAccess.deleteRecord(id); // FIX: Now returns a boolean
+        return userDataAccess.delete(id); // FIX: Now returns a boolean
     }
 
     /**
@@ -213,7 +213,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public long countAll() {
-        return userDataAccess.countRecord(); // FIX: Changed method name
+        return userDataAccess.count(); // FIX: Changed method name
     }
 
     /**
