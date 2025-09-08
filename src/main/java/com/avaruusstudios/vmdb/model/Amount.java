@@ -31,6 +31,13 @@ import java.util.Objects;
  * Created On: 2025-07-12
  * Updated On: 2025-07-12
  */
+
+/**
+ * @deprecated This class is no longer used. Individual BigDecimal fields
+ * have been moved to the LineItem class for simplification.
+ * Do not use in new code.
+ */
+@Deprecated
 public final class Amount {
     /**
      * <p>
