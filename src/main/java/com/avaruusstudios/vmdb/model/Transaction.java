@@ -2,136 +2,127 @@ package com.avaruusstudios.vmdb.model;
 
 import javafx.beans.property.*;
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 /**
  * <p>
  * Represents a single financial transaction within the Vanpool Management System.
  * Transactions record financial movements, such as expenses (fuel, maintenance),
- * income (participant payments), or credits.
+ * income (participant payments), or credits. This entity is designed to be the core
+ * record for auditing and reconciliation.
  * </p>
  *
  * <p>
- * Each transaction is uniquely identified ({@code TransactionID INTEGER PRIMARY KEY AUTOINCREMENT})
- * and includes details about the associated category ({@code CategoryID_FK INTEGER NOT NULL}),
- * an optional link to an invoice ({@code InvoiceID_FK INTEGER}), the date ({@code TransactionDate TEXT NOT NULL}),
- * the monetary amount ({@code Amount NUMERIC NOT NULL}), the payment method ({@code PaymentMethod TEXT}),
- * `IsActive` ({@code INTEGER NOT NULL DEFAULT 1}), `DeletedAt` ({@code TEXT DEFAULT NULL}),
- * and any contextual notes ({@code Notes TEXT}).
- * This class directly maps to the `Transactions` table in the SQLite database.
- * All properties are exposed as JavaFX Properties for UI binding.
+ * This class directly maps to the {@code Transactions} table in the SQLite database.
+ * Key properties include:
+ * <ul>
+ * <li>{@code TransactionID INTEGER PRIMARY KEY AUTOINCREMENT}</li>
+ * <li>{@code CategoryID_FK INTEGER NOT NULL}</li>
+ * <li>{@code InvoiceID_FK INTEGER} (optional link to an invoice)</li>
+ * <li>{@code TransactionDate TEXT NOT NULL} (mapped to **{@link LocalDateTime}** for time precision)</li>
+ * <li>{@code Amount NUMERIC NOT NULL} (uses **{@link BigDecimal}** for financial precision)</li>
+ * <li>{@code PaymentMethod TEXT}</li>
+ * <li>{@code IsActive INTEGER NOT NULL DEFAULT 1} (for soft deletion)</li>
+ * <li>{@code DeletedAt TEXT DEFAULT NULL} (mapped to **{@link LocalDateTime}** for precise deletion timestamp)</li>
+ * <li>{@code Notes TEXT} (for general contextual information)</li>
+ * </ul>
+ * All properties are exposed as JavaFX Properties for UI data binding.
  * </p>
  *
  * @author AvaruusStudios
- * @version 1.4
+ * @version 2.0
  * Created On: 2025-07-11
- * Updated On: 2025-07-26
+ * Updated On: 2025-09-20
  *
  * @see Category
  * @see Invoice
  * @see PaymentMethod
+ * @see java.math.BigDecimal
+ * @see java.time.LocalDateTime
  */
 public class Transaction {
+    // --- Model Fields ---
+
     /**
      * Unique identifier for the transaction. This serves as the primary key
-     * in the database for transaction records ({@code TransactionID INTEGER PRIMARY KEY AUTOINCREMENT}).
-     * <p>
-     * For a newly created transaction not yet persisted to the database, this value will be {@code null}.
-     * Once assigned by the database, it becomes immutable and is exposed as a {@link ReadOnlyObjectProperty}.
-     * </p>
+     * in the database ({@code TransactionID INTEGER PRIMARY KEY AUTOINCREMENT}).
+     * It is exposed as a {@link ReadOnlyObjectProperty}.
      */
     private final ReadOnlyObjectProperty<Integer> transactionID;
     /**
      * The {@link Category} object that classifies this transaction.
-     * This link is crucial for determining if the transaction is income, expense, or credit.
-     * This field is **required** (corresponds to {@code CategoryID_FK INTEGER NOT NULL} in the database)
-     * and is exposed as an {@link ObjectProperty} of {@link Category}.
+     * This field is **required** (corresponds to {@code CategoryID_FK INTEGER NOT NULL}).
      */
     private final ObjectProperty<Category> category;
     /**
      * The {@link Invoice} object this transaction is associated with, if any.
-     * This field is optional (corresponds to {@code InvoiceID_FK INTEGER} in the database),
-     * meaning not all transactions are linked to an invoice.
-     * It is exposed as an {@link ObjectProperty} of {@link Invoice}.
+     * This field is optional (corresponds to {@code InvoiceID_FK INTEGER}).
      */
     private final ObjectProperty<Invoice> invoice;
     /**
-     * The date on which the transaction occurred.
-     * This field is **required** (corresponds to {@code TransactionDate TEXT NOT NULL} in the database)
-     * and is exposed as an {@link ObjectProperty} of {@link LocalDate}.
+     * The date and **time** on which the transaction occurred.
+     * This field is **required** and uses {@link LocalDateTime} for financial auditing precision.
      */
-    private final ObjectProperty<LocalDate> transactionDate;
+    private final ObjectProperty<LocalDateTime> transactionDate;
     /**
      * The monetary amount of the transaction.
-     * This field is **required** and stored as a {@link BigDecimal} for precision
-     * (corresponds to {@code Amount NUMERIC NOT NULL} in the database).
-     * It is exposed as an {@link ObjectProperty} of {@link BigDecimal}.
+     * This field is **required** and stored as a {@link BigDecimal} for precision.
      */
     private final ObjectProperty<BigDecimal> amount;
     /**
-     * The method of payment used for this transaction (e.g., {@link PaymentMethod#VISA}).
-     * This field is optional (corresponds to {@code PaymentMethod TEXT} in the database, where the enum's `dbValue` would be stored).
-     * It is exposed as an {@link ObjectProperty} of {@link PaymentMethod}.
+     * The method of payment used for this transaction.
+     * This field is optional.
      */
     private final ObjectProperty<PaymentMethod> paymentMethod;
-
     /**
      * Flag indicating if the transaction is currently active ({@code true}) or has been soft-deleted ({@code false}).
      * Corresponds to the `IsActive` column in the database ({@code INTEGER NOT NULL DEFAULT 1}).
      */
     private final BooleanProperty isActive;
-
     /**
-     * The date when the transaction was soft-deleted.
-     * This field is {@code null} if the transaction is active.
-     * Corresponds to the `DeletedAt` column in the database ({@code TEXT DEFAULT NULL}).
+     * The date and **time** when the transaction was soft-deleted.
+     * This field is {@code null} if the transaction is active, and uses {@link LocalDateTime} for full timestamp accuracy.
      */
-    private final ObjectProperty<LocalDate> deletedAt;
-
+    private final ObjectProperty<LocalDateTime> deletedAt;
     /**
      * Optional notes or contextual information about the transaction.
-     * This field is optional (corresponds to {@code Notes TEXT} in the database)
-     * and is exposed as a {@link StringProperty}.
+     * This field is optional (corresponds to {@code Notes TEXT} in the database).
      */
     private final StringProperty notes;
 
 
+    // --- Constructors ---
+
     /**
-     * Default constructor for creating an empty {@code Transaction} object.
-     * The {@code transactionID} is set to {@code null} to explicitly indicate that
-     * this transaction has not yet been assigned a unique ID by the database.
-     * The {@code amount} is initialized to {@link BigDecimal#ZERO}.
-     * Other properties are initialized to their default JavaFX Property values.
-     * This constructor is primarily used by frameworks that instantiate objects
-     * via reflection (e.g., ORMs, JSON deserializers) before populating their fields.
+     * Default constructor for creating a new, empty {@code Transaction} object.
+     * Initializes a new, unpersisted transaction with default values: ID is {@code null},
+     * transaction date is now, amount is zero, and status is active.
      */
     public Transaction() {
-        // Initialize with default values for a new, unpersisted transaction
-        this(null, new Category(), null, LocalDate.now(), BigDecimal.ZERO, null, true, null, "");
+        this(null, new Category(), null, LocalDateTime.now(), BigDecimal.ZERO, null, true, null, "");
     }
 
     /**
-     * Full constructor to initialize all fields of a {@code Transaction} instance.
-     * This constructor is typically used when loading an *existing* transaction
-     * record from the database, where {@code transactionID} has already been assigned.
-     * All parameters are validated via their respective setters.
+     * Full constructor to initialize all fields of a {@code Transaction} instance, typically used when loading
+     * an *existing* record from the database.
      *
-     * @param transactionID   The unique integer ID for the transaction, typically assigned by the database. Can be {@code null} for new transactions.
-     * @param category        The {@link Category} object that classifies this transaction. Must not be {@code null}.
-     * @param invoice         The {@link Invoice} object linked to this transaction, or {@code null} if none.
-     * @param transactionDate The date of the transaction. Must not be {@code null}.
-     * @param amount          The monetary amount of the transaction. Must not be {@code null}.
-     * @param paymentMethod   The {@link PaymentMethod} used for payment. Can be {@code null}.
-     * @param isActive        The active status of the transaction (true for active, false for soft-deleted).
-     * @param deletedAt       The date when the transaction was soft-deleted (null if active).
-     * @param notes           Any optional notes or additional information about the transaction. Can be {@code null}.
-     * @throws IllegalArgumentException if any mandatory argument is invalid (e.g., null).
-     * @throws IllegalStateException    if `transactionID` is attempted to be changed once set.
+     * @param transactionID   The unique integer ID for the transaction, or {@code null} for new entities.
+     * @param category        The classification category. Must not be {@code null}.
+     * @param invoice         The linked invoice, or {@code null}.
+     * @param transactionDate The date and time of the transaction. Must not be {@code null}.
+     * @param amount          The monetary amount. Must not be {@code null} and must be non-negative.
+     * @param paymentMethod   The method of payment, or {@code null}.
+     * @param isActive        The active status.
+     * @param deletedAt       The date and time of soft-deletion, or {@code null} if active.
+     * @param notes           Any optional notes, or {@code null}.
+     * @throws IllegalArgumentException if any mandatory argument is invalid (e.g., null category or date).
+     * @throws IllegalStateException    if {@code transactionID} is attempted to be changed once set.
      */
     public Transaction(Integer transactionID, Category category, Invoice invoice,
-                       LocalDate transactionDate, BigDecimal amount, PaymentMethod paymentMethod,
-                       boolean isActive, LocalDate deletedAt, String notes) {
+                       LocalDateTime transactionDate, BigDecimal amount, PaymentMethod paymentMethod,
+                       boolean isActive, LocalDateTime deletedAt, String notes) {
         this.transactionID = new SimpleObjectProperty<>(this, "transactionID", transactionID);
         this.category = new SimpleObjectProperty<>(this, "category");
         this.invoice = new SimpleObjectProperty<>(this, "invoice");
@@ -142,34 +133,31 @@ public class Transaction {
         this.deletedAt = new SimpleObjectProperty<>(this, "deletedAt", deletedAt);
         this.notes = new SimpleStringProperty(this, "notes");
 
-        // Setters will apply validation
+        // Setters apply validation
         setCategory(category);
         setInvoice(invoice);
         setTransactionDate(transactionDate);
         setAmount(amount);
         setPaymentMethod(paymentMethod);
-        // isActive and deletedAt are set directly in property initialization from constructor args.
         setNotes(notes);
     }
 
     /**
-     * Convenience constructor for creating a new {@code Transaction} object that doesn't yet have a database ID.
+     * Convenience constructor for creating a new {@code Transaction} object, omitting the auto-generated ID.
      * This constructor is ideal when preparing a new transaction record for **insertion** into the database.
-     * The {@code transactionID} is omitted as it is typically auto-generated by the database.
-     * All parameters are validated via their respective setters.
-     * New transactions are by default active and have a null deletedAt date.
+     * New transactions are initialized as active with a null deletion time.
      *
-     * @param category        The {@link Category} object that classifies this transaction. Must not be {@code null}.
-     * @param invoice         The {@link Invoice} object linked to this transaction, or {@code null} if none.
-     * @param transactionDate The date of the transaction. Must not be {@code null}.
-     * @param amount          The monetary amount of the transaction. Must not be {@code null}.
-     * @param paymentMethod   The {@link PaymentMethod} used for payment. Can be {@code null}.
-     * @param notes           Any optional notes or additional information about the transaction. Can be {@code null}.
-     * @throws IllegalArgumentException if any mandatory argument is invalid (e.g., null).
+     * @param category        The classification category. Must not be {@code null}.
+     * @param invoice         The linked invoice, or {@code null}.
+     * @param transactionDate The date and time of the transaction. Must not be {@code null}.
+     * @param amount          The monetary amount. Must not be {@code null} and must be non-negative.
+     * @param paymentMethod   The method of payment, or {@code null}.
+     * @param notes           Any optional notes, or {@code null}.
+     * @throws IllegalArgumentException if any mandatory argument is invalid.
      */
     public Transaction(Category category, Invoice invoice,
-                       LocalDate transactionDate, BigDecimal amount, PaymentMethod paymentMethod, String notes) {
-        // Delegate to the full constructor with null for transactionID for a new entity, and default isActive/deletedAt
+                       LocalDateTime transactionDate, BigDecimal amount, PaymentMethod paymentMethod, String notes) {
+        // Delegate to the full constructor with null for ID, and default isActive=true, deletedAt=null
         this(null, category, invoice, transactionDate, amount, paymentMethod, true, null, notes);
     }
 
@@ -209,12 +197,12 @@ public class Transaction {
     }
 
     /**
-     * Retrieves the {@link ObjectProperty} for the date on which this transaction occurred.
+     * Retrieves the {@link ObjectProperty} for the date and time on which this transaction occurred.
      * This property corresponds to the {@code TransactionDate} column in the database.
      *
-     * @return The {@link ObjectProperty} for {@code transactionDate}.
+     * @return The {@link ObjectProperty} for {@code transactionDate}, a {@link LocalDateTime}.
      */
-    public ObjectProperty<LocalDate> transactionDateProperty() {
+    public ObjectProperty<LocalDateTime> transactionDateProperty() {
         return transactionDate;
     }
 
@@ -222,7 +210,7 @@ public class Transaction {
      * Retrieves the {@link ObjectProperty} for the monetary amount of this transaction.
      * This property corresponds to the {@code Amount} column in the database.
      *
-     * @return The {@link ObjectProperty} for {@code amount}.
+     * @return The {@link ObjectProperty} for {@code amount}, a {@link BigDecimal}.
      */
     public ObjectProperty<BigDecimal> amountProperty() {
         return amount;
@@ -240,7 +228,7 @@ public class Transaction {
 
     /**
      * Retrieves the {@link BooleanProperty} indicating if the transaction is active.
-     * This property corresponds to the `IsActive` column in the database.
+     * This property corresponds to the `IsActive` column in the database, used for soft-deletion.
      *
      * @return The {@link BooleanProperty} for `isActive`.
      */
@@ -249,12 +237,12 @@ public class Transaction {
     }
 
     /**
-     * Retrieves the {@link ObjectProperty} for the date when the transaction was soft-deleted.
+     * Retrieves the {@link ObjectProperty} for the date and time when the transaction was soft-deleted.
      * This property corresponds to the `DeletedAt` column in the database.
      *
-     * @return The {@link ObjectProperty} for `deletedAt`.
+     * @return The {@link ObjectProperty} for {@code deletedAt}, a {@link LocalDateTime}.
      */
-    public ObjectProperty<LocalDate> deletedAtProperty() {
+    public ObjectProperty<LocalDateTime> deletedAtProperty() {
         return deletedAt;
     }
 
@@ -275,26 +263,21 @@ public class Transaction {
      * For new, unpersisted transactions, this will be {@code null}.
      * Corresponds to the {@code TransactionID} column in the database.
      *
-     * @return The {@link Integer} primary key used to identify this transaction record, or {@code null} if not yet assigned.
+     * @return The {@link Integer} primary key, or {@code null} if not yet assigned.
      */
     public Integer getTransactionID() {
         return transactionID.get();
     }
 
     /**
-     * Sets the unique ID for this transaction. This method is designed to be public
-     * and is primarily for use by data access objects (DAOs) when an ID is generated
-     * by the database upon insertion.
-     * <p>
-     * It includes a check to prevent the ID from being modified once it has been set,
-     * ensuring the immutability of the primary key.
-     * </p>
+     * Sets the unique ID for this transaction. This method is primarily for use by data access objects (DAOs)
+     * when an ID is generated by the database upon insertion.
      *
      * @param id The unique integer ID assigned by the database.
      * @throws IllegalStateException    if the ID has already been assigned to this object.
      * @throws IllegalArgumentException if the provided ID is {@code null} or non-positive.
      */
-    public void _setTransactionID(Integer id) { // Changed to public
+    public void _setTransactionID(Integer id) {
         if (this.transactionID.get() != null) {
             throw new IllegalStateException("Transaction ID cannot be changed once set.");
         }
@@ -347,24 +330,24 @@ public class Transaction {
     }
 
     /**
-     * Retrieves the date on which this transaction occurred.
+     * Retrieves the date and time on which this transaction occurred.
      * Corresponds to the {@code TransactionDate} column in the database.
      *
-     * @return The transaction date.
+     * @return The transaction date and time as a {@link LocalDateTime}.
      */
-    public LocalDate getTransactionDate() {
+    public LocalDateTime getTransactionDate() {
         return transactionDate.get();
     }
 
     /**
-     * Sets the date on which this transaction occurred.
+     * Sets the date and time on which this transaction occurred.
      *
-     * @param transactionDate The transaction date to set. Must not be {@code null}.
+     * @param transactionDate The transaction date and time to set. Must not be {@code null}.
      * @throws IllegalArgumentException if {@code transactionDate} is {@code null}.
      */
-    public void setTransactionDate(LocalDate transactionDate) {
+    public void setTransactionDate(LocalDateTime transactionDate) {
         if (transactionDate == null) {
-            throw new IllegalArgumentException("Transaction date cannot be null.");
+            throw new IllegalArgumentException("Transaction date and time cannot be null.");
         }
         this.transactionDate.set(transactionDate);
     }
@@ -434,23 +417,23 @@ public class Transaction {
     }
 
     /**
-     * Retrieves the date when the transaction was soft-deleted.
+     * Retrieves the date and time when the transaction was soft-deleted.
      * Corresponds to the `DeletedAt` column in the database.
      *
-     * @return The {@link LocalDate} when the transaction was deleted, or {@code null} if it is active.
+     * @return The {@link LocalDateTime} when the transaction was deleted, or {@code null} if it is active.
      */
-    public LocalDate getDeletedAt() {
+    public LocalDateTime getDeletedAt() {
         return deletedAt.get();
     }
 
     /**
-     * Sets the date when the transaction was soft-deleted.
+     * Sets the date and time when the transaction was soft-deleted.
      * This should be set to a non-null value when soft-deleting a transaction,
      * and to {@code null} if reactivating it.
      *
-     * @param deletedAt The {@link LocalDate} to set, or {@code null}.
+     * @param deletedAt The {@link LocalDateTime} to set, or {@code null}.
      */
-    public void setDeletedAt(LocalDate deletedAt) {
+    public void setDeletedAt(LocalDateTime deletedAt) {
         this.deletedAt.set(deletedAt);
     }
 
@@ -479,13 +462,10 @@ public class Transaction {
 
     /**
      * <p>
-     * Returns a string representation of the {@code Transaction} object.
-     * This method is primarily used for debugging and logging, providing
-     * a concise summary of the transaction's key attributes.
+     * Returns a string representation of the {@code Transaction} object for debugging and logging.
      * </p>
      * <p>
-     * The format includes the transaction ID, date, associated category ID,
-     * amount, payment method, notes, active status, and deleted date (if any).
+     * The format includes all key properties and foreign key IDs.
      * </p>
      *
      * @return A string in the format:
@@ -493,32 +473,27 @@ public class Transaction {
      */
     @Override
     public String toString() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return "Transaction{" +
                 "transactionID=" + getTransactionID() +
                 ", categoryID=" + (getCategory() != null ? getCategory().getCategoryID() : "null") +
                 ", invoiceID=" + (getInvoice() != null ? getInvoice().getInvoiceID() : "null") +
-                ", transactionDate=" + getTransactionDate() +
+                ", transactionDate=" + (getTransactionDate() != null ? getTransactionDate().format(formatter) : "null") +
                 ", amount=" + getAmount() +
                 ", paymentMethod=" + (getPaymentMethod() != null ? getPaymentMethod().toString() : "null") +
                 ", isActive=" + getIsActive() +
-                ", deletedAt=" + getDeletedAt() +
+                ", deletedAt=" + (getDeletedAt() != null ? getDeletedAt().format(formatter) : "null") +
                 ", notes='" + getNotes() + '\'' +
                 '}';
     }
 
     /**
      * <p>
-     * Indicates whether some other object is "equal to" this one.
-     * The comparison is based primarily on the unique {@code transactionID}.
-     * </p>
-     * <p>
-     * This method adheres to the general contract of the {@link Object#equals(Object)} method,
-     * ensuring consistency with hash-based collections. It correctly handles cases where
-     * {@code transactionID} might be {@code null} for unpersisted entities.
+     * Indicates whether some other object is "equal to" this one, primarily based on the unique {@code transactionID}.
      * </p>
      *
      * @param o The reference object with which to compare.
-     * @return {@code true} if this object is the same as the obj argument; {@code false} otherwise.
+     * @return {@code true} if the primary keys match; {@code false} otherwise.
      */
     @Override
     public boolean equals(Object o) {
@@ -531,13 +506,7 @@ public class Transaction {
 
     /**
      * <p>
-     * Returns a hash code value for the object. This method is supported for the benefit of
-     * hash tables such as those provided by {@link java.util.HashMap} and {@link java.util.HashSet}.
-     * </p>
-     * <p>
-     * The hash code is generated based on the unique {@code transactionID}. If {@code transactionID}
-     * is {@code null} (for unpersisted entities), its hash code will be 0, as per {@link Objects#hash(Object...)}.
-     * This ensures that objects considered equal by {@code equals} and {@code hashCode} will have the same hash code.
+     * Returns a hash code value for the object based on the unique {@code transactionID}.
      * </p>
      *
      * @return A hash code value for this object.
