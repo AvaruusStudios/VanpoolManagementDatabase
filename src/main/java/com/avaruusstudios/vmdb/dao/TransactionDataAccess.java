@@ -57,6 +57,20 @@ public interface TransactionDataAccess extends CreateDataAccess<Transaction>,
 
     /**
      * <p>
+     * Retrieves a list of only **active** {@link Transaction} records that fall within a specified date range.
+     * This method is typically used for current, non-historical financial reports.
+     * </p>
+     *
+     * @param startDate The {@link LocalDate} representing the beginning of the date range (inclusive).
+     * @param endDate   The {@link LocalDate} representing the end of the date range (inclusive).
+     * @return A {@link List} of active {@link Transaction} objects found within the date range.
+     * Returns an empty list if no active transactions are found.
+     * @throws DatabaseAccessException if a database access error occurs during retrieval.
+     */
+    List<Transaction> findActiveByDateRange(LocalDate startDate, LocalDate endDate) throws DatabaseAccessException;
+
+    /**
+     * <p>
      * Retrieves a list of {@link Transaction} records associated with a specific {@link Category}.
      * </p>
      *
