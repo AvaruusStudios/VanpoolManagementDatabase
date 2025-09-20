@@ -100,6 +100,19 @@ public class Invoice {
     private final ObjectProperty<LocalDateTime> dateCreated;
 
     /**
+     * Flag indicating if the invoice is currently active ({@code true}) or has been soft-deleted ({@code false}).
+     * Corresponds to the `IsActive` column in the database ({@code INTEGER NOT NULL DEFAULT 1}).
+     */
+    private final BooleanProperty isActive;
+
+    /**
+     * The date and **time** when the invoice was soft-deleted.
+     * This field is {@code null} if the invoice is active, and uses {@link LocalDateTime} for precise deletion timestamp.
+     * Corresponds to the `DeletedAt` column in the database ({@code TEXT DEFAULT NULL}).
+     */
+    private final ObjectProperty<LocalDateTime> deletedAt;
+
+    /**
      * Optional free-form text for additional notes or administrative comments specific to this location.
      * (corresponds to {@code Notes TEXT} in the database).
      */
@@ -116,7 +129,7 @@ public class Invoice {
      */
     public Invoice() {
         // Default notes as empty string, paymentStatus as UNPAID
-        this(null, null, null, LocalDate.now(), LocalDate.now().plusDays(7), null, PaymentStatus.UNPAID, null, "");
+        this(null, null, null, LocalDate.now(), LocalDate.now().plusDays(7), null, PaymentStatus.UNPAID, null, true, null, "");
     }
 
     /**
@@ -136,7 +149,7 @@ public class Invoice {
      * @param notes         Any optional notes or additional information about the invoice. Can be {@code null}.
      */
     public Invoice(Integer invoiceID, Vehicle vehicle, InvoiceType invoiceType, LocalDate invoiceDate, LocalDate dueDate, YearMonth periodLabel,
-                   PaymentStatus paymentStatus, LocalDateTime dateCreated, String notes) {
+                   PaymentStatus paymentStatus, LocalDateTime dateCreated, boolean isActive, LocalDateTime deletedAt, String notes) {
         // Initialize immutable ID property first
         this.invoiceID = new SimpleObjectProperty<>(this, "invoiceID", invoiceID);
 
@@ -148,6 +161,8 @@ public class Invoice {
         this.periodLabel = new SimpleObjectProperty<>(this, "periodLabel");
         this.paymentStatus = new SimpleObjectProperty<>(this, "paymentStatus");
         this.dateCreated = new SimpleObjectProperty<>(this, "dateCreated");
+        this.isActive = new SimpleBooleanProperty(this, "isActive", isActive);
+        this.deletedAt = new SimpleObjectProperty<>(this, "deletedAt", deletedAt);
         this.notes = new SimpleStringProperty(this, "notes");
 
         // Set properties with validation
@@ -159,6 +174,8 @@ public class Invoice {
         setPeriodLabel(periodLabel);
         setPaymentStatus(paymentStatus);
         _setDateCreated(dateCreated);
+        setIsActive(isActive);
+        setDeletedAt(deletedAt);
         setNotes(notes);
     }
 
@@ -175,7 +192,7 @@ public class Invoice {
      */
     public Invoice(Vehicle vehicle, InvoiceType invoiceType, LocalDate dueDate, YearMonth periodLabel, String notes) {
         // Calls the full constructor with invoiceID and dateCreated as null, invoiceDate as now, paymentStatus as UNPAID
-        this(null, vehicle, invoiceType, LocalDate.now(), dueDate, periodLabel, PaymentStatus.UNPAID, null, notes);
+        this(null, vehicle, invoiceType, LocalDate.now(), dueDate, periodLabel, PaymentStatus.UNPAID, null, true, null, notes);
     }
 
     // --- JavaFX Property Accessor Methods ---
@@ -258,6 +275,25 @@ public class Invoice {
      */
     public ObjectProperty<LocalDateTime> dateCreatedProperty() {
         return dateCreated;
+    }
+
+    /**
+     * Retrieves the {@link BooleanProperty} indicating if the invoice is active.
+     * This property supports the soft-delete mechanism.
+     *
+     * @return The {@link BooleanProperty} for `isActive`.
+     */
+    public BooleanProperty isActiveProperty() {
+        return isActive;
+    }
+
+    /**
+     * Retrieves the {@link ObjectProperty} for the date and time when the invoice was soft-deleted.
+     *
+     * @return The {@link ObjectProperty} for {@code deletedAt}, a {@link LocalDateTime}.
+     */
+    public ObjectProperty<LocalDateTime> deletedAtProperty() {
+        return deletedAt;
     }
 
     /**
@@ -453,6 +489,49 @@ public class Invoice {
             throw new IllegalArgumentException("Date created cannot be null.");
         }
         ((SimpleObjectProperty<LocalDateTime>) this.dateCreated).set(dateCreated);
+    }
+
+    /**
+     * Retrieves the active status of the invoice.
+     *
+     * @return `true` if the invoice is active, `false` if it has been soft-deleted.
+     */
+    public boolean getIsActive() {
+        return isActive.get();
+    }
+
+    /**
+     * Sets the active status of the invoice.
+     * <p>
+     * Note: While this can be set directly, for a full soft-delete operation,
+     * {@link #setDeletedAt(LocalDateTime)} should be updated concurrently.
+     * </p>
+     *
+     * @param isActive The boolean value indicating active status.
+     */
+    public void setIsActive(boolean isActive) {
+        this.isActive.set(isActive);
+    }
+
+    /**
+     * Retrieves the date and time when the invoice was soft-deleted.
+     *
+     * @return The {@link LocalDateTime} when the invoice was deleted, or {@code null} if it is active.
+     */
+    public LocalDateTime getDeletedAt() {
+        return deletedAt.get();
+    }
+
+    /**
+     * Sets the date and time when the invoice was soft-deleted.
+     * <p>
+     * Setting this to a non-null value should be coupled with setting {@link #setIsActive(boolean)} to {@code false}.
+     * </p>
+     *
+     * @param deletedAt The {@link LocalDateTime} to set, or {@code null}.
+     */
+    public void setDeletedAt(LocalDateTime deletedAt) {
+        this.deletedAt.set(deletedAt);
     }
 
     /**

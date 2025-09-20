@@ -89,6 +89,19 @@ public class LineItem {
     private final ObjectProperty<LocalDateTime> dateCreated;
 
     /**
+     * Flag indicating if the line item is currently active ({@code true}) or has been soft-deleted ({@code false}).
+     * Corresponds to the `IsActive` column in the database ({@code INTEGER NOT NULL DEFAULT 1}).
+     */
+    private final BooleanProperty isActive;
+
+    /**
+     * The date and **time** when the line item was soft-deleted.
+     * This field is {@code null} if the line item is active, and uses {@link LocalDateTime} for precise deletion timestamp.
+     * Corresponds to the `DeletedAt` column in the database ({@code TEXT DEFAULT NULL}).
+     */
+    private final ObjectProperty<LocalDateTime> deletedAt;
+
+    /**
      * Optional free-form text for additional notes or administrative comments specific to this line item.
      * (corresponds to {@code Notes TEXT} in the database).
      */
@@ -103,7 +116,7 @@ public class LineItem {
      * via reflection (e.g., ORMs, JSON deserializers) before populating their fields.
      */
     public LineItem() {
-        this(null, null, null, BigDecimal.ZERO, BigDecimal.ZERO, false, null, null);
+        this(null, null, null, BigDecimal.ZERO, BigDecimal.ZERO, false, null, true, null, "");
     }
 
 
@@ -125,7 +138,7 @@ public class LineItem {
      * @throws IllegalArgumentException if payments are negative.
      */
     public LineItem(Integer lineItemID, Invoice invoice, Participant participant, BigDecimal benefitPayment,
-                    BigDecimal personalPayment, Boolean isPaid, LocalDateTime dateCreated, String notes) {
+                    BigDecimal personalPayment, Boolean isPaid, LocalDateTime dateCreated, boolean isActive, LocalDateTime deletedAt, String notes) {
         // Initialize immutable ID property first
         this.lineItemID = new SimpleObjectProperty<>(this, "lineItemID", lineItemID);
 
@@ -136,6 +149,8 @@ public class LineItem {
         this.personalPayment = new SimpleObjectProperty<>(this, "personalPayment");
         this.isPaid = new SimpleBooleanProperty(this, "isPaid");
         this.dateCreated = new SimpleObjectProperty<>(this, "dateCreated");
+        this.isActive = new SimpleBooleanProperty(this, "isActive", isActive);
+        this.deletedAt = new SimpleObjectProperty<>(this, "deletedAt", deletedAt);
         this.notes = new SimpleStringProperty(this, "notes");
 
         // Set properties with validation
@@ -146,6 +161,8 @@ public class LineItem {
         setPersonalPayment(personalPayment);
         setIsPaid(isPaid);
         _setDateCreated(dateCreated);
+        setIsActive(isActive);
+        setDeletedAt(deletedAt);
         setNotes(notes);
     }
 
@@ -165,7 +182,7 @@ public class LineItem {
      */
     public LineItem(Invoice invoice, Participant participant, BigDecimal benefitPayment, BigDecimal personalPayment, String notes) {
         // Calls the full constructor with lineItemID as null, isPaid as false, isActive as true, deletedAt as null, and dateCreated as null
-        this(null, invoice, participant, benefitPayment, personalPayment, false, null, notes);
+        this(null, invoice, participant, benefitPayment, personalPayment, false, null, true, null, notes);
     }
 
     // --- JavaFX Property Accessor Methods ---
@@ -238,6 +255,25 @@ public class LineItem {
      */
     public ObjectProperty<LocalDateTime> dateCreatedProperty() {
         return dateCreated;
+    }
+
+    /**
+     * Retrieves the {@link BooleanProperty} indicating if the line item is active.
+     * This property supports the soft-delete mechanism.
+     *
+     * @return The {@link BooleanProperty} for `isActive`.
+     */
+    public BooleanProperty isActiveProperty() {
+        return isActive;
+    }
+
+    /**
+     * Retrieves the {@link ObjectProperty} for the date and time when the line item was soft-deleted.
+     *
+     * @return The {@link ObjectProperty} for {@code deletedAt}, a {@link LocalDateTime}.
+     */
+    public ObjectProperty<LocalDateTime> deletedAtProperty() {
+        return deletedAt;
     }
 
     /**
@@ -422,6 +458,42 @@ public class LineItem {
             throw new IllegalArgumentException("Date created cannot be null.");
         }
         ((SimpleObjectProperty<LocalDateTime>) this.dateCreated).set(dateCreated);
+    }
+
+    /**
+     * Retrieves the active status of the line item.
+     *
+     * @return `true` if the line item is active, `false` if it has been soft-deleted.
+     */
+    public boolean getIsActive() {
+        return isActive.get();
+    }
+
+    /**
+     * Sets the active status of the line item.
+     *
+     * @param isActive The boolean value indicating active status.
+     */
+    public void setIsActive(boolean isActive) {
+        this.isActive.set(isActive);
+    }
+
+    /**
+     * Retrieves the date and time when the line item was soft-deleted.
+     *
+     * @return The {@link LocalDateTime} when the line item was deleted, or {@code null} if it is active.
+     */
+    public LocalDateTime getDeletedAt() {
+        return deletedAt.get();
+    }
+
+    /**
+     * Sets the date and time when the line item was soft-deleted.
+     *
+     * @param deletedAt The {@link LocalDateTime} to set, or {@code null}.
+     */
+    public void setDeletedAt(LocalDateTime deletedAt) {
+        this.deletedAt.set(deletedAt);
     }
 
     /**
