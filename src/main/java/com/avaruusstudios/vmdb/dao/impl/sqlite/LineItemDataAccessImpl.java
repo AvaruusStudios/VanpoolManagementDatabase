@@ -15,6 +15,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types; // Import for setNull
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -30,14 +31,15 @@ import java.util.Optional;
  * </p>
  *
  * <p>
- * It interacts with the database using JDBC, preparing SQL statements, mapping {@link ResultSet}
- * rows to {@link LineItem} objects, and managing database connections through a {@link DatabaseManager}.
+ * This implementation is updated to support **soft deletion** of {@link LineItem} records by managing
+ * the {@code IsActive} and {@code DeletedAt} columns, ensuring historical data integrity while logically
+ * removing records from active views.
  * </p>
  *
  * @author AvaruusStudios
- * @version 1.1
+ * @version 1.2
  * Created On: 2025-07-25
- * Updated On: 2025-07-25
+ * Updated On: 2025-09-20
  *
  * @see LineItemDataAccess
  * @see LineItem
@@ -78,8 +80,8 @@ public class LineItemDataAccessImpl implements LineItemDataAccess {
     private static final String SQL_FIND_BY_PARTICIPANT_ID;
     /** SQL query to find unpaid line items for a participant. */
     private static final String SQL_FIND_UNPAID_BY_PARTICIPANT;
-    /** SQL query to delete all line items for an invoice. */
-    private static final String SQL_DELETE_BY_INVOICE_ID;
+    /** SQL query to soft-delete all line items for an invoice. */
+    private static final String SQL_DELETE_BY_INVOICE_ID; // Assuming this query is now an UPDATE for soft-delete
 
     static {
         try {
@@ -94,7 +96,7 @@ public class LineItemDataAccessImpl implements LineItemDataAccess {
             SQL_FIND_BY_INVOICE_ID = QueryLoader.getQuery("line_item/selectLineItemsByInvoiceId.sql");
             SQL_FIND_BY_PARTICIPANT_ID = QueryLoader.getQuery("line_item/selectLineItemsByParticipantId.sql");
             SQL_FIND_UNPAID_BY_PARTICIPANT = QueryLoader.getQuery("line_item/selectUnpaidLineItemsByParticipantId.sql");
-            SQL_DELETE_BY_INVOICE_ID = QueryLoader.getQuery("line_item/deleteLineItemsByInvoiceId.sql");
+            SQL_DELETE_BY_INVOICE_ID = QueryLoader.getQuery("line_item/softDeleteLineItemsByInvoiceId.sql"); // Assume file renamed/logic changed to soft-delete
             logger.info("All SQL queries for LineItemDataAccessImpl loaded successfully.");
         } catch (IllegalArgumentException e) {
             logger.error("Failed to load one or more SQL queries for LineItemDataAccessImpl. Check .sql files and paths.", e);
@@ -103,6 +105,21 @@ public class LineItemDataAccessImpl implements LineItemDataAccess {
     }
 
     // --- Private Helper Methods ---
+
+    /**
+     * <p>
+     * Maps a single row from a JDBC {@link ResultSet} to a {@link LineItem} model object.
+     * </p>
+     * <p>
+     * This method is responsible for parsing all database column values, including the
+     * soft-delete fields ({@code IsActive} and {@code DeletedAt}), and correctly
+     * setting foreign key objects ({@code Invoice}, {@code Participant}).
+     * </p>
+     *
+     * @param rs The {@link ResultSet} pointing to the current row to be mapped.
+     * @return A fully populated {@link LineItem} object.
+     * @throws SQLException If a column access error or data parsing error occurs.
+     */
     private LineItem mapResultSetToLineItem(ResultSet rs) throws SQLException {
         LineItem lineItem = new LineItem();
         try {
@@ -122,6 +139,15 @@ public class LineItemDataAccessImpl implements LineItemDataAccess {
             lineItem.setNotes(rs.getString("Notes"));
             lineItem._setDateCreated(LocalDateTime.parse(rs.getString("DateCreated"), CUSTOM_DATETIME_FORMATTER));
 
+            // Map Soft-Delete Fields
+            lineItem.setIsActive(rs.getInt("IsActive") == 1);
+            String deletedAtString = rs.getString("DeletedAt");
+            if (deletedAtString != null) {
+                lineItem.setDeletedAt(LocalDateTime.parse(deletedAtString, CUSTOM_DATETIME_FORMATTER));
+            } else {
+                lineItem.setDeletedAt(null);
+            }
+
             logger.debug("Successfully mapped ResultSet to LineItem object with ID: {}", lineItem.getLineItemID());
         } catch (Exception e) {
             logger.error("Error mapping ResultSet to LineItem: {}", e.getMessage(), e);
@@ -132,10 +158,13 @@ public class LineItemDataAccessImpl implements LineItemDataAccess {
 
     // --- Public Interface Methods (From LineItemDataAccess) ---
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Optional<LineItem> read(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "Line Item ID cannot be null for read operation.");
-
+        // Implementation remains unchanged
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_READ_LINE_ITEM_RECORD)) {
             stmt.setInt(1, id);
@@ -151,6 +180,9 @@ public class LineItemDataAccessImpl implements LineItemDataAccess {
         return Optional.empty();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<LineItem> readAll() throws DatabaseAccessException {
         List<LineItem> lineItems = new ArrayList<>();
@@ -168,6 +200,20 @@ public class LineItemDataAccessImpl implements LineItemDataAccess {
         return lineItems;
     }
 
+    /**
+     * <p>
+     * Persists a new {@link LineItem} record to the database.
+     * </p>
+     * <p>
+     * This method binds all properties of the {@link LineItem} object, including the soft-delete
+     * fields ({@code IsActive} and {@code DeletedAt}), to the INSERT query. The auto-generated
+     * {@code LineItemID} is then retrieved and set back onto the model object before returning.
+     * </p>
+     *
+     * @param lineItem The {@link LineItem} entity to be created. Its ID must be {@code null}.
+     * @return The created {@link LineItem} entity with its auto-generated ID populated.
+     * @throws DatabaseAccessException If a database access error occurs during creation, or if no ID is returned.
+     */
     @Override
     public LineItem create(LineItem lineItem) throws DatabaseAccessException {
         Objects.requireNonNull(lineItem, "Line Item object cannot be null for create operation.");
@@ -180,7 +226,18 @@ public class LineItemDataAccessImpl implements LineItemDataAccess {
             stmt.setBigDecimal(3, lineItem.getBenefitPayment());
             stmt.setBigDecimal(4, lineItem.getPersonalPayment());
             stmt.setInt(5, lineItem.getIsPaid() ? 1 : 0);
-            stmt.setString(6, lineItem.getNotes());
+
+            // Bind IsActive
+            stmt.setInt(6, lineItem.getIsActive() ? 1 : 0);
+
+            // Bind DeletedAt - Can be null
+            if (lineItem.getDeletedAt() != null) {
+                stmt.setString(7, lineItem.getDeletedAt().format(CUSTOM_DATETIME_FORMATTER));
+            } else {
+                stmt.setNull(7, Types.VARCHAR);
+            }
+
+            stmt.setString(8, lineItem.getNotes());
 
             logger.debug("Executing create line item query...");
             int affectedRows = stmt.executeUpdate();
@@ -206,6 +263,19 @@ public class LineItemDataAccessImpl implements LineItemDataAccess {
         }
     }
 
+    /**
+     * <p>
+     * Updates an existing {@link LineItem} record in the database.
+     * </p>
+     * <p>
+     * All non-ID fields of the line item are updated, including the soft-delete fields
+     * ({@code IsActive} and {@code DeletedAt}), allowing for reactivation or permanent deletion tracking.
+     * </p>
+     *
+     * @param lineItem The {@link LineItem} entity to be updated. Its ID must be non-null.
+     * @return The updated {@link LineItem} entity.
+     * @throws DatabaseAccessException If a database access error occurs, or if no record is found with the given ID.
+     */
     @Override
     public LineItem update(LineItem lineItem) throws DatabaseAccessException {
         Objects.requireNonNull(lineItem, "Line Item object cannot be null for update operation.");
@@ -219,8 +289,21 @@ public class LineItemDataAccessImpl implements LineItemDataAccess {
             stmt.setBigDecimal(3, lineItem.getBenefitPayment());
             stmt.setBigDecimal(4, lineItem.getPersonalPayment());
             stmt.setInt(5, lineItem.getIsPaid() ? 1 : 0);
-            stmt.setString(6, lineItem.getNotes());
-            stmt.setInt(7, lineItem.getLineItemID()); // WHERE clause
+
+            // Bind IsActive
+            stmt.setInt(6, lineItem.getIsActive() ? 1 : 0);
+
+            // Bind DeletedAt - Can be null
+            if (lineItem.getDeletedAt() != null) {
+                stmt.setString(7, lineItem.getDeletedAt().format(CUSTOM_DATETIME_FORMATTER));
+            } else {
+                stmt.setNull(7, Types.VARCHAR);
+            }
+
+            stmt.setString(8, lineItem.getNotes());
+
+            // WHERE clause
+            stmt.setInt(9, lineItem.getLineItemID());
 
             logger.debug("Executing update line item query for ID: {}", lineItem.getLineItemID());
             int affectedRows = stmt.executeUpdate();
@@ -238,32 +321,56 @@ public class LineItemDataAccessImpl implements LineItemDataAccess {
         }
     }
 
+    /**
+     * <p>
+     * **Performs a soft-delete operation** on the {@link LineItem} record identified by the given ID.
+     * </p>
+     * <p>
+     * The record is **not removed** from the database. Instead, this method executes an UPDATE query
+     * that sets the {@code IsActive} column to **0** (false) and the {@code DeletedAt} column to the
+     * **current system timestamp**. This preserves data for auditing and historical reports.
+     * </p>
+     *
+     * @param id The unique integer ID of the line item to be soft-deleted.
+     * @return {@code true} if the soft-delete update was successful and one row was affected; {@code false} otherwise.
+     * @throws DatabaseAccessException If a database access error occurs during the operation.
+     */
     @Override
     public boolean delete(Integer id) throws DatabaseAccessException {
-        Objects.requireNonNull(id, "Line Item ID cannot be null for delete operation.");
+        Objects.requireNonNull(id, "Line Item ID cannot be null for soft-delete operation.");
 
         try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(SQL_DELETE_LINE_ITEM_HARD)) {
-            stmt.setInt(1, id);
+             PreparedStatement stmt = conn.prepareStatement(SQL_DELETE_LINE_ITEM_SOFT)) {
 
-            logger.debug("Executing hard delete line item query for ID: {}", id);
+            // 1. Bind DeletedAt (sets it to the current timestamp)
+            String deletedAtString = LocalDateTime.now().format(CUSTOM_DATETIME_FORMATTER);
+            stmt.setString(1, deletedAtString);
+
+            // 2. Bind WHERE clause ID
+            stmt.setInt(2, id);
+
+            logger.debug("Executing soft delete line item query for ID: {}", id);
             int affectedRows = stmt.executeUpdate();
 
             if (affectedRows == 0) {
-                logger.warn("No line item found with ID: {} for deletion. Delete operation resulted in 0 affected rows.", id);
+                logger.warn("No line item found with ID: {} for soft deletion. Operation resulted in 0 affected rows.", id);
                 return false;
             } else {
-                logger.info("Successfully hard-deleted line item with ID: {}", id);
+                logger.info("Successfully soft-deleted line item with ID: {}", id);
                 return true;
             }
         } catch (SQLException e) {
-            logger.error("Error hard-deleting line item record with ID {}: {}", id, e.getMessage(), e);
-            throw new DatabaseAccessException("Error hard-deleting line item record: " + e.getMessage(), e);
+            logger.error("Error soft-deleting line item record with ID {}: {}", id, e.getMessage(), e);
+            throw new DatabaseAccessException("Error soft-deleting line item record: " + e.getMessage(), e);
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean existsById(Integer id) throws DatabaseAccessException {
+        // Implementation remains unchanged
         Objects.requireNonNull(id, "Line Item ID cannot be null for existsById operation.");
 
         try (Connection conn = DatabaseManager.getConnection();
@@ -278,8 +385,12 @@ public class LineItemDataAccessImpl implements LineItemDataAccess {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public long count() throws DatabaseAccessException {
+        // Implementation remains unchanged
         try (Connection conn = DatabaseManager.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(SQL_COUNT_LINE_ITEM_RECORD)) {
@@ -293,8 +404,12 @@ public class LineItemDataAccessImpl implements LineItemDataAccess {
         return 0;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<LineItem> findByInvoice(Integer invoiceId) throws DatabaseAccessException {
+        // Implementation remains unchanged
         Objects.requireNonNull(invoiceId, "Invoice ID cannot be null for findByInvoice operation.");
         List<LineItem> lineItems = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
@@ -313,8 +428,12 @@ public class LineItemDataAccessImpl implements LineItemDataAccess {
         return lineItems;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<LineItem> findByParticipant(Integer participantId) throws DatabaseAccessException {
+        // Implementation remains unchanged
         Objects.requireNonNull(participantId, "Participant ID cannot be null for findByParticipant operation.");
         List<LineItem> lineItems = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
@@ -333,8 +452,12 @@ public class LineItemDataAccessImpl implements LineItemDataAccess {
         return lineItems;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<LineItem> findUnpaidByParticipant(Integer participantId) throws DatabaseAccessException {
+        // Implementation remains unchanged
         Objects.requireNonNull(participantId, "Participant ID cannot be null for findUnpaidByParticipant operation.");
         List<LineItem> lineItems = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
@@ -353,22 +476,41 @@ public class LineItemDataAccessImpl implements LineItemDataAccess {
         return lineItems;
     }
 
+    /**
+     * <p>
+     * **Performs a cascading soft-delete operation** on all {@link LineItem} records associated with the given {@code invoiceId}.
+     * </p>
+     * <p>
+     * This method executes an UPDATE query that sets the {@code IsActive} column to **0** (false) and the
+     * {@code DeletedAt} column to the **current system timestamp** for all line items belonging to the specified invoice.
+     * This operation is essential for maintaining data integrity when the parent {@link Invoice} is soft-deleted.
+     * </p>
+     *
+     * @param invoiceId The unique integer ID of the parent invoice whose line items should be soft-deleted.
+     * @throws DatabaseAccessException If a database access error occurs during the operation.
+     */
     @Override
     public void deleteByInvoice(Integer invoiceId) throws DatabaseAccessException {
         Objects.requireNonNull(invoiceId, "Invoice ID cannot be null for deleteByInvoice operation.");
 
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_DELETE_BY_INVOICE_ID)) {
-            stmt.setInt(1, invoiceId);
 
-            logger.debug("Executing delete by invoice ID query for ID: {}", invoiceId);
+            // 1. Bind DeletedAt
+            String deletedAtString = LocalDateTime.now().format(CUSTOM_DATETIME_FORMATTER);
+            stmt.setString(1, deletedAtString);
+
+            // 2. Bind WHERE clause ID
+            stmt.setInt(2, invoiceId);
+
+            logger.debug("Executing soft delete by invoice ID query for ID: {}", invoiceId);
             int affectedRows = stmt.executeUpdate();
 
-            logger.info("Successfully deleted {} line items for invoice ID: {}", affectedRows, invoiceId);
+            logger.info("Successfully soft-deleted {} line items for invoice ID: {}", affectedRows, invoiceId);
 
         } catch (SQLException e) {
-            logger.error("Error deleting line items by invoice ID {}: {}", invoiceId, e.getMessage(), e);
-            throw new DatabaseAccessException("Error deleting line items by invoice ID: " + e.getMessage(), e);
+            logger.error("Error soft-deleting line items by invoice ID {}: {}", invoiceId, e.getMessage(), e);
+            throw new DatabaseAccessException("Error soft-deleting line items by invoice ID: " + e.getMessage(), e);
         }
     }
 }
