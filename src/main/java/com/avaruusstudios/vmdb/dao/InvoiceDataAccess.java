@@ -48,6 +48,25 @@ public interface InvoiceDataAccess extends ReadDataAccess<Invoice, Integer>,
      * @throws DatabaseAccessException If a database access error occurs during retrieval.
      */
     List<Invoice> findByDateRange(LocalDate startDate, LocalDate endDate) throws DatabaseAccessException;
+
+    /**
+     * <p>
+     * Retrieves a list of {@link Invoice} records that fall within a specified date range
+     * (inclusive of start and end dates) and are currently marked as **active** (not soft-deleted).
+     * </p>
+     * <p>
+     * This method executes a highly optimized database query that includes a `WHERE IsActive = 1`
+     * clause, ensuring only currently valid records are returned.
+     * </p>
+     *
+     * @param startDate The {@link LocalDate} representing the beginning of the date range (inclusive).
+     * @param endDate The {@link LocalDate} representing the end of the date range (inclusive).
+     * @return A {@link List} of only **active** {@link Invoice} objects found within the date range.
+     * Returns an empty list if no active invoices are found in the specified range.
+     * @throws DatabaseAccessException If a database access error occurs during retrieval.
+     */
+    List<Invoice> findActiveByDateRange(LocalDate startDate, LocalDate endDate) throws DatabaseAccessException;
+
     /**
      * <p>
      * Retrieves a list of {@link Invoice} records that are of a specific invoice type
