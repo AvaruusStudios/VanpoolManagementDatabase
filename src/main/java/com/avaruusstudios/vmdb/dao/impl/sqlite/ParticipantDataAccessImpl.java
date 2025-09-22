@@ -428,7 +428,7 @@ public class ParticipantDataAccessImpl implements ParticipantDataAccess {
      * </p>
      */
     @Override
-    public Optional<Participant> read(Integer id) throws DatabaseAccessException {
+    public Optional<Participant> find(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "Participant ID cannot be null for reading.");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_READ_PARTICIPANT_RECORD)) {
@@ -461,7 +461,7 @@ public class ParticipantDataAccessImpl implements ParticipantDataAccess {
      * </p>
      */
     @Override
-    public List<Participant> readAll() throws DatabaseAccessException {
+    public List<Participant> findAll() throws DatabaseAccessException {
         List<Participant> participants = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_READ_ALL_PARTICIPANT_RECORDS);

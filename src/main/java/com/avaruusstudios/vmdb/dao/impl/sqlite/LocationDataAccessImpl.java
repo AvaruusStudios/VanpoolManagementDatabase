@@ -376,7 +376,7 @@ public class LocationDataAccessImpl implements LocationDataAccess {
      * </p>
      */
     @Override
-    public Optional<Location> read(Integer id) throws DatabaseAccessException {
+    public Optional<Location> find(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "Location ID cannot be null for reading.");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_READ_LOCATION_RECORD)) {
@@ -409,7 +409,7 @@ public class LocationDataAccessImpl implements LocationDataAccess {
      * </p>
      */
     @Override
-    public List<Location> readAll() throws DatabaseAccessException {
+    public List<Location> findAll() throws DatabaseAccessException {
         List<Location> locations = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_READ_ALL_LOCATION_RECORDS);

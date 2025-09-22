@@ -167,7 +167,7 @@ public class InvoiceDataAccessImpl implements InvoiceDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public Optional<Invoice> read(Integer id) throws DatabaseAccessException {
+    public Optional<Invoice> find(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "Invoice ID cannot be null for read operation.");
         // Implementation remains unchanged, relies on updated mapResultSetToInvoice
         try (Connection conn = DatabaseManager.getConnection();
@@ -189,7 +189,7 @@ public class InvoiceDataAccessImpl implements InvoiceDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public List<Invoice> readAll() throws DatabaseAccessException {
+    public List<Invoice> findAll() throws DatabaseAccessException {
         // Implementation remains unchanged, relies on updated mapResultSetToInvoice
         List<Invoice> invoices = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();

@@ -162,7 +162,7 @@ public class LineItemDataAccessImpl implements LineItemDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public Optional<LineItem> read(Integer id) throws DatabaseAccessException {
+    public Optional<LineItem> find(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "Line Item ID cannot be null for read operation.");
         // Implementation remains unchanged
         try (Connection conn = DatabaseManager.getConnection();
@@ -184,7 +184,7 @@ public class LineItemDataAccessImpl implements LineItemDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public List<LineItem> readAll() throws DatabaseAccessException {
+    public List<LineItem> findAll() throws DatabaseAccessException {
         List<LineItem> lineItems = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
              Statement stmt = conn.createStatement();

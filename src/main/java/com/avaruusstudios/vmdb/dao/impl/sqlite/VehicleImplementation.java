@@ -303,7 +303,7 @@ public class VehicleImplementation implements VehicleDataAccess {
      * </p>
      */
     @Override
-    public Optional<Vehicle> read(Integer id) throws DatabaseAccessException {
+    public Optional<Vehicle> find(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "Vehicle ID cannot be null for reading.");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_READ_VEHICLE_RECORD)) {
@@ -336,7 +336,7 @@ public class VehicleImplementation implements VehicleDataAccess {
      * </p>
      */
     @Override
-    public List<Vehicle> readAll() throws DatabaseAccessException {
+    public List<Vehicle> findAll() throws DatabaseAccessException {
         List<Vehicle> vehicles = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_READ_ALL_VEHICLE_RECORDS);
