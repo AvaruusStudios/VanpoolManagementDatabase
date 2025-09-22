@@ -2,6 +2,7 @@ package com.avaruusstudios.vmdb.dao;
 
 import com.avaruusstudios.vmdb.model.Category;
 import com.avaruusstudios.vmdb.model.Invoice;
+import com.avaruusstudios.vmdb.model.PaymentMethod;
 import com.avaruusstudios.vmdb.model.Transaction;
 
 import java.time.LocalDate;
@@ -81,6 +82,18 @@ public interface TransactionDataAccess extends CreateDataAccess<Transaction>,
      * @throws DatabaseAccessException if a database access error occurs during retrieval.
      */
     List<Transaction> findByCategory(Category category) throws DatabaseAccessException;
+
+    /**
+     * <p>
+     * Retrieves a list of transactions based on the {@link PaymentMethod} used.
+     * This method is unique to the Transaction entity and is not part of the generic {@code ReadDataAccess}.
+     * </p>
+     *
+     * @param paymentMethod The payment method to filter by (e.g., "ACH", "CASH", "CARD").
+     * @return A {@link List} of {@link Transaction} objects using the specified payment method.
+     * @throws DatabaseAccessException If a database access error occurs during retrieval.
+     */
+    List<Transaction> findByPaymentMethod(PaymentMethod paymentMethod) throws DatabaseAccessException;
 
     /**
      * <p>
