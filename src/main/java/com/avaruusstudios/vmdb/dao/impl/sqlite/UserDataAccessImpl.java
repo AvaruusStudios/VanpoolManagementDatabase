@@ -57,7 +57,7 @@ import java.util.Optional;
  * </ul>
  *
  * @author AvaruusStudios
- * @version 1.0
+ * @version 1.2
  * Created On: 2025-07-14
  * Updated On: 2025-08-29
  *
@@ -68,12 +68,12 @@ import java.util.Optional;
  * @see QueryLoader
  * @see DatabaseAccessException
  */
-public class UserImplementation implements UserDataAccess {
+public class UserDataAccessImpl implements UserDataAccess {
 
     /**
      * SLF4J logger for logging informational messages, warnings, and errors within the {@code UserImplementation} class.
      */
-    private static final Logger logger = LoggerFactory.getLogger(UserImplementation.class);
+    private static final Logger logger = LoggerFactory.getLogger(UserDataAccessImpl.class);
 
     /**
      * <p>
@@ -95,8 +95,12 @@ public class UserImplementation implements UserDataAccess {
     private static final String SQL_READ_USER_RECORD;
     /** SQL query to select all user records. Loaded from `user/selectAllUsers.sql`. */
     private static final String SQL_READ_ALL_USER_RECORDS;
+    /** SQL query to select all active user records (IsActive = 1). */
+    private static final String SQL_READ_ACTIVE_USER_RECORDS;
     /** SQL query to count the total number of user records. Loaded from `user/countUsers.sql`. */
     private static final String SQL_COUNT_USER_RECORDS;
+    /** SQL query to count the total number of active user records. */
+    private static final String SQL_COUNT_ACTIVE_USER_RECORDS; // NEW CONSTANT
     /** SQL query to check if a user record with a given ID exists. Loaded from `user/existsUserById.sql`. */
     private static final String SQL_EXISTS_USER_BY_ID;
     /** SQL query to update an existing user record. Loaded from `user/updateUser.sql`. */
@@ -110,13 +114,7 @@ public class UserImplementation implements UserDataAccess {
 
     /**
      * Static initializer block to load all SQL query strings from external `.sql` files
-     * using the {@link QueryLoader}. This block executes only once when the class is first loaded,
-     * ensuring that all necessary SQL queries are available before any database operations are attempted.
-     * <p>
-     * If any query file cannot be found or loaded, an {@link IllegalArgumentException} is caught,
-     * logged as an error, and re-thrown as an {@link ExceptionInInitializerError} to indicate
-     * a critical application setup failure that prevents the DAO from functioning correctly.
-     * </p>
+     * using the {@link QueryLoader}.
      */
     static {
         try {
@@ -124,7 +122,9 @@ public class UserImplementation implements UserDataAccess {
             SQL_CREATE_USER_RECORD = QueryLoader.getQuery("user/insertUser.sql");
             SQL_READ_USER_RECORD = QueryLoader.getQuery("user/selectUserById.sql");
             SQL_READ_ALL_USER_RECORDS = QueryLoader.getQuery("user/selectAllUsers.sql");
+            SQL_READ_ACTIVE_USER_RECORDS = "SELECT * FROM Users WHERE IsActive = 1";
             SQL_COUNT_USER_RECORDS = QueryLoader.getQuery("user/countUsers.sql");
+            SQL_COUNT_ACTIVE_USER_RECORDS = "SELECT COUNT(*) FROM Users WHERE IsActive = 1"; // INITIALIZATION
             SQL_EXISTS_USER_BY_ID = QueryLoader.getQuery("user/existsUserById.sql");
             SQL_UPDATE_USER_RECORD = QueryLoader.getQuery("user/updateUser.sql");
             SQL_DELETE_USER_SOFT = QueryLoader.getQuery("user/deleteUserSoft.sql");
@@ -140,26 +140,11 @@ public class UserImplementation implements UserDataAccess {
     /**
      * <p>
      * Maps a row from a {@link ResultSet} to a {@link User} object.
-     * This private helper method centralizes the logic for converting raw database
-     * column values into a populated {@code User} model object, ensuring data consistency
-     * and type safety across all read operations.
-     * </p>
-     * <p>
-     * It handles:
-     * <ul>
-     * <li>Retrieval of the auto-generated `UserID` and setting it via the package-private `_setUserId` method.</li>
-     * <li>String fields (e.g., `WindowsUsername`, `FirstName`, `LastName`, `Email`).</li>
-     * <li>Conversion of `UserRole` from `TEXT` in DB to the {@link Role} enum.</li>
-     * <li>Conversion of `IsActive` from `INTEGER` (0 or 1) to `boolean`.</li>
-     * <li>Handling of nullable `DeletedAt` and `DateCreated` `TEXT` fields, parsing them into
-     * {@link LocalDateTime} objects using {@link #CUSTOM_DATETIME_FORMATTER} if present.</li>
-     * </ul>
      * </p>
      *
      * @param rs The {@link ResultSet} positioned at the current row containing user data.
      * @return A fully populated {@link User} object with data retrieved from the {@code ResultSet}.
-     * @throws SQLException If a database access error occurs (e.g., a column name is not found,
-     * or there is a data type mismatch during retrieval).
+     * @throws SQLException If a database access error occurs.
      */
     private User mapResultSetToUser(ResultSet rs) throws SQLException {
         User user = new User();
@@ -318,6 +303,29 @@ public class UserImplementation implements UserDataAccess {
      * {@inheritDoc}
      */
     @Override
+    public List<User> findActive() throws DatabaseAccessException {
+        List<User> users = new ArrayList<>();
+        try (Connection conn = DatabaseManager.getConnection();
+             // Using the constant to select only active records
+             PreparedStatement stmt = conn.prepareStatement(SQL_READ_ACTIVE_USER_RECORDS);
+             ResultSet rs = stmt.executeQuery()) {
+
+            logger.debug("Executing read active users query.");
+            while (rs.next()) {
+                users.add(mapResultSetToUser(rs));
+            }
+            logger.info("Found {} active users.", users.size());
+        } catch (SQLException e) {
+            logger.error("Error reading active user records: {}", e.getMessage(), e);
+            throw new DatabaseAccessException("Error reading active user records: " + e.getMessage(), e);
+        }
+        return users;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public long count() throws DatabaseAccessException {
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_COUNT_USER_RECORDS);
@@ -332,6 +340,27 @@ public class UserImplementation implements UserDataAccess {
         } catch (SQLException e) {
             logger.error("Error counting user records: {}", e.getMessage(), e);
             throw new DatabaseAccessException("Error counting user records: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long countActive() throws DatabaseAccessException {
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_COUNT_ACTIVE_USER_RECORDS);
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+                long count = rs.getLong(1);
+                logger.info("Total active user record count: {}", count);
+                return count;
+            }
+            return 0;
+        } catch (SQLException e) {
+            logger.error("Error counting active user records: {}", e.getMessage(), e);
+            throw new DatabaseAccessException("Error counting active user records: " + e.getMessage(), e);
         }
     }
 
