@@ -56,7 +56,7 @@ public interface ReadDataAccess<T, K> {
      * @throws DatabaseAccessException if a database access error occurs during the retrieval process.
      * The underlying {@code SQLException} will be wrapped.
      */
-    Optional<T> read(K id) throws DatabaseAccessException;
+    Optional<T> find(K id) throws DatabaseAccessException;
 
     /**
      * <p>
@@ -76,7 +76,19 @@ public interface ReadDataAccess<T, K> {
      * @throws DatabaseAccessException if a database access error occurs during the retrieval process.
      * The underlying {@code SQLException} will be wrapped.
      */
-    List<T> readAll() throws DatabaseAccessException;
+    List<T> findAll() throws DatabaseAccessException;
+
+    /**
+     * <p>
+     * Retrieves a list of all records that are currently marked as active (IsActive = 1).
+     * This method is essential for front-end views that only display operational, non-deleted data.
+     * </p>
+     *
+     * @return A {@link List} of active model objects. Returns an empty list
+     * if no active records are found.
+     * @throws DatabaseAccessException If a database access error occurs during retrieval.
+     */
+    List<T> findActive() throws DatabaseAccessException;
 
     /**
      * <p>
@@ -94,8 +106,19 @@ public interface ReadDataAccess<T, K> {
 
     /**
      * <p>
+     * Counts the total number of records that are currently marked as active (IsActive = 1).
+     * This method is crucial for displaying real-time operational metrics for soft-deleted tables.
+     * </p>
+     *
+     * @return The total count of active records.
+     * @throws DatabaseAccessException If a database error occurs during counting.
+     */
+    long countActive() throws DatabaseAccessException;
+
+    /**
+     * <p>
      * Checks if a record of the entity with the specified primary key exists in the database.
-     * This method is more efficient than {@link #read(Object)} when only
+     * This method is more efficient than {@link #find(Object)} when only
      * existence needs to be verified, as it avoids fetching the entire entity object.
      * </p>
      *

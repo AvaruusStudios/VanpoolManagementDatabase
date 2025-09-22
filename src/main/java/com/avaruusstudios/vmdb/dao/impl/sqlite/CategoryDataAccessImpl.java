@@ -316,7 +316,7 @@ public class CategoryDataAccessImpl implements CategoryDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public Optional<Category> read(Integer id) throws DatabaseAccessException {
+    public Optional<Category> find(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "Category ID cannot be null for reading.");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_READ_CATEGORY_RECORD)) {
@@ -343,7 +343,7 @@ public class CategoryDataAccessImpl implements CategoryDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public List<Category> readAll() throws DatabaseAccessException {
+    public List<Category> findAll() throws DatabaseAccessException {
         List<Category> categories = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_READ_ALL_CATEGORY_RECORD);

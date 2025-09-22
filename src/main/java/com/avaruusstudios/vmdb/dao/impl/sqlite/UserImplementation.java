@@ -269,7 +269,7 @@ public class UserImplementation implements UserDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public Optional<User> read(Integer id) throws DatabaseAccessException {
+    public Optional<User> find(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "User ID cannot be null for reading.");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_READ_USER_RECORD)) {
@@ -296,7 +296,7 @@ public class UserImplementation implements UserDataAccess {
      * {@inheritDoc}
      */
     @Override
-    public List<User> readAll() throws DatabaseAccessException {
+    public List<User> findAll() throws DatabaseAccessException {
         List<User> users = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_READ_ALL_USER_RECORDS);

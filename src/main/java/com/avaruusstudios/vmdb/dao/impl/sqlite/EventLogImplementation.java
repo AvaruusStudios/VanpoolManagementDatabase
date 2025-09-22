@@ -277,7 +277,7 @@ public class EventLogImplementation implements EventLogDataAccess {
      * @throws NullPointerException    If the provided `id` is {@code null}.
      */
     @Override
-    public Optional<EventLog> read(Integer id) throws DatabaseAccessException {
+    public Optional<EventLog> find(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "EventLog ID cannot be null for reading.");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_READ_EVENT_LOG_RECORD)) {
@@ -313,7 +313,7 @@ public class EventLogImplementation implements EventLogDataAccess {
      * @throws DatabaseAccessException If a database access error occurs during the read operation.
      */
     @Override
-    public List<EventLog> readAll() throws DatabaseAccessException {
+    public List<EventLog> findAll() throws DatabaseAccessException {
         List<EventLog> eventLogs = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_READ_ALL_EVENT_LOG_RECORD);
