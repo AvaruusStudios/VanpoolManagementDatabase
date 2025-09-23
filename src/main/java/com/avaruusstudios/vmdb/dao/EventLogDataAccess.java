@@ -21,9 +21,9 @@ import java.util.List;
  * </p>
  *
  * @author AvaruusStudios
- * @version 1.1 // Version incremented for interface refactoring and clarity
- * Created On: 2025-07-14 // Assuming original creation date of the file
- * Updated On: 2025-07-20 // Current date of modification
+ * @version 1.2
+ * Created On: 2025-07-14
+ * Updated On: 2025-09-22
  * @since 2025-07-11
  *
  * @see ReadDataAccess
@@ -62,6 +62,21 @@ public interface EventLogDataAccess extends ReadDataAccess<EventLog, Integer>, C
      * @throws DatabaseAccessException If a database access error occurs during retrieval.
      */
     List<EventLog> findByType(EventType eventType) throws DatabaseAccessException;
+
+    /**
+     * <p>
+     * Counts the total number of event log records for a given {@link EventType}.
+     * </p>
+     * <p>
+     * This method provides an efficient way to get a count of events of a specific type
+     * without retrieving the full event log records.
+     * </p>
+     *
+     * @param eventType The {@link EventType} to count events for. Must not be {@code null}.
+     * @return The total count of event logs that match the specified event type.
+     * @throws DatabaseAccessException If a database access error occurs.
+     */
+    long countByType(EventType eventType) throws DatabaseAccessException;
 
     /**
      * <p>
