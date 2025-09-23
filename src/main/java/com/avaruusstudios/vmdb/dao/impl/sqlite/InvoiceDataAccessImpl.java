@@ -40,9 +40,9 @@ import java.util.Optional;
  * </p>
  *
  * @author AvaruusStudios
- * @version 1.3
+ * @version 1.4
  * Created On: 2025-07-25
- * Updated On: 2025-09-20
+ * Updated On: 2025-09-22
  *
  * @see InvoiceDataAccess
  * @see Invoice
@@ -70,18 +70,29 @@ public class InvoiceDataAccessImpl implements InvoiceDataAccess {
     private static final DateTimeFormatter CUSTOM_DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     // SQL Query Constants
+    /** SQL query to insert a new invoice record. Loaded from `invoice/insertInvoice.sql`. */
     private static final String SQL_CREATE_INVOICE_RECORD;
+    /** SQL query to select an invoice record by its unique ID. Loaded from `invoice/selectInvoiceById.sql`. */
     private static final String SQL_READ_INVOICE_RECORD;
+    /** SQL query to select all invoice records. Loaded from `invoice/selectAllInvoices.sql`. */
     private static final String SQL_READ_ALL_INVOICE_RECORD;
+    /** SQL query to select all active invoice records (IsActive = 1). Loaded from `invoice/selectActiveInvoices.sql`. */
+    private static final String SQL_READ_ACTIVE_INVOICE_RECORD;
+    /** SQL query to check if an invoice record with a given ID exists. Loaded from `invoice/existById.sql`. */
     private static final String SQL_EXISTS_INVOICE_BY_ID;
+    /** SQL query to update an existing invoice record. Loaded from `invoice/updateInvoice.sql`. */
     private static final String SQL_UPDATE_INVOICE_RECORD;
-    private static final String SQL_DELETE_INVOICE_HARD;
-    /** SQL query for soft-deleting an invoice (sets IsActive=0, DeletedAt=NOW). */
+    /** SQL query for soft-deleting an invoice (sets IsActive=0, DeletedAt=NOW). Loaded from `invoice/deleteInvoiceSoft.sql`. */
     private static final String SQL_DELETE_INVOICE_SOFT;
+    /** SQL query to count the total number of invoice records. Loaded from `invoice/countInvoices.sql`. */
     private static final String SQL_COUNT_INVOICE_RECORD;
+    /** SQL query to count the total number of active invoice records. Loaded from `invoice/countActiveInvoices.sql`. */
+    private static final String SQL_COUNT_ACTIVE_INVOICE_RECORD;
+    /** SQL query to find invoices by a specific date range. Loaded from `invoice/selectInvoicesByDateRange.sql`. */
     private static final String SQL_FIND_INVOICES_BY_DATE_RANGE;
+    /** SQL query to find invoices by a specific invoice type. Loaded from `invoice/selectInvoicesByType.sql`. */
     private static final String SQL_FIND_INVOICES_BY_INVOICE_TYPE;
-    /** SQL query to find only active invoices by date range (includes WHERE IsActive = 1). */
+    /** SQL query to find only active invoices by date range (includes WHERE IsActive = 1). Loaded from `invoice/selectActiveInvoicesByDateRange.sql`. */
     private static final String SQL_FIND_ACTIVE_INVOICES_BY_DATE_RANGE;
 
     static {
@@ -89,11 +100,12 @@ public class InvoiceDataAccessImpl implements InvoiceDataAccess {
             SQL_CREATE_INVOICE_RECORD = QueryLoader.getQuery("invoice/insertInvoice.sql");
             SQL_READ_INVOICE_RECORD = QueryLoader.getQuery("invoice/selectInvoiceById.sql");
             SQL_READ_ALL_INVOICE_RECORD = QueryLoader.getQuery("invoice/selectAllInvoices.sql");
+            SQL_READ_ACTIVE_INVOICE_RECORD = QueryLoader.getQuery("invoice/selectActiveInvoices.sql");
             SQL_EXISTS_INVOICE_BY_ID = QueryLoader.getQuery("invoice/existById.sql");
             SQL_UPDATE_INVOICE_RECORD = QueryLoader.getQuery("invoice/updateInvoice.sql");
-            SQL_DELETE_INVOICE_HARD = QueryLoader.getQuery("invoice/deleteInvoiceHard.sql");
             SQL_DELETE_INVOICE_SOFT = QueryLoader.getQuery("invoice/deleteInvoiceSoft.sql");
             SQL_COUNT_INVOICE_RECORD = QueryLoader.getQuery("invoice/countInvoices.sql");
+            SQL_COUNT_ACTIVE_INVOICE_RECORD = QueryLoader.getQuery("invoice/countActiveInvoices.sql");
             SQL_FIND_INVOICES_BY_DATE_RANGE = QueryLoader.getQuery("invoice/selectInvoicesByDateRange.sql");
             SQL_FIND_INVOICES_BY_INVOICE_TYPE = QueryLoader.getQuery("invoice/selectInvoicesByType.sql");
             SQL_FIND_ACTIVE_INVOICES_BY_DATE_RANGE = QueryLoader.getQuery("invoice/selectActiveInvoicesByDateRange.sql");
@@ -169,7 +181,6 @@ public class InvoiceDataAccessImpl implements InvoiceDataAccess {
     @Override
     public Optional<Invoice> find(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "Invoice ID cannot be null for read operation.");
-        // Implementation remains unchanged, relies on updated mapResultSetToInvoice
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_READ_INVOICE_RECORD)) {
             stmt.setInt(1, id);
@@ -190,7 +201,6 @@ public class InvoiceDataAccessImpl implements InvoiceDataAccess {
      */
     @Override
     public List<Invoice> findAll() throws DatabaseAccessException {
-        // Implementation remains unchanged, relies on updated mapResultSetToInvoice
         List<Invoice> invoices = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
              Statement stmt = conn.createStatement();
@@ -204,6 +214,28 @@ public class InvoiceDataAccessImpl implements InvoiceDataAccess {
             throw new DatabaseAccessException("Error reading all invoice records: " + e.getMessage(), e);
         }
         return invoices;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Invoice> findActive() throws DatabaseAccessException {
+        List<Invoice> activeInvoices = new ArrayList<>();
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_READ_ACTIVE_INVOICE_RECORD);
+             ResultSet rs = stmt.executeQuery()) {
+
+            logger.debug("Executing read active invoices query.");
+            while (rs.next()) {
+                activeInvoices.add(mapResultSetToInvoice(rs));
+            }
+            logger.info("Found {} active invoices.", activeInvoices.size());
+        } catch (SQLException e) {
+            logger.error("Error reading active invoice records: {}", e.getMessage(), e);
+            throw new DatabaseAccessException("Error reading active invoice records: " + e.getMessage(), e);
+        }
+        return activeInvoices;
     }
 
     /**
@@ -378,7 +410,6 @@ public class InvoiceDataAccessImpl implements InvoiceDataAccess {
      */
     @Override
     public boolean existsById(Integer id) throws DatabaseAccessException {
-        // Implementation remains unchanged
         Objects.requireNonNull(id, "Invoice ID cannot be null for existsById operation.");
 
         try (Connection conn = DatabaseManager.getConnection();
@@ -398,7 +429,6 @@ public class InvoiceDataAccessImpl implements InvoiceDataAccess {
      */
     @Override
     public long count() throws DatabaseAccessException {
-        // Implementation remains unchanged
         try (Connection conn = DatabaseManager.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(SQL_COUNT_INVOICE_RECORD)) {
@@ -416,8 +446,28 @@ public class InvoiceDataAccessImpl implements InvoiceDataAccess {
      * {@inheritDoc}
      */
     @Override
+    public long countActive() throws DatabaseAccessException {
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_COUNT_ACTIVE_INVOICE_RECORD);
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+                long count = rs.getLong(1);
+                logger.info("Total active invoice record count: {}", count);
+                return count;
+            }
+            return 0;
+        } catch (SQLException e) {
+            logger.error("Error counting active invoice records: {}", e.getMessage(), e);
+            throw new DatabaseAccessException("Error counting active invoice records: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public List<Invoice> findByDateRange(LocalDate startDate, LocalDate endDate) throws DatabaseAccessException {
-        // Implementation remains unchanged, fetches ALL (active and soft-deleted) records
         Objects.requireNonNull(startDate, "Start date cannot be null.");
         Objects.requireNonNull(endDate, "End date cannot be null.");
 
@@ -481,7 +531,6 @@ public class InvoiceDataAccessImpl implements InvoiceDataAccess {
      */
     @Override
     public List<Invoice> findByType(String invoiceType) throws DatabaseAccessException {
-        // Implementation remains unchanged
         Objects.requireNonNull(invoiceType, "Invoice type cannot be null.");
 
         List<Invoice> invoices = new ArrayList<>();
