@@ -9,10 +9,8 @@ import com.avaruusstudios.vmdb.dao.UpdateDataAccess;
 import com.avaruusstudios.vmdb.dao.CreateDataAccess;
 import com.avaruusstudios.vmdb.dao.ReadDataAccess;
 import com.avaruusstudios.vmdb.dao.DatabaseAccessException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -60,9 +58,9 @@ import java.util.Optional;
  * </ul>
  *
  * @author AvaruusStudios
- * @version 1.0
+ * @version 1.1
  * Created On: 2025-07-14
- * Updated On: 2025-07-14
+ * Updated On: 2025-09-22
  *
  * @see VehicleDataAccess
  * @see Vehicle
@@ -74,12 +72,12 @@ import java.util.Optional;
  * @see UpdateDataAccess
  * @see DeleteDataAccess
  */
-public class VehicleImplementation implements VehicleDataAccess {
+public class VehicleDataAccessImpl implements VehicleDataAccess {
 
     /**
-     * SLF4J logger for logging informational messages, warnings, and errors within the {@code VehicleImplementation} class.
+     * SLF4J logger for logging informational messages, warnings, and errors within the {@code VehicleDataAccessImpl} class.
      */
-    private static final Logger logger = LoggerFactory.getLogger(VehicleImplementation.class);
+    private static final Logger logger = LoggerFactory.getLogger(VehicleDataAccessImpl.class);
 
     /**
      * <p>
@@ -121,16 +119,12 @@ public class VehicleImplementation implements VehicleDataAccess {
     private static final String SQL_SELECT_VEHICLES_BY_MODEL;
     /** SQL query to select vehicles by year. Loaded from `vehicle/selectVehiclesByYear.sql`. */
     private static final String SQL_SELECT_VEHICLES_BY_YEAR;
+    /** SQL query to count the total number of active vehicle records. */
+    private static final String SQL_COUNT_ACTIVE_VEHICLE_RECORDS;
 
     /**
      * Static initializer block to load all SQL query strings from external `.sql` files
-     * using the {@link QueryLoader}. This block executes only once when the class is first loaded,
-     * ensuring that all necessary SQL queries are available before any database operations are attempted.
-     * <p>
-     * If any query file cannot be found or loaded, an {@link IllegalArgumentException} is caught,
-     * logged as an error, and re-thrown as an {@link ExceptionInInitializerError} to indicate
-     * a critical application setup failure that prevents the DAO from functioning correctly.
-     * </p>
+     * using the {@link QueryLoader}.
      */
     static {
         try {
@@ -144,13 +138,14 @@ public class VehicleImplementation implements VehicleDataAccess {
             SQL_DELETE_VEHICLE_SOFT = QueryLoader.getQuery("vehicle/deleteVehicleSoft.sql");
             SQL_SELECT_VEHICLE_BY_LICENSE_PLATE = QueryLoader.getQuery("vehicle/selectVehicleByLicensePlate.sql");
             SQL_SELECT_VEHICLE_BY_VEHICLE_NUMBER = QueryLoader.getQuery("vehicle/selectVehicleByVehicleNumber.sql");
-            SQL_SELECT_ACTIVE_VEHICLE = QueryLoader.getQuery("vehicle/selectActiveVehicle.sql");
+            SQL_SELECT_ACTIVE_VEHICLE = "SELECT * FROM Vehicles WHERE IsActive = 1"; // This has been moved out of QueryLoader to support returning a List
             SQL_SELECT_VEHICLES_BY_MAKE = QueryLoader.getQuery("vehicle/selectVehiclesByMake.sql");
             SQL_SELECT_VEHICLES_BY_MODEL = QueryLoader.getQuery("vehicle/selectVehiclesByModel.sql");
             SQL_SELECT_VEHICLES_BY_YEAR = QueryLoader.getQuery("vehicle/selectVehiclesByYear.sql");
-            logger.info("All SQL queries for VehicleImplementation loaded successfully.");
+            SQL_COUNT_ACTIVE_VEHICLE_RECORDS = "SELECT COUNT(*) FROM Vehicles WHERE IsActive = 1";
+            logger.info("All SQL queries for VehicleDataAccessImpl loaded successfully.");
         } catch (IllegalArgumentException e) {
-            logger.error("Failed to load one or more SQL queries for VehicleImplementation. Check .sql files and paths.", e);
+            logger.error("Failed to load one or more SQL queries for VehicleDataAccessImpl. Check .sql files and paths.", e);
             throw new ExceptionInInitializerError(e); // Indicate a critical initialization failure
         }
     }
@@ -158,31 +153,16 @@ public class VehicleImplementation implements VehicleDataAccess {
     /**
      * <p>
      * Maps a row from a {@link ResultSet} to a {@link Vehicle} object.
-     * This private helper method centralizes the logic for converting raw database
-     * column values into a populated {@code Vehicle} model object, ensuring data consistency
-     * and type safety across all read operations.
-     * </p>
-     * <p>
-     * It handles:
-     * <ul>
-     * <li>Retrieval of the auto-generated `VehicleID` and setting it via the package-private `_setVehicleID` method.</li>
-     * <li>String fields (e.g., `Make`, `Model`, `LicensePlate`, `VehicleNumber`, `VehicleType`).</li>
-     * <li>Integer fields (e.g., `ManufactureYear`, `PassengerCapacity`).</li>
-     * <li>Conversion of `IsActive` from `INTEGER` (0 or 1) to `boolean`.</li>
-     * <li>Handling of nullable `DeletedAt` `TEXT` fields, parsing them into
-     * {@link LocalDateTime} objects using {@link #CUSTOM_DATETIME_FORMATTER} if present.</li>
-     * </ul>
      * </p>
      *
      * @param rs The {@link ResultSet} positioned at the current row containing vehicle data.
      * @return A fully populated {@link Vehicle} object with data retrieved from the {@code ResultSet}.
-     * @throws SQLException If a database access error occurs (e.g., a column name is not found,
-     * or there is a data type mismatch during retrieval).
+     * @throws SQLException If a database access error occurs.
      */
     private Vehicle mapResultSetToVehicle(ResultSet rs) throws SQLException {
         Vehicle vehicle = new Vehicle();
         Integer vehicleId = rs.getInt("VehicleID");
-        if (vehicleId > 0) { // SQLite getInt returns 0 for NULL for INTEGER PRIMARY KEY, check for positive valid ID
+        if (vehicleId > 0) {
             vehicle._setVehicleID(vehicleId);
         }
 
@@ -224,7 +204,7 @@ public class VehicleImplementation implements VehicleDataAccess {
             stmt.setInt(3, vehicle.getManufactureYear());
             stmt.setString(4, vehicle.getLicensePlate());
             stmt.setInt(5, vehicle.getPassengerCapacity());
-            stmt.setInt(7, vehicle.isActive() ? 1 : 0); // Corrected getter to isActive()
+            stmt.setInt(7, vehicle.isActive() ? 1 : 0);
             stmt.setString(8, vehicle.getDeletedAt() != null ? vehicle.getDeletedAt().format(CUSTOM_DATETIME_FORMATTER) : null);
             stmt.setString(9, vehicle.getVehicleNumber());
 
@@ -239,7 +219,7 @@ public class VehicleImplementation implements VehicleDataAccess {
             try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     Integer generatedId = generatedKeys.getInt(1);
-                    vehicle._setVehicleID(generatedId); // Set the auto-generated ID
+                    vehicle._setVehicleID(generatedId);
                     logger.info("Successfully created vehicle with ID: {}", generatedId);
                     return vehicle;
                 } else {
@@ -255,37 +235,25 @@ public class VehicleImplementation implements VehicleDataAccess {
 
     /**
      * {@inheritDoc}
-     *
-     * <p>
-     * For this application, implementations of this method are expected to perform a
-     * **soft-delete** rather than physically removing the record from the database.
-     * This typically involves updating an `IsActive` flag to `0` and/or setting a
-     * `DeletedAt` timestamp to the current time. This strategy preserves data integrity
-     * for historical, auditing, and referential purposes, and allows for potential recovery.
-     * </p>
-     *
-     * <p>
-     * If no record matches the provided ID, the operation will typically complete
-     * without throwing an error, but no rows will be affected. Implementations
-     * might log a warning or return a boolean indicating success if desired.
-     * </p>
      */
     @Override
-    public void delete(Integer id) throws DatabaseAccessException {
+    public boolean delete(Integer id) throws DatabaseAccessException {
         Objects.requireNonNull(id, "Vehicle ID cannot be null for deletion.");
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_DELETE_VEHICLE_SOFT)) {
 
-            stmt.setString(1, LocalDateTime.now().format(CUSTOM_DATETIME_FORMATTER)); // Set DeletedAt
-            stmt.setInt(2, id); // Where VehicleID = ?
+            stmt.setString(1, LocalDateTime.now().format(CUSTOM_DATETIME_FORMATTER));
+            stmt.setInt(2, id);
 
             logger.debug("Executing soft-delete vehicle query for ID: {}", id);
             int affectedRows = stmt.executeUpdate();
 
             if (affectedRows == 0) {
                 logger.warn("No vehicle found with ID: {} for soft-deletion.", id);
+                return false;
             } else {
                 logger.info("Successfully soft-deleted vehicle with ID: {}", id);
+                return true;
             }
         } catch (SQLException e) {
             logger.error("Error soft-deleting vehicle record with ID {}: {}", id, e.getMessage(), e);
@@ -295,12 +263,6 @@ public class VehicleImplementation implements VehicleDataAccess {
 
     /**
      * {@inheritDoc}
-     *
-     * <p>
-     * The result is wrapped in an {@code Optional<Vehicle>} to clearly indicate whether
-     * an entity matching the given ID was found. This prevents {@code NullPointerExceptions}
-     * and encourages explicit handling of cases where the record might not exist.
-     * </p>
      */
     @Override
     public Optional<Vehicle> find(Integer id) throws DatabaseAccessException {
@@ -328,12 +290,6 @@ public class VehicleImplementation implements VehicleDataAccess {
 
     /**
      * {@inheritDoc}
-     *
-     * <p>
-     * The order of the returned records is dependent on the underlying database and
-     * the SQL query used by the concrete implementation (e.g., if no specific
-     * ORDER BY clause is applied, the order might not be guaranteed).
-     * </p>
      */
     @Override
     public List<Vehicle> findAll() throws DatabaseAccessException {
@@ -358,6 +314,33 @@ public class VehicleImplementation implements VehicleDataAccess {
      * {@inheritDoc}
      */
     @Override
+    public List<Vehicle> findActive() throws DatabaseAccessException {
+        List<Vehicle> activeVehicles = new ArrayList<>();
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_SELECT_ACTIVE_VEHICLE);
+             ResultSet rs = stmt.executeQuery()) {
+
+            logger.debug("Executing find active vehicles query.");
+            while (rs.next()) {
+                activeVehicles.add(mapResultSetToVehicle(rs));
+            }
+            logger.info("Found {} active vehicles.", activeVehicles.size());
+
+            // A business rule violation would be more than one active vehicle, which is handled in the application logic.
+            // The method signature requires a list, so we return all found.
+            return activeVehicles;
+
+        } catch (SQLException e) {
+            logger.error("Error finding active vehicles: {}", e.getMessage(), e);
+            throw new DatabaseAccessException("Error finding active vehicles: " + e.getMessage(), e);
+        }
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public long count() throws DatabaseAccessException {
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_COUNT_VEHICLE_RECORDS);
@@ -368,10 +351,31 @@ public class VehicleImplementation implements VehicleDataAccess {
                 logger.info("Total vehicle record count: {}", count);
                 return count;
             }
-            return 0; // Should not happen if query returns 0, but as a safeguard
+            return 0;
         } catch (SQLException e) {
             logger.error("Error counting vehicle records: {}", e.getMessage(), e);
             throw new DatabaseAccessException("Error counting vehicle records: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long countActive() throws DatabaseAccessException {
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_COUNT_ACTIVE_VEHICLE_RECORDS);
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+                long count = rs.getLong(1);
+                logger.info("Total active vehicle record count: {}", count);
+                return count;
+            }
+            return 0;
+        } catch (SQLException e) {
+            logger.error("Error counting active vehicle records: {}", e.getMessage(), e);
+            throw new DatabaseAccessException("Error counting active vehicle records: " + e.getMessage(), e);
         }
     }
 
@@ -399,16 +403,9 @@ public class VehicleImplementation implements VehicleDataAccess {
 
     /**
      * {@inheritDoc}
-     *
-     * <p>
-     * For the update operation to succeed, the {@code vehicle} object passed as a parameter
-     * *must* have its primary key field set. This ID is used to identify which existing
-     * record in the database should be updated. All other fields in the {@code vehicle}
-     * object will be used to update the corresponding columns in the database.
-     * </p>
      */
     @Override
-    public void update(Vehicle vehicle) throws DatabaseAccessException {
+    public Vehicle update(Vehicle vehicle) throws DatabaseAccessException {
         Objects.requireNonNull(vehicle, "Vehicle object cannot be null for update.");
         Objects.requireNonNull(vehicle.getVehicleID(), "Vehicle ID must not be null for update.");
         Objects.requireNonNull(vehicle.getMake(), "Make cannot be null for vehicle update.");
@@ -437,6 +434,7 @@ public class VehicleImplementation implements VehicleDataAccess {
                 throw new DatabaseAccessException("Vehicle with ID " + vehicle.getVehicleID() + " not found for update.");
             } else {
                 logger.info("Successfully updated vehicle with ID: {}", vehicle.getVehicleID());
+                return vehicle;
             }
         } catch (SQLException e) {
             logger.error("Error updating vehicle record with ID {}: {}", vehicle.getVehicleID(), e.getMessage(), e);
@@ -446,15 +444,12 @@ public class VehicleImplementation implements VehicleDataAccess {
 
     /**
      * {@inheritDoc}
-     *
-     * This method is an implementation for `findByVehicleNumber` from `VehicleDataAccess`.
-     * It specifically uses the `VehicleNumber` field for lookup, which is an internal asset tracking number.
      */
     @Override
     public Optional<Vehicle> findByNumber(String vehicleNumber) throws DatabaseAccessException {
         Objects.requireNonNull(vehicleNumber, "Vehicle number cannot be null for lookup.");
         try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(SQL_SELECT_VEHICLE_BY_VEHICLE_NUMBER)) { // Using SQL for vehicle number
+             PreparedStatement stmt = conn.prepareStatement(SQL_SELECT_VEHICLE_BY_VEHICLE_NUMBER)) {
 
             stmt.setString(1, vehicleNumber);
             logger.debug("Executing query: {} with vehicle number: {}", SQL_SELECT_VEHICLE_BY_VEHICLE_NUMBER, vehicleNumber);
@@ -476,10 +471,6 @@ public class VehicleImplementation implements VehicleDataAccess {
 
     /**
      * {@inheritDoc}
-     *
-     * <p>
-     * This method finds a vehicle record by its unique license plate using the `SQL_SELECT_VEHICLE_BY_LICENSE_PLATE` query.
-     * </p>
      */
     @Override
     public Optional<Vehicle> findByPlate(String licensePlate) throws DatabaseAccessException {
@@ -507,44 +498,6 @@ public class VehicleImplementation implements VehicleDataAccess {
 
     /**
      * {@inheritDoc}
-     *
-     * <p>
-     * This method retrieves the single active vehicle using the `SQL_SELECT_ACTIVE_VEHICLE` query.
-     * It includes a warning log if multiple active vehicles are found, indicating a potential
-     * business rule violation, and returns only the first one encountered.
-     * </p>
-     */
-    @Override
-    public Optional<Vehicle> findActive() throws DatabaseAccessException {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(SQL_SELECT_ACTIVE_VEHICLE)) {
-
-            logger.debug("Executing find active vehicle query.");
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    Vehicle activeVehicle = mapResultSetToVehicle(rs);
-                    if (rs.next()) {
-                        logger.warn("Multiple active vehicles found, business rule violation detected! Returning the first one.");
-                    }
-                    logger.info("Found active vehicle.");
-                    return Optional.of(activeVehicle);
-                } else {
-                    logger.info("No active vehicle found.");
-                    return Optional.empty();
-                }
-            }
-        } catch (SQLException e) {
-            logger.error("Error finding active vehicle: {}", e.getMessage(), e);
-            throw new DatabaseAccessException("Error finding active vehicle: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * <p>
-     * This method retrieves a list of vehicles matching the specified make using the `SQL_SELECT_VEHICLES_BY_MAKE` query.
-     * </p>
      */
     @Override
     public List<Vehicle> findByMake(String make) throws DatabaseAccessException {
@@ -570,10 +523,6 @@ public class VehicleImplementation implements VehicleDataAccess {
 
     /**
      * {@inheritDoc}
-     *
-     * <p>
-     * This method retrieves a list of vehicles matching the specified model using the `SQL_SELECT_VEHICLES_BY_MODEL` query.
-     * </p>
      */
     @Override
     public List<Vehicle> findByModel(String model) throws DatabaseAccessException {
@@ -599,10 +548,6 @@ public class VehicleImplementation implements VehicleDataAccess {
 
     /**
      * {@inheritDoc}
-     *
-     * <p>
-     * This method retrieves a list of vehicles matching the specified manufacture year using the `SQL_SELECT_VEHICLES_BY_YEAR` query.
-     * </p>
      */
     @Override
     public List<Vehicle> findByYear(int year) throws DatabaseAccessException {
