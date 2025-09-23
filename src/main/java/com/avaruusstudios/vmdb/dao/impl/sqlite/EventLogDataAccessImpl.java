@@ -26,7 +26,7 @@ import java.util.Optional;
 
 /**
  * <p>
- * {@code EventLogImplementation} provides a concrete implementation of the {@link EventLogDataAccess}
+ * {@code EventLogDataAccessImpl} provides a concrete implementation of the {@link EventLogDataAccess}
  * interface, specifically designed for SQLite databases. This class handles all CRUD (Create, Read, Update, Delete)
  * and specialized data access operations for {@link EventLog} entities.
  * </p>
@@ -39,26 +39,28 @@ import java.util.Optional;
  * </p>
  *
  * <p>
- * Unlike other data access implementations, {@code EventLogImplementation} performs a physical
- * (hard) delete when {@code deleteRecord} is called, as event logs are typically immutable
+ * Unlike other data access implementations, {@code EventLogDataAccessImpl} performs a physical
+ * (hard) delete when a log needs to be removed, as event logs are typically immutable
  * records for auditing purposes where a "soft delete" (marking as inactive) is not applicable.
+ * The `findActive()` and `countActive()` methods are implemented to return all records, as all
+ * event logs are considered active by nature of their purpose.
  * </p>
  *
  * @author AvaruusStudios
- * @version 1.0
+ * @version 1.2
  * Created On: 2025-07-28
- * Updated On: 2025-07-28
+ * Updated On: 2025-09-22
  *
  * @see EventLogDataAccess
  * @see EventLog
  * @see DatabaseManager
  */
-public class EventLogImplementation implements EventLogDataAccess {
+public class EventLogDataAccessImpl implements EventLogDataAccess {
 
     /**
-     * SLF4J Logger for logging informational messages, warnings, and errors within the {@code EventLogImplementation} class.
+     * SLF4J Logger for logging informational messages, warnings, and errors within the {@code EventLogDataAccessImpl} class.
      */
-    private static final Logger logger = LoggerFactory.getLogger(EventLogImplementation.class);
+    private static final Logger logger = LoggerFactory.getLogger(EventLogDataAccessImpl.class);
 
     /**
      * DateTimeFormatter for parsing and formatting `LocalDateTime` objects to/from database strings in "yyyy-MM-dd HH:mm:ss" format.
@@ -66,21 +68,23 @@ public class EventLogImplementation implements EventLogDataAccess {
     private static final DateTimeFormatter CUSTOM_DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     // SQL Query Constants
-    /** SQL query to create (insert) a new event log record. */
+    /** SQL query to create (insert) a new event log record. Loaded from `eventlog/insertEventLog.sql`. */
     private static final String SQL_CREATE_EVENT_LOG_RECORD;
-    /** SQL query to read a single event log record by its ID, including joined User data. */
+    /** SQL query to read a single event log record by its ID, including joined User data. Loaded from `eventlog/selectEventLogByIdJoined.sql`. */
     private static final String SQL_READ_EVENT_LOG_RECORD;
-    /** SQL query to read all event log records, including joined User data. */
+    /** SQL query to read all event log records, including joined User data. Loaded from `eventlog/selectAllEventLogsJoined.sql`. */
     private static final String SQL_READ_ALL_EVENT_LOG_RECORD;
-    /** SQL query to count the total number of event log records. */
+    /** SQL query to count the total number of event log records. Loaded from `eventlog/countEventLogs.sql`. */
     private static final String SQL_COUNT_EVENT_LOG_RECORD;
-    /** SQL query to check if an event log record exists by its ID. */
+    /** SQL query to count event logs of a specific type. Loaded from `eventlog/countByEventType.sql`. */
+    private static final String SQL_COUNT_BY_EVENT_TYPE;
+    /** SQL query to check if an event log record exists by its ID. Loaded from `eventlog/existByIdEventLog.sql`. */
     private static final String SQL_EXISTS_EVENT_LOG_BY_ID;
-    /** SQL query to find event logs associated with a specific user ID, including joined User data. */
+    /** SQL query to find event logs associated with a specific user ID, including joined User data. Loaded from `eventlog/selectEventLogsByUserId.sql`. */
     private static final String SQL_FIND_BY_USER_ID;
-    /** SQL query to find event logs by event type, including joined User data. */
+    /** SQL query to find event logs by event type, including joined User data. Loaded from `eventlog/selectEventLogsByEventType.sql`. */
     private static final String SQL_FIND_BY_EVENT_TYPE;
-    /** SQL query to find event logs by table name, including joined User data. */
+    /** SQL query to find event logs by table name, including joined User data. Loaded from `eventlog/selectEventLogsByTableName.sql`. */
     private static final String SQL_FIND_BY_TABLE_NAME;
 
 
@@ -90,14 +94,15 @@ public class EventLogImplementation implements EventLogDataAccess {
             SQL_READ_EVENT_LOG_RECORD = QueryLoader.getQuery("eventlog/selectEventLogByIdJoined.sql");
             SQL_READ_ALL_EVENT_LOG_RECORD = QueryLoader.getQuery("eventlog/selectAllEventLogsJoined.sql");
             SQL_COUNT_EVENT_LOG_RECORD = QueryLoader.getQuery("eventlog/countEventLogs.sql");
+            SQL_COUNT_BY_EVENT_TYPE = QueryLoader.getQuery("eventlog/countByEventType.sql");
             SQL_EXISTS_EVENT_LOG_BY_ID = QueryLoader.getQuery("eventlog/existByIdEventLog.sql");
             SQL_FIND_BY_USER_ID = QueryLoader.getQuery("eventlog/selectEventLogsByUserId.sql");
             SQL_FIND_BY_EVENT_TYPE = QueryLoader.getQuery("eventlog/selectEventLogsByEventType.sql");
-            SQL_FIND_BY_TABLE_NAME = QueryLoader.getQuery("eventlog/selectEventLogsByTableName.sql"); // Added for new method
+            SQL_FIND_BY_TABLE_NAME = QueryLoader.getQuery("eventlog/selectEventLogsByTableName.sql");
 
-            logger.info("All SQL queries for EventLogImplementation loaded successfully.");
+            logger.info("All SQL queries for EventLogDataAccessImpl loaded successfully.");
         } catch (IllegalArgumentException e) {
-            logger.error("Failed to load one or more SQL queries for EventLogImplementation. Check .sql files and paths.", e);
+            logger.error("Failed to load one or more SQL queries for EventLogDataAccessImpl. Check .sql files and paths.", e);
             throw new ExceptionInInitializerError(e);
         }
     }
@@ -334,6 +339,22 @@ public class EventLogImplementation implements EventLogDataAccess {
     /**
      * {@inheritDoc}
      * <p>
+     * Retrieves all event log records. In the context of event logs, all records are considered "active"
+     * as they are immutable audit records and not subject to soft deletion.
+     * This method returns the same list as {@link #findAll()}.
+     * </p>
+     *
+     * @return A {@link List} of all {@link EventLog} objects in the database.
+     * @throws DatabaseAccessException If a database access error occurs.
+     */
+    @Override
+    public List<EventLog> findActive() throws DatabaseAccessException {
+        return findAll();
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
      * Counts the total number of event log records in the database.
      * </p>
      *
@@ -356,6 +377,22 @@ public class EventLogImplementation implements EventLogDataAccess {
             logger.error("Error counting event log records: {}", e.getMessage(), e);
             throw new DatabaseAccessException("Error counting event log records: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Counts the total number of event log records. In the context of event logs, all records are considered "active"
+     * as they are immutable audit records and not subject to soft deletion.
+     * This method returns the same count as {@link #count()}.
+     * </p>
+     *
+     * @return The total count of event log records as a {@code long}.
+     * @throws DatabaseAccessException If a database access error occurs.
+     */
+    @Override
+    public long countActive() throws DatabaseAccessException {
+        return count();
     }
 
     /**
@@ -389,7 +426,6 @@ public class EventLogImplementation implements EventLogDataAccess {
     }
 
     /**
-     * Implementation for finding event logs by User ID.
      * {@inheritDoc}
      * <p>
      * Finds all event log records associated with a specific user.
@@ -465,6 +501,43 @@ public class EventLogImplementation implements EventLogDataAccess {
     }
 
     /**
+     * <p>
+     * Counts the total number of event log records for a given {@link EventType}.
+     * </p>
+     * <p>
+     * This method executes a fast `COUNT` query with a `WHERE` clause, making it more efficient
+     * than retrieving all matching records and counting them in memory.
+     * </p>
+     *
+     * @param eventType The {@link EventType} enum to search for. Must not be {@code null}.
+     * @return The total count of event log records that match the specified event type.
+     * @throws DatabaseAccessException If a database access error occurs.
+     * @throws NullPointerException    If the provided `eventType` is {@code null}.
+     */
+    @Override
+    public long countByType(EventType eventType) throws DatabaseAccessException {
+        Objects.requireNonNull(eventType, "Event type cannot be null for count by type operation.");
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_COUNT_BY_EVENT_TYPE)) {
+
+            stmt.setString(1, eventType.getDbValue());
+            logger.debug("Executing count by event type query for type: {}", eventType.getDbValue());
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    long count = rs.getLong(1);
+                    logger.info("Found {} event logs for event type: {}", count, eventType.getDbValue());
+                    return count;
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Error counting event logs by event type {}: {}", eventType.getDbValue(), e.getMessage(), e);
+            throw new DatabaseAccessException("Error counting event logs by event type: " + e.getMessage(), e);
+        }
+        return 0;
+    }
+
+    /**
      * {@inheritDoc}
      * <p>
      * Retrieves a list of all {@link EventLog} records where the event occurred in a specific table.
@@ -479,7 +552,7 @@ public class EventLogImplementation implements EventLogDataAccess {
      * @throws DatabaseAccessException If a database access error occurs during retrieval.
      * @throws NullPointerException    If the provided `tableName` is {@code null}.
      */
-    @Override // This method is now correctly overriding the interface method
+    @Override
     public List<EventLog> findByTable(String tableName) throws DatabaseAccessException {
         Objects.requireNonNull(tableName, "Table name cannot be null for event log search by table name.");
         List<EventLog> eventLogs = new ArrayList<>();
