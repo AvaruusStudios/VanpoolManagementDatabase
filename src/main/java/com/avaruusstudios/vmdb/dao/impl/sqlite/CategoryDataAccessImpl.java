@@ -15,7 +15,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,19 +30,15 @@ import java.util.Optional;
  * </p>
  *
  * <p>
- * It interacts with the database using JDBC, preparing SQL statements, mapping {@link ResultSet}
- * rows to {@link Category} objects, and managing database connections through a {@link DatabaseManager}.
- * </p>
- *
- * <p>
- * This class also enforces the business rule regarding {@link CategoryType} and {@link Participant}
- * association, as defined in {@link Category} model's Javadoc.
+ * This class implements a "soft-delete" mechanism by setting the `IsActive` flag to false (0) and
+ * populating the `DeletedAt` field with a timestamp, rather than physically removing the record.
+ * This is crucial for maintaining historical data integrity for audit purposes.
  * </p>
  *
  * @author AvaruusStudios
  * @version 1.0
  * Created On: 2025-07-25
- * Updated On: 2025-07-25
+ * Updated On: 2025-09-22
  *
  * @see CategoryDataAccess
  * @see Category
@@ -55,29 +51,42 @@ public class CategoryDataAccessImpl implements CategoryDataAccess {
     private static final Logger logger = LoggerFactory.getLogger(CategoryDataAccessImpl.class);
 
     /**
-     * DateTimeFormatter for parsing and formatting `LocalDate` objects to/from database strings in "yyyy-MM-dd" format.
-     * Note: Category uses LocalDate for `deletedAt`.
+     * DateTimeFormatter for parsing and formatting `LocalDateTime` objects to/from database strings in "yyyy-MM-dd HH:mm:ss" format.
      */
-    private static final DateTimeFormatter CUSTOM_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter CUSTOM_DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     // SQL Query Constants
+    /** SQL query to create (insert) a new category record. Loaded from `category/insertCategory.sql`. */
     private static final String SQL_CREATE_CATEGORY_RECORD;
+    /** SQL query to read a single category record by its ID. Loaded from `category/selectCategoryById.sql`. */
     private static final String SQL_READ_CATEGORY_RECORD;
+    /** SQL query to read all category records. Loaded from `category/selectAllCategories.sql`. */
     private static final String SQL_READ_ALL_CATEGORY_RECORD;
+    /** SQL query to read all active (IsActive = 1) category records. Loaded from `category/selectActiveCategories.sql`. */
+    private static final String SQL_READ_ACTIVE_CATEGORIES;
+    /** SQL query to count the total number of category records. Loaded from `category/countCategories.sql`. */
     private static final String SQL_COUNT_CATEGORY_RECORD;
+    /** SQL query to count the total number of active (IsActive = 1) category records. Loaded from `category/countActiveCategories.sql`. */
+    private static final String SQL_COUNT_ACTIVE_CATEGORIES;
+    /** SQL query to check if a category record exists by its ID. Loaded from `category/existById.sql`. */
     private static final String SQL_EXISTS_CATEGORY_BY_ID;
+    /** SQL query to update an existing category record. Loaded from `category/updateCategory.sql`. */
     private static final String SQL_UPDATE_CATEGORY_RECORD;
+    /** SQL query to soft-delete a category record by updating its `IsActive` and `DeletedAt` fields. Loaded from `category/deleteCategorySoft.sql`. */
     private static final String SQL_DELETE_CATEGORY_SOFT;
-    private static final String SQL_FIND_CATEGORIES_BY_TYPE; // Renamed SQL constant
-    private static final String SQL_FIND_DISTINCT_CATEGORY_TYPES; // Renamed SQL constant
+    /** SQL query to find categories by their type. Loaded from `category/selectCategoriesByType.sql`. */
+    private static final String SQL_FIND_CATEGORIES_BY_TYPE;
+    /** SQL query to find all distinct category types. Loaded from `category/selectDistinctCategoryTypes.sql`. */
+    private static final String SQL_FIND_DISTINCT_CATEGORY_TYPES;
 
     static {
         try {
-            // You will need to create corresponding .sql files in your `queries/category/` directory.
             SQL_CREATE_CATEGORY_RECORD = QueryLoader.getQuery("category/insertCategory.sql");
             SQL_READ_CATEGORY_RECORD = QueryLoader.getQuery("category/selectCategoryById.sql");
             SQL_READ_ALL_CATEGORY_RECORD = QueryLoader.getQuery("category/selectAllCategories.sql");
+            SQL_READ_ACTIVE_CATEGORIES = QueryLoader.getQuery("category/selectActiveCategories.sql");
             SQL_COUNT_CATEGORY_RECORD = QueryLoader.getQuery("category/countCategories.sql");
+            SQL_COUNT_ACTIVE_CATEGORIES = QueryLoader.getQuery("category/countActiveCategories.sql");
             SQL_EXISTS_CATEGORY_BY_ID = QueryLoader.getQuery("category/existById.sql");
             SQL_UPDATE_CATEGORY_RECORD = QueryLoader.getQuery("category/updateCategory.sql");
             SQL_DELETE_CATEGORY_SOFT = QueryLoader.getQuery("category/deleteCategorySoft.sql");
@@ -100,18 +109,6 @@ public class CategoryDataAccessImpl implements CategoryDataAccess {
      * column values into a populated {@code Category} model object, ensuring data consistency
      * and type safety across all read operations.
      * </p>
-     * <p>
-     * It handles:
-     * <ul>
-     * <li>Retrieval of the auto-generated `CategoryID` and setting it via the `_setCategoryID` method.</li>
-     * <li>Mapping of foreign key IDs (`ParticipantID_FK`) to {@link Participant} objects (nullable).</li>
-     * <li>Conversion of `CategoryType` from `TEXT` to {@link CategoryType} enum.</li>
-     * <li>Conversion of `IsActive` from `INTEGER` (0 or 1) to `boolean`.</li>
-     * <li>Handling of nullable `DeletedAt` `TEXT` field, parsing it into
-     * {@link LocalDate} objects.</li>
-     * <li>String fields (`CategoryName`, `Description`).</li>
-     * </ul>
-     * </p>
      *
      * @param rs The {@link ResultSet} positioned at the current row containing category data.
      * @return A fully populated {@link Category} object with data retrieved from the {@code ResultSet}.
@@ -124,24 +121,19 @@ public class CategoryDataAccessImpl implements CategoryDataAccess {
         Category category = new Category();
 
         Integer categoryId = rs.getInt("CategoryID");
-        if (categoryId > 0) { // SQLite getInt returns 0 for NULL for INTEGER PRIMARY KEY, check for positive valid ID
-            category._setCategoryID(categoryId); // Use the public setter
+        if (categoryId > 0) {
+            category._setCategoryID(categoryId);
         }
 
-        // Participant FKey - Map to Participant object (nullable)
         Integer participantId = rs.getObject("ParticipantID_FK", Integer.class);
         if (participantId != null) {
-            // Assuming Participant has a constructor or setter for its ID
-            // or you might fetch the full Participant object here if needed,
-            // but for now, just setting the ID is sufficient for the Category model.
             Participant participant = new Participant();
             participant._setParticipantID(participantId);
             category.setParticipant(participant);
         } else {
-            category.setParticipant(null); // Explicitly set to null if no participant ID
+            category.setParticipant(null);
         }
 
-        // CategoryType
         String categoryTypeStr = rs.getString("CategoryType");
         if (categoryTypeStr != null) {
             try {
@@ -151,20 +143,17 @@ public class CategoryDataAccessImpl implements CategoryDataAccess {
                 throw new DatabaseAccessException("Invalid CategoryType value from database: " + categoryTypeStr, e);
             }
         } else {
-            // This should ideally not happen if CategoryType is NOT NULL in DB, but handle defensively
             logger.warn("CategoryType is NULL for CategoryID {}. This should not occur.", categoryId);
-            // Decide how to handle: throw exception or set a default/null. Throwing an exception is safer.
             throw new DatabaseAccessException("CategoryType cannot be null for CategoryID: " + categoryId);
         }
 
-
         category.setCategoryName(rs.getString("CategoryName"));
         category.setDescription(rs.getString("Description"));
-        category.setIsActive(rs.getInt("IsActive")); // This is already 0 or 1, and setIsActive expects int
+        category.setIsActive(rs.getInt("IsActive"));
 
         String deletedAtStr = rs.getString("DeletedAt");
         category.setDeletedAt(deletedAtStr != null && !deletedAtStr.isEmpty() ?
-                LocalDate.parse(deletedAtStr, CUSTOM_DATE_FORMATTER) : null);
+                LocalDateTime.parse(deletedAtStr, CUSTOM_DATETIME_FORMATTER) : null);
 
         return category;
     }
@@ -185,7 +174,6 @@ public class CategoryDataAccessImpl implements CategoryDataAccess {
             }
         } else if (category.getCategoryType() == CategoryType.EXPENSE || category.getCategoryType() == CategoryType.CREDIT) {
             if (category.getParticipant() != null) {
-                // We should also check if the participant ID is set, if the participant object exists
                 if (category.getParticipant().getParticipantID() != null) {
                     throw new IllegalArgumentException("For EXPENSE or CREDIT category types, a Participant must NOT be specified.");
                 }
@@ -195,18 +183,16 @@ public class CategoryDataAccessImpl implements CategoryDataAccess {
 
     /**
      * <p>
-     * Helper method to set common parameters for {@link PreparedStatement} when
+     * Helper method to set common parameters for a {@link PreparedStatement} when
      * creating or updating a {@link Category} record.
      * </p>
      *
      * @param stmt     The {@link PreparedStatement} to which parameters will be set.
      * @param category The {@link Category} object containing the data.
-     * @param startIndex The starting index for setting parameters. Useful if the statement has
-     * other parameters before the common ones (e.g., for update statements).
+     * @param startIndex The starting index for setting parameters.
      * @throws SQLException If a database access error occurs during parameter setting.
      */
     private void setCategoryStatementParameters(PreparedStatement stmt, Category category, int startIndex) throws SQLException {
-        // ParticipantID_FK can be NULL, so handle it
         if (category.getParticipant() != null && category.getParticipant().getParticipantID() != null) {
             stmt.setInt(startIndex, category.getParticipant().getParticipantID());
         } else {
@@ -215,8 +201,8 @@ public class CategoryDataAccessImpl implements CategoryDataAccess {
         stmt.setString(startIndex + 1, category.getCategoryType().getDbValue());
         stmt.setString(startIndex + 2, category.getCategoryName());
         stmt.setString(startIndex + 3, category.getDescription());
-        stmt.setInt(startIndex + 4, category.getIsActive()); // IsActive is 0 or 1
-        stmt.setString(startIndex + 5, category.getDeletedAt() != null ? category.getDeletedAt().format(CUSTOM_DATE_FORMATTER) : null);
+        stmt.setInt(startIndex + 4, category.getIsActive());
+        stmt.setString(startIndex + 5, category.getDeletedAt() != null ? category.getDeletedAt().format(CUSTOM_DATETIME_FORMATTER) : null);
     }
 
     // --- Interface Implementations ---
@@ -242,7 +228,6 @@ public class CategoryDataAccessImpl implements CategoryDataAccess {
             throw new IllegalArgumentException("Category ID must be null for new record creation (auto-generated).");
         }
 
-        // Enforce business rule before database interaction
         enforceParticipantCategoryTypeBusinessRule(category);
 
         try (Connection conn = DatabaseManager.getConnection();
@@ -263,7 +248,7 @@ public class CategoryDataAccessImpl implements CategoryDataAccess {
             try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     Integer generatedId = generatedKeys.getInt(1);
-                    category._setCategoryID(generatedId); // Set the auto-generated ID
+                    category._setCategoryID(generatedId);
                     logger.info("Successfully created category with ID: {}", generatedId);
                     return category;
                 } else {
@@ -283,8 +268,10 @@ public class CategoryDataAccessImpl implements CategoryDataAccess {
 
     /**
      * {@inheritDoc}
+     *
      * <p>
-     * This method performs a soft-delete by updating `IsActive` and `DeletedAt` fields.
+     * This method performs a soft-delete by updating the `IsActive` flag to `0` and
+     * the `DeletedAt` timestamp to the current time.
      * </p>
      */
     @Override
@@ -293,8 +280,8 @@ public class CategoryDataAccessImpl implements CategoryDataAccess {
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_DELETE_CATEGORY_SOFT)) {
 
-            stmt.setString(1, LocalDate.now().format(CUSTOM_DATE_FORMATTER)); // Set DeletedAt
-            stmt.setInt(2, id); // Where CategoryID = ?
+            stmt.setString(1, LocalDateTime.now().format(CUSTOM_DATETIME_FORMATTER));
+            stmt.setInt(2, id);
 
             logger.debug("Executing soft-delete category query for ID: {}", id);
             int affectedRows = stmt.executeUpdate();
@@ -363,6 +350,32 @@ public class CategoryDataAccessImpl implements CategoryDataAccess {
 
     /**
      * {@inheritDoc}
+     *
+     * <p>
+     * This method retrieves all active category records (where `IsActive = 1`).
+     * </p>
+     */
+    @Override
+    public List<Category> findActive() throws DatabaseAccessException {
+        List<Category> activeCategories = new ArrayList<>();
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_READ_ACTIVE_CATEGORIES);
+             ResultSet rs = stmt.executeQuery()) {
+
+            logger.debug("Executing read active categories query.");
+            while (rs.next()) {
+                activeCategories.add(mapResultSetToCategory(rs));
+            }
+            logger.info("Found {} active categories.", activeCategories.size());
+        } catch (SQLException e) {
+            logger.error("Error reading active category records: {}", e.getMessage(), e);
+            throw new DatabaseAccessException("Error reading active category records: " + e.getMessage(), e);
+        }
+        return activeCategories;
+    }
+
+    /**
+     * {@inheritDoc}
      */
     @Override
     public long count() throws DatabaseAccessException {
@@ -379,6 +392,31 @@ public class CategoryDataAccessImpl implements CategoryDataAccess {
         } catch (SQLException e) {
             logger.error("Error counting category records: {}", e.getMessage(), e);
             throw new DatabaseAccessException("Error counting category records: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>
+     * This method counts all active category records (where `IsActive = 1`).
+     * </p>
+     */
+    @Override
+    public long countActive() throws DatabaseAccessException {
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_COUNT_ACTIVE_CATEGORIES);
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+                long count = rs.getLong(1);
+                logger.info("Total active category record count: {}", count);
+                return count;
+            }
+            return 0;
+        } catch (SQLException e) {
+            logger.error("Error counting active category records: {}", e.getMessage(), e);
+            throw new DatabaseAccessException("Error counting active category records: " + e.getMessage(), e);
         }
     }
 
@@ -410,8 +448,8 @@ public class CategoryDataAccessImpl implements CategoryDataAccess {
      * <p>
      * This method enforces the business rule:
      * <ul>
-     * <li>If {@link CategoryType#INCOME}, {@link Participant} must be specified.</li>
-     * <li>If {@link CategoryType#EXPENSE} or {@link CategoryType#CREDIT}, {@link Participant} must NOT be specified.</li>
+     * <li>If {@link CategoryType#INCOME}, a {@link Participant} must be specified.</li>
+     * <li>If {@link CategoryType#EXPENSE} or {@link CategoryType#CREDIT}, a {@link Participant} must NOT be specified.</li>
      * </ul>
      * </p>
      */
@@ -422,14 +460,13 @@ public class CategoryDataAccessImpl implements CategoryDataAccess {
         Objects.requireNonNull(category.getCategoryType(), "Category type cannot be null for update.");
         Objects.requireNonNull(category.getCategoryName(), "Category name cannot be null for update.");
 
-        // Enforce business rule before database interaction
         enforceParticipantCategoryTypeBusinessRule(category);
 
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_UPDATE_CATEGORY_RECORD)) {
 
             setCategoryStatementParameters(stmt, category, 1);
-            stmt.setInt(7, category.getCategoryID()); // WHERE CategoryID = ?
+            stmt.setInt(7, category.getCategoryID());
 
             logger.debug("Executing update category query for ID: {}", category.getCategoryID());
             int affectedRows = stmt.executeUpdate();
@@ -452,9 +489,13 @@ public class CategoryDataAccessImpl implements CategoryDataAccess {
 
     /**
      * {@inheritDoc}
+     *
+     * <p>
+     * Retrieves a list of all {@link Category} records that match a specified {@link CategoryType}.
+     * </p>
      */
     @Override
-    public List<Category> findByType(CategoryType type) throws DatabaseAccessException { // Renamed method
+    public List<Category> findByType(CategoryType type) throws DatabaseAccessException {
         Objects.requireNonNull(type, "CategoryType cannot be null for finding categories by type.");
         List<Category> categories = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
@@ -478,9 +519,13 @@ public class CategoryDataAccessImpl implements CategoryDataAccess {
 
     /**
      * {@inheritDoc}
+     *
+     * <p>
+     * Retrieves a list of all distinct {@link CategoryType} values currently present in the database.
+     * </p>
      */
     @Override
-    public List<CategoryType> findDistinctTypes() throws DatabaseAccessException { // Renamed method
+    public List<CategoryType> findDistinctTypes() throws DatabaseAccessException {
         List<CategoryType> distinctTypes = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_FIND_DISTINCT_CATEGORY_TYPES);
