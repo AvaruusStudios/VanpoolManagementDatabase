@@ -64,6 +64,8 @@ public class LineItemDataAccessImpl implements LineItemDataAccess {
     private static final String SQL_READ_LINE_ITEM_RECORD;
     /** SQL query to read all line item records. */
     private static final String SQL_READ_ALL_LINE_ITEM_RECORD;
+    /** SQL query to select all active line item records. */
+    private static final String SQL_READ_ACTIVE_LINE_ITEM_RECORD;
     /** SQL query to check if a line item record exists by its ID. */
     private static final String SQL_EXISTS_LINE_ITEM_BY_ID;
     /** SQL query to update an existing line item record. */
@@ -74,6 +76,8 @@ public class LineItemDataAccessImpl implements LineItemDataAccess {
     private static final String SQL_DELETE_LINE_ITEM_SOFT;
     /** SQL query to count all line item records. */
     private static final String SQL_COUNT_LINE_ITEM_RECORD;
+    /** SQL query to count all active line item records. */
+    private static final String SQL_COUNT_ACTIVE_LINE_ITEM_RECORD;
     /** SQL query to find line items by invoice ID. */
     private static final String SQL_FIND_BY_INVOICE_ID;
     /** SQL query to find line items by participant ID. */
@@ -88,11 +92,13 @@ public class LineItemDataAccessImpl implements LineItemDataAccess {
             SQL_CREATE_LINE_ITEM_RECORD = QueryLoader.getQuery("line_item/insertLineItem.sql");
             SQL_READ_LINE_ITEM_RECORD = QueryLoader.getQuery("line_item/selectLineItemById.sql");
             SQL_READ_ALL_LINE_ITEM_RECORD = QueryLoader.getQuery("line_item/selectAllLineItems.sql");
+            SQL_READ_ACTIVE_LINE_ITEM_RECORD = "SELECT * FROM LineItems WHERE IsActive = 1";
             SQL_EXISTS_LINE_ITEM_BY_ID = QueryLoader.getQuery("line_item/existById.sql");
             SQL_UPDATE_LINE_ITEM_RECORD = QueryLoader.getQuery("line_item/updateLineItem.sql");
             SQL_DELETE_LINE_ITEM_HARD = QueryLoader.getQuery("line_item/deleteLineItemHard.sql");
             SQL_DELETE_LINE_ITEM_SOFT = QueryLoader.getQuery("line_item/deleteLineItemSoft.sql");
             SQL_COUNT_LINE_ITEM_RECORD = QueryLoader.getQuery("line_item/countLineItems.sql");
+            SQL_COUNT_ACTIVE_LINE_ITEM_RECORD = "SELECT COUNT(*) FROM LineItems WHERE IsActive = 1";
             SQL_FIND_BY_INVOICE_ID = QueryLoader.getQuery("line_item/selectLineItemsByInvoiceId.sql");
             SQL_FIND_BY_PARTICIPANT_ID = QueryLoader.getQuery("line_item/selectLineItemsByParticipantId.sql");
             SQL_FIND_UNPAID_BY_PARTICIPANT = QueryLoader.getQuery("line_item/selectUnpaidLineItemsByParticipantId.sql");
@@ -198,6 +204,28 @@ public class LineItemDataAccessImpl implements LineItemDataAccess {
             throw new DatabaseAccessException("Error reading all line item records: " + e.getMessage(), e);
         }
         return lineItems;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<LineItem> findActive() throws DatabaseAccessException {
+        List<LineItem> activeLineItems = new ArrayList<>();
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_READ_ACTIVE_LINE_ITEM_RECORD);
+             ResultSet rs = stmt.executeQuery()) {
+
+            logger.debug("Executing read active line items query.");
+            while (rs.next()) {
+                activeLineItems.add(mapResultSetToLineItem(rs));
+            }
+            logger.info("Found {} active line items.", activeLineItems.size());
+        } catch (SQLException e) {
+            logger.error("Error reading active line item records: {}", e.getMessage(), e);
+            throw new DatabaseAccessException("Error reading active line item records: " + e.getMessage(), e);
+        }
+        return activeLineItems;
     }
 
     /**
@@ -402,6 +430,27 @@ public class LineItemDataAccessImpl implements LineItemDataAccess {
             throw new DatabaseAccessException("Error counting line item records: " + e.getMessage(), e);
         }
         return 0;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long countActive() throws DatabaseAccessException {
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_COUNT_ACTIVE_LINE_ITEM_RECORD);
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+                long count = rs.getLong(1);
+                logger.info("Total active line item record count: {}", count);
+                return count;
+            }
+            return 0;
+        } catch (SQLException e) {
+            logger.error("Error counting active line item records: {}", e.getMessage(), e);
+            throw new DatabaseAccessException("Error counting active line item records: " + e.getMessage(), e);
+        }
     }
 
     /**
