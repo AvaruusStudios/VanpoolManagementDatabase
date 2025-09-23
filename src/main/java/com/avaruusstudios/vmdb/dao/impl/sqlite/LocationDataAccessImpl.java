@@ -104,8 +104,12 @@ public class LocationDataAccessImpl implements LocationDataAccess {
     private static final String SQL_READ_LOCATION_RECORD;
     /** SQL query to select all location records. Loaded from `location/selectAllLocations.sql`. */
     private static final String SQL_READ_ALL_LOCATION_RECORDS;
+    /** SQL query to select all active location records. */
+    private static final String SQL_READ_ACTIVE_LOCATION_RECORDS;
     /** SQL query to count the total number of location records. Loaded from `location/countLocations.sql`. */
     private static final String SQL_COUNT_LOCATION_RECORDS;
+    /** SQL query to count the total number of active location records. */
+    private static final String SQL_COUNT_ACTIVE_LOCATION_RECORDS;
     /** SQL query to check if a location record with a given ID exists. Loaded from `location/existsLocationById.sql`. */
     private static final String SQL_EXISTS_LOCATION_BY_ID;
     /** SQL query to update an existing location record. Loaded from `location/updateLocation.sql`. */
@@ -132,7 +136,9 @@ public class LocationDataAccessImpl implements LocationDataAccess {
             SQL_CREATE_LOCATION_RECORD = QueryLoader.getQuery("location/insertLocation.sql");
             SQL_READ_LOCATION_RECORD = QueryLoader.getQuery("location/selectLocationById.sql");
             SQL_READ_ALL_LOCATION_RECORDS = QueryLoader.getQuery("location/selectAllLocations.sql");
+            SQL_READ_ACTIVE_LOCATION_RECORDS = "SELECT * FROM Locations WHERE IsActive = 1";
             SQL_COUNT_LOCATION_RECORDS = QueryLoader.getQuery("location/countLocations.sql");
+            SQL_COUNT_ACTIVE_LOCATION_RECORDS = "SELECT COUNT(*) FROM Locations WHERE IsActive = 1";
             SQL_EXISTS_LOCATION_BY_ID = QueryLoader.getQuery("location/existsLocationById.sql");
             SQL_UPDATE_LOCATION_RECORD = QueryLoader.getQuery("location/updateLocation.sql");
             SQL_DELETE_LOCATION_SOFT = QueryLoader.getQuery("location/deleteLocationSoft.sql");
@@ -431,6 +437,28 @@ public class LocationDataAccessImpl implements LocationDataAccess {
      * {@inheritDoc}
      */
     @Override
+    public List<Location> findActive() throws DatabaseAccessException {
+        List<Location> activeLocations = new ArrayList<>();
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_READ_ACTIVE_LOCATION_RECORDS);
+             ResultSet rs = stmt.executeQuery()) {
+
+            logger.debug("Executing read active locations query.");
+            while (rs.next()) {
+                activeLocations.add(mapResultSetToLocation(rs));
+            }
+            logger.info("Found {} active locations.", activeLocations.size());
+        } catch (SQLException e) {
+            logger.error("Error reading active location records: {}", e.getMessage(), e);
+            throw new DatabaseAccessException("Error reading active location records: " + e.getMessage(), e);
+        }
+        return activeLocations;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public long count() throws DatabaseAccessException {
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SQL_COUNT_LOCATION_RECORDS);
@@ -445,6 +473,27 @@ public class LocationDataAccessImpl implements LocationDataAccess {
         } catch (SQLException e) {
             logger.error("Error counting location records: {}", e.getMessage(), e);
             throw new DatabaseAccessException("Error counting location records: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long countActive() throws DatabaseAccessException {
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_COUNT_ACTIVE_LOCATION_RECORDS);
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+                long count = rs.getLong(1);
+                logger.info("Total active location record count: {}", count);
+                return count;
+            }
+            return 0;
+        } catch (SQLException e) {
+            logger.error("Error counting active location records: {}", e.getMessage(), e);
+            throw new DatabaseAccessException("Error counting active location records: " + e.getMessage(), e);
         }
     }
 
