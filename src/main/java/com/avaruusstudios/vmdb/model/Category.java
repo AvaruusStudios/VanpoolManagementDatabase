@@ -7,8 +7,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-
-import java.time.LocalDate; // For DeletedAt
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
@@ -139,10 +138,10 @@ public class Category {
      * This field maps to the {@code DeletedAt TEXT DEFAULT NULL} column in the database.
      * It stores the date and time in ISO format (e.g., "YYYY-MM-DD HH:MM:SS") when `IsActive`
      * is set to 0. A {@code null} value indicates the record is not deleted.
-     * Exposed as an {@link ObjectProperty} of {@link LocalDate}.
+     * Exposed as an {@link ObjectProperty} of {@link LocalDateTime}.
      * </p>
      */
-    private final ObjectProperty<LocalDate> deletedAt;
+    private final ObjectProperty<LocalDateTime> deletedAt;
 
     /**
      * <p>
@@ -193,7 +192,7 @@ public class Category {
      * or if participant/categoryType business rules are violated, or if `isActive` is not 0 or 1.
      */
     public Category(Integer categoryID, Participant participant, CategoryType categoryType, String categoryName,
-                    String description, int isActive, LocalDate deletedAt) {
+                    String description, int isActive, LocalDateTime deletedAt) {
         this.categoryID = new SimpleObjectProperty<>(this, "categoryID", Objects.requireNonNull(categoryID, "CategoryID cannot be null for an existing category."));
         this.participant = new SimpleObjectProperty<>(this, "participant");
         this.categoryType = new SimpleObjectProperty<>(this, "categoryType");
@@ -350,7 +349,7 @@ public class Category {
      *
      * @return The {@link ObjectProperty} for {@code deletedAt}.
      */
-    public ObjectProperty<LocalDate> deletedAtProperty() {
+    public ObjectProperty<LocalDateTime> deletedAtProperty() {
         return deletedAt;
     }
 
@@ -566,9 +565,9 @@ public class Category {
      * Corresponds to the {@code DeletedAt} column in the database.
      * </p>
      *
-     * @return The {@link LocalDate} when the category was soft-deleted, or {@code null} if not deleted.
+     * @return The {@link LocalDateTime} when the category was soft-deleted, or {@code null} if not deleted.
      */
-    public LocalDate getDeletedAt() {
+    public LocalDateTime getDeletedAt() {
         return deletedAt.get();
     }
     /**
@@ -580,9 +579,9 @@ public class Category {
      * used in conjunction with setting {@link #setIsActive(int) isActive} to 0.
      * </p>
      *
-     * @param deletedAt The {@link LocalDate} to set, or {@code null} to indicate not deleted.
+     * @param deletedAt The {@link LocalDateTime} to set, or {@code null} to indicate not deleted.
      */
-    public void setDeletedAt(LocalDate deletedAt) {
+    public void setDeletedAt(LocalDateTime deletedAt) {
         this.deletedAt.set(deletedAt);
     }
 
