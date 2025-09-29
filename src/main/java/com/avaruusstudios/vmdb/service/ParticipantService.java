@@ -1,7 +1,7 @@
 package com.avaruusstudios.vmdb.service;
 
 import com.avaruusstudios.vmdb.model.Participant;
-import com.avaruusstudios.vmdb.model.Category;
+
 import java.util.List;
 
 /**
@@ -52,7 +52,7 @@ public interface ParticipantService {
      * @param id The unique integer ID of the participant to retrieve.
      * @return The {@link Participant} object, or {@code null} if no participant is found with the given ID.
      */
-    Participant read(Integer id);
+    Participant find(Integer id);
 
     /**
      * Retrieves all {@link Participant} records from the database.
