@@ -98,7 +98,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public User findUserById(Integer id) {
-        Optional<User> userOptional = userDataAccess.read(id);
+        Optional<User> userOptional = userDataAccess.find(id);
         return userOptional.orElse(null);
     }
 
@@ -112,7 +112,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public List<User> findAllUsers() {
-        return userDataAccess.readAll(); // FIX: Changed method name
+        return userDataAccess.findAll(); // FIX: Changed method name
     }
 
     /**
