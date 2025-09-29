@@ -85,7 +85,7 @@ import java.util.Locale;
 public class ParticipantDataAccessImpl implements ParticipantDataAccess {
 
     /**
-     * SLF4J logger for logging informational messages, warnings, and errors within the {@code ParticipantImplementation} class.
+     * SLF4J logger for logging informational messages, warnings, and errors within the {@code ParticipantDataAccessImpl} class.
      */
     private static final Logger logger = LoggerFactory.getLogger(ParticipantDataAccessImpl.class);
 

@@ -64,7 +64,7 @@ import java.util.Locale;
 public class TransactionDataAccessImpl implements TransactionDataAccess {
 
     /**
-     * SLF4J logger for logging informational messages, warnings, and errors within the {@code TransactionImplementation} class.
+     * SLF4J logger for logging informational messages, warnings, and errors within the {@code TransactionDataAccessImpl} class.
      */
     private static final Logger logger = LoggerFactory.getLogger(TransactionDataAccessImpl.class);
 

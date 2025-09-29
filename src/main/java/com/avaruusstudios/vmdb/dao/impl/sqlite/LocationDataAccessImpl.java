@@ -80,7 +80,7 @@ import java.util.Optional;
 public class LocationDataAccessImpl implements LocationDataAccess {
 
     /**
-     * SLF4J logger for logging informational messages, warnings, and errors within the {@code LocationImplementation} class.
+     * SLF4J logger for logging informational messages, warnings, and errors within the {@code LocationDataAccessImpl} class.
      */
     private static final Logger logger = LoggerFactory.getLogger(LocationDataAccessImpl.class);
 

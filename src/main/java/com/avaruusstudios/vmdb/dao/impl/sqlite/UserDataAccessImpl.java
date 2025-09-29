@@ -71,7 +71,7 @@ import java.util.Optional;
 public class UserDataAccessImpl implements UserDataAccess {
 
     /**
-     * SLF4J logger for logging informational messages, warnings, and errors within the {@code UserImplementation} class.
+     * SLF4J logger for logging informational messages, warnings, and errors within the {@code UserDataAccessImpl} class.
      */
     private static final Logger logger = LoggerFactory.getLogger(UserDataAccessImpl.class);
 
